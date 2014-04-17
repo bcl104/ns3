@@ -153,7 +153,7 @@ BufferTest::DoRun (void)
   // test self-assignment
   {
     Buffer a = o;
-    a = a;
+//   a = a;
   }
 
   // test Remove start.

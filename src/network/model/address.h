@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ *
+ * Modify: Add { public bool operator() (Address &a) }
+ * 		   2014-4-13 by will
  */
 
 #ifndef ADDRESS_H
@@ -207,6 +210,8 @@ public:
    * The input address buffer is expected to be in host byte order format.
    */
   void Deserialize (TagBuffer buffer);
+
+  bool operator() (Address &a);
 
 private:
   friend bool operator == (const Address &a, const Address &b);

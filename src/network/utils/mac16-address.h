@@ -16,6 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Modify: Add { public bool operator() (Mac16Address& address) }
+ * 		   Add { inline bool operator == (const Mac16Address &a, uint16_t &b) }
+ * 		   2014-4-13 by will
+ *
  */
 #ifndef MAC16_ADDRESS_H
 #define MAC16_ADDRESS_H
@@ -64,6 +68,8 @@ public:
    * Convert an instance of this class to a polymorphic Address instance.
    */
   operator Address () const;
+
+  bool operator() (Mac16Address& address);
   /**
    * \param address a polymorphic address
    * \returns a new Mac16Address from the polymorphic address
@@ -93,6 +99,7 @@ private:
   static uint8_t GetType (void);
   friend bool operator < (const Mac16Address &a, const Mac16Address &b);
   friend bool operator == (const Mac16Address &a, const Mac16Address &b);
+  friend bool operator == (const Mac16Address &a, uint16_t &b);
   friend bool operator != (const Mac16Address &a, const Mac16Address &b);
   friend std::istream& operator>> (std::istream& is, Mac16Address & address);
 
@@ -110,6 +117,16 @@ inline bool operator == (const Mac16Address &a, const Mac16Address &b)
 {
   return memcmp (a.m_address, b.m_address, 2) == 0;
 }
+
+inline bool operator == (const Mac16Address &a, uint16_t &b)
+{
+	return memcmp (a.m_address, &b, 2) == 0;
+}
+
+inline bool Mac16Address::operator ()(Mac16Address& address) {
+	return ((*this) == address)? true : false;
+}
+
 inline bool operator != (const Mac16Address &a, const Mac16Address &b)
 {
   return memcmp (a.m_address, b.m_address, 2) != 0;

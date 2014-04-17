@@ -259,6 +259,10 @@ AsInt (std::string v)
   return retval;
 }
 
+bool Address::operator ()(Address& a) {
+	return (*this) == a;
+}
+
 std::istream& operator>> (std::istream& is, Address & address)
 {
   std::string v;

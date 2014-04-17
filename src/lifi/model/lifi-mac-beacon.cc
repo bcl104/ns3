@@ -5,6 +5,7 @@
  *     date  2014.4.11
  */
 #include "lifi-mac-beacon.h"
+#include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE("LifiMacBeacon");
 
