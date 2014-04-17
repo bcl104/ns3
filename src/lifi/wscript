@@ -1,0 +1,108 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+# def options(opt):
+#     pass
+
+# def configure(conf):
+#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+
+def build(bld):
+    module = bld.create_ns3_module('lifi', ['core', 'network', 'spectrum', 'mobility', 'internet'])
+    module.source = [
+        'model/data-service.cc',
+        'model/lifi.cc',
+        'model/lifi-assoc-handler.cc',
+        'model/lifi-beacon-handler.cc',
+        'model/lifi-channel-scan-handler.cc',
+        'model/lifi-data-handler.cc',
+        'model/lifi-disassoc-handler.cc',
+        'model/lifi-gts-handler.cc',
+        'model/lifi-mac.cc',
+        'model/lifi-mac-comm.cc',
+        'model/lifi-mac-coord-impl.cc',
+        'model/lifi-mac-dev-impl.cc',
+        'model/lifi-mac-general.cc',
+        'model/lifi-mac-impl.cc',
+        'model/lifi-mac-pib-attributes.cc',
+        'model/lifi-mac-header.cc',
+        'model/lifi-mac-beacon.cc',
+        'model/lifi-net-device.cc',
+        'model/lifi-phy.cc',
+        'model/lifi-phy-general.cc',
+        'model/lifi-phy-pib-attributes.cc',
+        'model/lifi-pib-attributes.cc',
+        'model/lifi-spectrum-phy.cc',
+        'model/lifi-tx-handler.cc',
+        'model/mcps-sap-provider.cc',
+        'model/mcps-sap-user.cc',
+        'model/mlme-sap-provider.cc',
+        'model/mlme-sap-user.cc',
+        'model/op-status-callback.cc',
+        'model/pd-sap-provider.cc',
+        'model/pd-sap-user.cc',
+        'model/plme-sap-provider.cc',
+        'model/plme-sap-user.cc',
+        'model/lifi-indoor-propagation-loss-model.cc',
+        'model/lifi-interference.cc',
+        'model/lifi-spectrum-error-model.cc',
+        'model/lifi-cell.cc',
+        'model/lifi-phy-header.cc',
+        'model/lifi-spectrum-channel.cc',
+        'helper/lifi-helper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('lifi')
+    module_test.source = [
+        'test/lifi-test-suite.cc',
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'lifi'
+    headers.source = [
+        'model/data-service.h',
+        'model/lifi.h',
+        'model/lifi-assoc-handler.h',
+        'model/lifi-beacon-handler.h',
+        'model/lifi-channel-scan-handler.h',
+        'model/lifi-data-handler.h',
+        'model/lifi-disassoc-handler.h',
+        'model/lifi-gts-handler.h',
+        'model/lifi-mac.h',
+        'model/lifi-mac-comm.h',
+        'model/lifi-mac-coord-impl.h',
+        'model/lifi-mac-dev-impl.h',
+        'model/lifi-mac-general.h',
+        'model/lifi-mac-impl.h',
+        'model/lifi-mac-pib-attributes.h',
+        'model/lifi-mac-header.h',
+        'model/lifi-mac-beacon.h',
+        'model/lifi-net-device.h',
+        'model/lifi-phy.h',
+        'model/lifi-phy-general.h',
+        'model/lifi-phy-pib-attributes.h',
+        'model/lifi-pib-attributes.h',
+        'model/lifi-spectrum-phy.h',
+        'model/lifi-tx-handler.h',
+        'model/mcps-sap-provider.h',
+        'model/mcps-sap-user.h',
+        'model/mlme-sap-provider.h',
+        'model/mlme-sap-user.h',
+        'model/op-status-callback.h',
+        'model/pd-sap-provider.h',
+        'model/pd-sap-user.h',
+        'model/plme-sap-provider.h',
+        'model/plme-sap-user.h',
+        'model/lifi-indoor-propagation-loss-model.h',
+        'model/lifi-interference.h',
+        'model/lifi-spectrum-error-model.h',
+        'model/lifi-cell.h',
+        'model/lifi-phy-header.h',
+        'model/lifi-spectrum-channel.h',
+        'helper/lifi-helper.h',
+        ]
+
+    if bld.env.ENABLE_EXAMPLES:
+        bld.recurse('examples')
+
+    # bld.ns3_python_bindings()
+
