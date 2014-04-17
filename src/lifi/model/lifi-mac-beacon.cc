@@ -4,8 +4,11 @@
  *    Author: wanghongqiao
  *     date  2014.4.11
  */
-#include "lifi-mac-beacon.h"
+#include "ns3/lifi-mac-beacon.h"
 #include "ns3/log.h"
+#include "ns3/assert.h"
+#include "ns3/fatal-error.h"
+#include "ns3/network-module.h"
 
 NS_LOG_COMPONENT_DEFINE("LifiMacBeacon");
 
