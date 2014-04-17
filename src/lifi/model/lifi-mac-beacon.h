@@ -85,9 +85,9 @@ private:
 
 	uint32_t WriteTo (Buffer::Iterator &it, uint8_t *data, uint32_t size);
 
-	uint8_t* ReadFrom (const uint8_t *data, AddrList &address, uint32_t shorts, uint32_t extendeds);
+	uint8_t* ReadFrom (const uint8_t* data, AddrList &address, uint32_t shorts, uint32_t extendeds);
 
-	uint8_t* ReadFrom (const uint8_t *data, GtsList &descrip, uint32_t size);
+	uint8_t* ReadFrom (const uint8_t* data, GtsList &descrip, uint32_t size);
 
 	uint32_t ReadFrom (uint8_t* to, const uint8_t* start, const uint8_t* end);
 

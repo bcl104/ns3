@@ -10,6 +10,7 @@
 #include "ns3/fatal-error.h"
 #include "ns3/network-module.h"
 
+
 NS_LOG_COMPONENT_DEFINE("LifiMacBeacon");
 
 namespace ns3{
