@@ -19,11 +19,19 @@ NS_OBJECT_ENSURE_REGISTERED (LifiChannelScanHandler);
 
 LifiChannelScanHandler::LifiChannelScanHandler() {
 	NS_LOG_FUNCTION (this);
-
+	m_attributes = 0;
+	m_channelUnscanned = 0xff;
+	m_curChannel = CHANNEL1;
+	m_dataService = 0;
+	m_lifiMacImpl = 0;
+	m_provider = 0;
+	m_run = false;
+	m_bcnRcved = 0;
 }
 
 LifiChannelScanHandler::LifiChannelScanHandler(LifiMacImpl* impl, DataService* service, MlmeSapUser* user) {
 	NS_LOG_FUNCTION (this);
+	LifiChannelScanHandler ();
 	m_dataService = service;
 	m_lifiMacImpl = impl;
 	m_user = user;
@@ -72,8 +80,8 @@ bool LifiChannelScanHandler::Start(ScanType scanType, uint32_t duration) {
 	NS_ASSERT_MSG (m_run == false, "LifiChannelScanHandler::Start can not be called when the handler is running.");
 	m_state = NEW_CHANNEL;
 	m_run = true;
-	m_storedVPANId = m_attributes->macVPANId;
-	m_attributes->macVPANId = MAC_FILTER_ALL;
+//	m_storedVPANId = m_attributes->macVPANId;
+//	m_attributes->macVPANId = MAC_FILTER_ALL;
 	m_scanType = scanType;
 	m_curChannel = CHANNEL1;
 
@@ -126,7 +134,7 @@ void LifiChannelScanHandler::DoRun() {
 
 void LifiChannelScanHandler::EndScannOnOneChannel() {
 	NS_LOG_FUNCTION(this);
-
+	NS_LOG_INFO(Simulator::Now()<<" Channel scanning-current channel: " << (uint32_t)m_curChannel);
 	// When the Reset() method is called and the handler is scanning channel, the handler
 	// will stop and reset its parameters after it finishing scanning on current channel.
 	if (!m_run)
@@ -185,20 +193,31 @@ void LifiChannelScanHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> msd
 	{
 		m_user->MlmeBeaconNotify(m_attributes->macBSN, d, pas, beacon.GetAddrs(), payloadSize, payload);
 	}
-	EndScannOnOneChannel ();
+	m_bcnRcved ++;
+	if (m_bcnRcved >= MAX_BEACON_PER_CHANNEL)
+	{
+		NS_LOG_DEBUG ("m_bcnRcved >= MAX_BEACON_PER_CHANNEL, terminate scanning current channel "
+				<< (uint32_t)m_curChannel);
+		m_bcnRcved = 0;
+		EndScannOnOneChannel ();
+	}
+
 }
 
 void LifiChannelScanHandler::Complete() {
-//	if (m_attributes->macAutoRequest == true)
-//	{
-//		MacOpStatus status = (m_VPANDescriptors.empty()== true)? NO_BEACON : MAC_SUCCESS;
-//		m_user->MlmeScanConfirm(status, m_scanType, (uint8_t)m_channelUnscanned,
-//								m_VPANDescriptors.size(),m_VPANDescriptors);
-//	}
+	NS_LOG_FUNCTION(this);
+	if (m_attributes->macAutoRequest == true)
+	{
+		MacOpStatus status = (m_VPANDescriptors.empty()== true)? NO_BEACON : MAC_SUCCESS;
+		m_user->MlmeScanConfirm(status, m_scanType, (uint8_t)m_channelUnscanned,
+								m_VPANDescriptors.size(), m_VPANDescriptors);
+	}
 }
 
 void LifiChannelScanHandler::ReceiveBeacon(uint32_t timestamp,
 		Ptr<Packet> msdu) {
+	NS_LOG_FUNCTION (this << timestamp << msdu);
+	onReceiveBeacon(timestamp, msdu);
 }
 
 bool LifiChannelScanHandler::IsRun() {
@@ -206,11 +225,12 @@ bool LifiChannelScanHandler::IsRun() {
 }
 
 bool LifiChannelScanHandler::SwitchChannel() {
-//	if ((uint8_t)m_curChannel == 0x00)
-//		return false;
-//	m_curChannel = (LogicChannelId)((uint8_t)m_curChannel << 1);
-//	m_channelUnscanned = (~m_curChannel) & m_channelUnscanned;
-//	m_state = NEW_CHANNEL;
+	NS_LOG_FUNCTION (this);
+	if ((uint8_t)m_curChannel == 0x00)
+		return false;
+	m_curChannel = (LogicChannelId)((uint8_t)m_curChannel << 1);
+	m_channelUnscanned = (~m_curChannel) & m_channelUnscanned;
+	m_state = NEW_CHANNEL;
 	return true;
 }
 
