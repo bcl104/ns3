@@ -80,8 +80,8 @@ bool LifiChannelScanHandler::Start(ScanType scanType, uint32_t duration) {
 	NS_ASSERT_MSG (m_run == false, "LifiChannelScanHandler::Start can not be called when the handler is running.");
 	m_state = NEW_CHANNEL;
 	m_run = true;
-//	m_storedVPANId = m_attributes->macVPANId;
-//	m_attributes->macVPANId = MAC_FILTER_ALL;
+	m_storedVPANId = m_attributes->macVPANId;
+	m_attributes->macVPANId = MAC_FILTER_ALL;
 	m_scanType = scanType;
 	m_curChannel = CHANNEL1;
 
