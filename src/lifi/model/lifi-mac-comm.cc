@@ -662,7 +662,7 @@ DataRequestComm::~DataRequestComm() {
 
 void DataRequestComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data++;
-//	NS_ASSERT (DATA_REQUEST == m_commId);
+	NS_ASSERT (DATA_REQUEST == m_commId);
 	data++;
 }
 
@@ -684,7 +684,7 @@ Buffer DataRequestComm::Serialize() {
 	Buffer b;
 	b.AddAtStart(2);
 	Buffer::Iterator it = b.Begin();
-//	NS_ASSERT (DATA_REQUEST == m_commId);
+	NS_ASSERT (DATA_REQUEST == m_commId);
 	it.WriteU8((uint8_t)m_commId);
 	uint8_t payloadlenth = 1;
 	it.WriteU8(payloadlenth);
