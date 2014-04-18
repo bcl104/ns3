@@ -47,8 +47,9 @@ void LifiPhyHeader::Print (std::ostream &os) const{
 
 uint32_t LifiPhyHeader::GetSerializedSize (void) const{
 	uint32_t PHY_headerField_Size = 4;
-	uint32_t header_size = PHY_headerField_Size;
-	return header_size;
+//	uint32_t header_size = PHY_headerField_Size;
+//	return header_size;//by shuangxing
+	return PHY_headerField_Size;//modified by pp on 2014.04.18
 }
 
 void LifiPhyHeader::Serialize (Buffer::Iterator start) const{
@@ -70,7 +71,8 @@ uint32_t LifiPhyHeader::Deserialize (Buffer::Iterator start){
 	m_channelNum = (uint8_t) ((PHY_headerField >> 1) & 0x000007);
 	m_mcsId = (uint8_t) ((PHY_headerField >> 4) & 0x00003F);
 	m_psduLength = (uint16_t) ((PHY_headerField >> 10) & 0x00FFFF);
-	m_ookDimmed = (bool) ((PHY_headerField << 26) & 0x000001);
+//	m_ookDimmed = (bool) ((PHY_headerField << 26) & 0x000001);//by shuangxing
+	m_ookDimmed = (bool) ((PHY_headerField >> 26) & 0x000001);//modified by pp on 2014.04.18
 	m_reservedFields = (uint8_t) ((PHY_headerField >> 27) & 0x00001F);
 	return it.GetDistanceFrom(start);
 }

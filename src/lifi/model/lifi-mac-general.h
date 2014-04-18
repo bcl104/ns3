@@ -231,6 +231,8 @@ public:
 
 };
 
+typedef std::vector<VPANDescriptor> VpanDescriptors;
+
 struct GTSCharacteristics
 {
 

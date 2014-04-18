@@ -194,18 +194,34 @@ uint32_t LifiMacHeader::Deserialize (Buffer::Iterator start)
 	m_dstVPANId = it.ReadU16();
 
 	if (dstAddrMode == SHORT)
-		ReadFrom(it, m_dstAddress, 2);
+	{
+		Mac16Address dstAddress;
+		ReadFrom(it, dstAddress);
+		m_dstAddress = Address (dstAddress);
+	}
 	else if (dstAddrMode == EXTENDED)
-		ReadFrom(it, m_dstAddress, 8);
+	{
+		Mac64Address dstAddress;
+		ReadFrom(it, dstAddress);
+		m_dstAddress = Address (dstAddress);
+	}
 	else
 		NS_FATAL_ERROR("Invalid address mode.");
 
 	m_srcVPANId = it.ReadU16();
 
 	if (srcAddrMode == SHORT)
-		ReadFrom(it, m_dstAddress, 2);
+	{
+		Mac16Address srcAddress;
+		ReadFrom(it, srcAddress);
+		m_srcAddress = Address (srcAddress);
+	}
 	else if (srcAddrMode == EXTENDED)
-		ReadFrom(it, m_srcAddress, 8);
+	{
+		Mac64Address srcAddress;
+		ReadFrom(it, srcAddress);
+		m_srcAddress = Address (srcAddress);
+	}
 	else
 		NS_FATAL_ERROR("Invalid address mode.");
 

@@ -17,8 +17,6 @@
 
 namespace ns3 {
 
-typedef std::vector<VPANDescriptor> VpanDescriptors;
-
 
 class LifiChannelScanHandler : public Object, public OpStatusCallback
 {
@@ -35,8 +33,6 @@ public:
 
 	static TypeId GetTypeId ();
 
-	void EndScannOnOneChannel();
-
 	void ReceiveBeacon(uint32_t timestamp, Ptr<Packet> msdu);
 
 	virtual void TxResultNotification(PhyOpStatus status);
@@ -52,6 +48,9 @@ public:
 	void SetMacPibAttribtes (LifiMacPibAttribute* attributes);
 
 protected:
+
+	void EndScannOnOneChannel();
+
 	void DoRun();
 
 	void Complete();
@@ -81,6 +80,7 @@ protected:
 	VpanDescriptors m_VPANDescriptors;
 
 	Timer m_timer;
+	uint32_t m_bcnRcved;
 
 	LifiMacImpl* m_lifiMacImpl;
 	DataService* m_dataService;

@@ -31,7 +31,7 @@ public:
 	virtual void MlmePollConfirm(MacOpStatus status) = 0;
 	virtual void MlmeResetConfirm(MacOpStatus status) = 0;
 	virtual void MlmeRxEnableConfirm(MacOpStatus status) = 0;
-	virtual void MlmeScanConfirm(MacOpStatus status, ScanType scanType, uint8_t unscanChannels, uint32_t resultListSize, std::map<uint8_t, VPANDescriptor>& descriptors) = 0;
+	virtual void MlmeScanConfirm(MacOpStatus status, ScanType scanType, uint8_t unscanChannels, uint32_t resultListSize, VpanDescriptors &descriptors) = 0;
 	virtual void MlmeSetConfirm(MacOpStatus ststus, MacPIBAttributeId id, uint32_t index) = 0;
 	virtual void MlmeStartConfirm(MacOpStatus status) = 0;
 	virtual void MlmeSyncLossIndication(MacOpStatus lossReason, uint16_t vpanId, LogicChannelId channel) = 0;
@@ -109,7 +109,7 @@ public:
 		NS_ASSERT_MSG(false, "MlmeRxEnableConfirm should not be invoked.");
 	}
 	virtual void MlmeScanConfirm(MacOpStatus status, ScanType scanType, uint8_t unscanChannels,
-									uint32_t size, std::map<uint8_t, VPANDescriptor>& descriptors)
+									uint32_t size, VpanDescriptors descriptors)
 	{
 		m_sscs->ScanConfirm (status, scanType, unscanChannels, size, descriptors);
 	}
