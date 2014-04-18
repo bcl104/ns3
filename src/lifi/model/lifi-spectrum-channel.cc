@@ -60,18 +60,18 @@ void LifiSpectrumChannel::SetPropagationDelayModel(Ptr<PropagationDelayModel> de
 
 void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> params) {
 	NS_LOG_FUNCTION(this);
+
 }
 
-void LifiSpectrumChannel::AddRx(Ptr<SpectrumPhy> phy) {
-	NS_LOG_FUNCTION(this);
+void LifiSpectrumChannel::AddRx(uint8_t band,Ptr<SpectrumPhy> phy) {
 	NS_ASSERT(phy!=0);
 	Ptr<NetDevice> pD = phy->GetDevice();
 	NS_ASSERT(pD!=0);
-
-	std::vector<Ptr<SpectrumPhy> >::const_iterator it = m_rxPhyList.begin();
+	std::pair<Ptr<SpectrumPhy>,uint32_t> temp;
+	PhyList::iterator it = m_rxPhyList.begin();
 	bool flag = true;
 	while(it!=m_rxPhyList.end()){
-		if(pD==((*it)->GetDevice())){
+		if(it->second.first->GetDevice() == pD){
 			flag = false;
 			break;
 		}
@@ -79,9 +79,9 @@ void LifiSpectrumChannel::AddRx(Ptr<SpectrumPhy> phy) {
 	}
 	if(flag){
 		m_numDevices++;
-		m_rxNumDevices++;
+		m_txNumDevices++;
 	}
-	m_rxPhyList.push_back(phy);
+	m_rxPhyList.insert(std::make_pair(band,std::make_pair(phy,m_rxNumDevices)));
 }
 
 uint32_t LifiSpectrumChannel::GetNDevices(void) const {
@@ -89,14 +89,30 @@ uint32_t LifiSpectrumChannel::GetNDevices(void) const {
 	return m_numDevices;
 }
 
-Ptr<NetDevice> LifiSpectrumChannel::GetDevice(uint32_t i) const {
+Ptr<NetDevice> LifiSpectrumChannel::GetRxDevice(uint32_t i) const {
 	NS_LOG_FUNCTION(this);
 	NS_ASSERT(i<=m_numDevices);
 	Ptr<NetDevice> pDevice = 0;
-	if(i<=m_rxNumDevices){
-		pDevice = m_rxPhyList.at(i)->GetDevice();
+	PhyList ::iterator it = m_rxPhyList.begin()+i;
+	if(it != m_rxPhyList.end()){
+		pDevice = it->second.first->GetDevice();
 	}else{
-		pDevice = m_txPhyList.at(i-m_rxNumDevices)->GetDevice();
+		 NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_rxNumDevices << "RX Devices");
+		 return -1;
+	}
+	return pDevice;
+}
+
+Ptr<NetDevice> LifiSpectrumChannel::GetTxDevice(uint32_t i) const {
+	NS_LOG_FUNCTION(this);
+	NS_ASSERT(i<=m_numDevices);
+	Ptr<NetDevice> pDevice = 0;
+	PhyList ::iterator it = m_txPhyList.begin()+i;
+	if(it != m_txPhyList.end()){
+		pDevice = it->second.first->GetDevice();
+	}else{
+		 NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
+		 return -1;
 	}
 	return pDevice;
 }
@@ -111,16 +127,16 @@ void LifiSpectrumChannel::SetSpectrumMap(std::map<int, int> spectrum) {
 	m_channelMap = spectrum;
 }
 
-void LifiSpectrumChannel::AddTx(Ptr<SpectrumPhy> phy) {
+void LifiSpectrumChannel::AddTx(uint8_t band,Ptr<SpectrumPhy> phy) {
 	NS_LOG_FUNCTION(this);
 	NS_ASSERT(phy!=0);
 	Ptr<NetDevice> pD = phy->GetDevice();
 	NS_ASSERT(pD!=0);
-
-	std::vector<Ptr<SpectrumPhy> >::const_iterator it = m_txPhyList.begin();
+	std::pair<Ptr<SpectrumPhy>,uint32_t> temp;
+	PhyList::iterator it = m_txPhyList.begin();
 	bool flag = true;
 	while(it!=m_txPhyList.end()){
-		if(pD==(*it)->GetDevice()){
+		if(it->second.first->GetDevice() == pD){
 			flag = false;
 			break;
 		}
@@ -130,47 +146,44 @@ void LifiSpectrumChannel::AddTx(Ptr<SpectrumPhy> phy) {
 		m_numDevices++;
 		m_txNumDevices++;
 	}
-	m_txPhyList.push_back(phy);
+	m_txPhyList.insert(std::make_pair(band,std::make_pair(phy,m_txNumDevices)));
 }
 
-void LifiSpectrumChannel::DeleteRx(Ptr<SpectrumPhy> phy) {
+bool LifiSpectrumChannel::DeleteRx(uint8_t band,Ptr<SpectrumPhy> phy) {
 	NS_LOG_FUNCTION(this);
-	bool flag = true;
-	std::vector<Ptr<SpectrumPhy> >::iterator it = m_rxPhyList.begin();
-	while(it!=m_rxPhyList.end()){
-		if((*it)->GetDevice()==phy->GetDevice()&&(*it)!=phy){
-			flag = false;
+	bool flag = false;
+	PhyList::iterator it = m_rxPhyList.equal_range(band);
+	PhyList::iterator end = m_rxPhyList.equal_range(band);
+	while(it != end){
+		if(it->second.first == phy){
+			m_rxNumDevices--;
+			m_numDevices--;
+			m_rxPhyList.erase(it);
+			flag = true;
+			break;
 		}
-		if((*it)==phy){
-			it = m_rxPhyList.erase(it);
-		}else{
-			it++;
-		}
+		++it;
 	}
-	if(flag){
-		m_rxNumDevices--;
-		m_numDevices--;
-	}
+	return flag;
 }
 
-void LifiSpectrumChannel::DeleteTx(Ptr<SpectrumPhy> phy) {
+bool LifiSpectrumChannel::DeleteTx(uint8_t band,Ptr<SpectrumPhy> phy) {
 	NS_LOG_FUNCTION(this);
-	bool flag = true;
-	std::vector<Ptr<SpectrumPhy> >::iterator it = m_txPhyList.begin();
-	while(it!=m_txPhyList.end()){
-		if(((*it)->GetDevice())==(phy->GetDevice())&&(*it)!=phy){
-			flag = false;
+	bool flag = false;
+	PhyList::iterator it = m_txPhyList.equal_range(band);
+	PhyList::iterator end = m_txPhyList.equal_range(band);
+	while(it != end){
+		if(it->second.first == phy){
+			m_txNumDevices--;
+			m_numDevices--;
+			m_txPhyList.erase(it);
+			flag = true;
+			break;
 		}
-		if((*it)==phy){
-			it = m_txPhyList.erase(it);
-		}else{
-			it++;
-		}
+		++it;
 	}
-	if(flag){
-		m_txNumDevices--;
-		m_numDevices--;
-	}
+	return flag;
+
 }
 
 void LifiSpectrumChannel::StartRx(Ptr<SpectrumSignalParameters> params,Ptr<SpectrumPhy> receiver) {

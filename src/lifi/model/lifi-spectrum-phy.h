@@ -16,6 +16,7 @@
 #include "ns3/mobility-model.h"
 #include "ns3/spectrum-model.h"
 #include "lifi-interference.h"
+#include "lifi-spectrum-channel.h"
 
 namespace ns3 {
 
@@ -30,9 +31,13 @@ struct LifiSpectrumSignalParameters : public SpectrumSignalParameters
 	LifiSpectrumSignalParameters ();
 	LifiSpectrumSignalParameters (const LifiSpectrumSignalParameters& p);
 	virtual Ptr<SpectrumSignalParameters> Copy ();
-	Ptr<PacketBurst> packetBurst;
+	Ptr<PacketBurst> pb;
 	uint8_t cellId;
 	uint8_t trxId;
+	bool cellMode;
+	uint8_t band;
+	double txPower
+
 };
 
 class LifiSpectrumPhy : public SpectrumPhy
@@ -49,7 +54,7 @@ public:
 
 	void SetNodeSpectrum(uint8_t channel);
 
-	void Send(Ptr<PacketBurst> pb, uint32_t size, uint8_t band,  bool isCellMode, uint8_t cellId , uint8_t trxid);
+	void  Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid,double txPower,Time duration);
 
 	bool CarrierSense();
 
@@ -81,20 +86,24 @@ public:
 
 	void SetErrorModel(Ptr<LifiSpectrumErrorModel> e);
 
+	void SetSpectrumSignalParameters(Ptr<LifiSpectrumSignalParameters> param);
+
+	Ptr<LifiSpectrumSignalParameters> GetSpectrumSignalParameters();
+
+	Ptr<LifiSpectrumChannel> GetChannel();
 private:
-	void EndRx (Ptr<SpectrumSignalParameters> params);
+//	void EndRx (Ptr<SpectrumSignalParameters> params);
 
 	/**
 	 * pp.214, Table 76&mdash;Visible light wavelength band plan.
 	 * .
 	 */
-	uint8_t m_band;
 	Ptr<AntennaModel> m_antenna;
-	Ptr<SpectrumChannel> m_channel;
+	c
 	Ptr<NetDevice> m_device;
 	Ptr<MobilityModel> m_mobility;
-	uint16_t m_cellId;
 	Ptr<LifiInterference> m_interference;
+	Ptr<LifiSpectrumSignalParameters> m_SignalParameters;
 
 };
 

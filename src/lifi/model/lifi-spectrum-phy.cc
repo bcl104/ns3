@@ -6,11 +6,14 @@ namespace ns3 {
 
 LifiSpectrumPhy::LifiSpectrumPhy() {
 	m_band = 0;
+	m_cellId = 0;
 }
 
 LifiSpectrumPhy::LifiSpectrumPhy(Ptr<NetDevice> device) {
 	LifiSpectrumPhy();
 	m_device = device;
+	m_cellId = 0;
+	m_band = 0;
 }
 
 LifiSpectrumPhy::~LifiSpectrumPhy() {
@@ -26,7 +29,15 @@ TypeId LifiSpectrumPhy::GetTypeId() {
 void LifiSpectrumPhy::SetNodeSpectrum(uint8_t channel) {
 }
 
-void LifiSpectrumPhy::Send(Ptr<PacketBurst> pb, uint32_t size, uint8_t band,  bool isCellMode, uint8_t cellId , uint8_t trxid) {
+void LifiSpectrumPhy::Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid , double txPower,Time duration) {
+	m_SignalParameters->band = band;
+	m_SignalParameters->cellId = cellId;
+	m_SignalParameters->cellMode = isCellMode;
+	m_SignalParameters->duration = duration;
+	m_SignalParameters->pb = pb;
+	m_SignalParameters->trxId = trxid;
+	m_SignalParameters->txPower = txPower;
+	m_channel->StartTx(m_SignalParameters);
 }
 
 bool LifiSpectrumPhy::CarrierSense() {
@@ -52,6 +63,11 @@ Ptr<MobilityModel> LifiSpectrumPhy::GetMobility() {
 }
 
 void LifiSpectrumPhy::SetChannel(Ptr<SpectrumChannel> c) {
+	m_channel = c;
+}
+
+Ptr<LifiSpectrumChannel> LifiSpectrumPhy::GetChannel(){
+	return m_channel;
 }
 
 Ptr<const SpectrumModel> LifiSpectrumPhy::GetRxSpectrumModel() const{
@@ -80,6 +96,13 @@ uint16_t LifiSpectrumPhy::GetCellId(){
 	return m_cellId;
 }
 
+void LifiSpectrumPhy::SetSpectrumSignalParameters (Ptr<LifiSpectrumSignalParameters> param){
+	m_SignalParameters = param;
+}
+
+Ptr<LifiSpectrumSignalParameters> LifiSpectrumPhy::GetSpectrumSignalParameters(){
+	return m_SignalParameters;
+}
 void LifiSpectrumPhy::EndRx(Ptr<SpectrumSignalParameters> params) {
 }
 

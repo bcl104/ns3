@@ -75,6 +75,11 @@ double LifiIndoorPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<Mobi
 				return 0;
 }
 
+double LifiIndoorPropagationLossModel::CalcRxPower (double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b){
+	double self;
+	self = DoCalcRxPower(txPowerDbm,a,b);
+	return self;
+}
 void LifiIndoorPropagationLossModel::SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters){
 	m_antennaParameters = parameters;
 }

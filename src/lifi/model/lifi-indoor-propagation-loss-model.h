@@ -32,6 +32,7 @@ public:
 	virtual ~LifiIndoorPropagationLossModel();
 	void SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters);
 	Ptr<LifiAntennaParameters> GetLifiAntennaParameters();
+	double CalcRxPower (double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
 protected:
 	virtual int64_t DoAssignStreams(int64_t stream);
 	virtual double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);

@@ -19,12 +19,14 @@
 #include "plme-sap-user.h"
 #include "plme-sap-provider.h"
 #include "lifi-cell.h"
+#include "lifi-phy-header.h"
 #include <vector>
 
 namespace ns3 {
 
 class LifiNetDevice;
 class LifiSpectrumPhy;
+EventId m_endTxEvent;
 
 class LifiPhy : public Object
 {
@@ -62,7 +64,7 @@ public:
 
 	void SetDeviceAttribute(PhyOpStatus status);
 
-	void Transmit(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
+	void Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band);
 
 	void Receive(Ptr<LifiSpectrumSignalParameters> param);
 
@@ -86,14 +88,32 @@ public:
 
 	void SetPlmeSapUser (Ptr<PlmeSapUser> u);
 
+	void SetcellMode (bool cellmode);
+
+	bool GetcellMode (void);
+
 	Ptr<LifiNetDevice> GetLifiNetDevice ();
 
 	void SetLifiNetDevice (Ptr<LifiNetDevice> device);
+
+	void SetLifiPhyHeader (Ptr<LifiPhyHeader> lifiphyheader);
+
+	Ptr<LifiPhyHeader> GetLifiPhyHeader(void);
+
+	void SetcellId(uint8_t cellId);
+
+	uint8_t GetcellId();
+
+	void SettrxId(uint8_t trxid);
+
+	uint8_t GettrxId();
 
 //	std::vector< Ptr<LifiSpectrumPhy> > GetSpectrumPhyList ();
 
 //	void AddLifiSpectrumPhy(Ptr<LifiSpectrumPhy> spectrum);
 	Ptr<LifiSpectrumPhy>  GetSpectrumPhy ();
+
+
 
 	void AddCellList(Ptr<LifiCell> cell);
 
@@ -101,22 +121,24 @@ public:
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_PlmeSapUser;
+	Ptr<LifiPhyHeader> m_phyheader;
 protected:
-	void StartTx (Ptr<PacketBurst> pb);
-	void EndTx ();
-	double GetRate(char mcsID);
+	void StartTx (Ptr<Packet> pb);
+	void EndTx (PhyOpStatus m_trxStatus);
+	double GetRate(uint8_t mcsId);
 
 private:
 
 	double m_txPower;
 	double m_edTh;
 	double m_csTh;
+	bool m_cellMode;
 	PhyOpStatus m_trxStatus;
 	TRxMode m_trxMode;
+	uint8_t m_cellId;
+	uint8_t m_trxid;
+	Time duration;
 	LifiPhyPibAttribute m_attributes;
-
-
-
 	Ptr<LifiNetDevice> m_device;
 	Ptr<LifiSpectrumPhy> m_spectrumPhy;
 	std::vector< Ptr<LifiCell> > m_cellList;

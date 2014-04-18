@@ -17,7 +17,7 @@
 
 namespace ns3 {
 
-typedef std::vector<Ptr<SpectrumPhy> > PhyList;
+typedef std::multimap<uint8_t ,std::pair<Ptr<LifiSpectrumPhy>,uint32_t> >PhyList;
 
 class LifiSpectrumChannel: public SpectrumChannel {
 
@@ -35,7 +35,7 @@ public:
 
 	virtual void StartTx(Ptr<SpectrumSignalParameters> params);
 
-	virtual void AddRx(Ptr<SpectrumPhy> phy);
+	virtual void AddRx(uint8_t band ,Ptr<SpectrumPhy> phy);
 
 	// inherited from Channel
   /**
@@ -51,18 +51,20 @@ public:
    *
    * This method must be implemented by subclasses.
    */
-	virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
+	virtual Ptr<NetDevice> GetRxDevice (uint32_t i) const;
 
+	virtual Ptr<NetDevice> GetTxDevice (uint32_t i) const;
+
+		//
 	virtual Ptr<SpectrumPropagationLossModel> GetSpectrumPropagationLossModel (void);
 
-	//
-	void SetSpectrumMap(std::map<int,int> spectrum);
+void SetSpectrumMap(std::map<int,int> spectrum);
 
-	void AddTx(Ptr<SpectrumPhy> phy);
+	void AddTx(uint8_t band,Ptr<SpectrumPhy> phy);
 
-	void DeleteRx(Ptr<SpectrumPhy> phy);
+	bool DeleteRx(uint8_t band,Ptr<SpectrumPhy> phy);
 
-	void DeleteTx(Ptr<SpectrumPhy> phy);
+	bool DeleteTx(uint8_t band,Ptr<SpectrumPhy> phy);
 
 
 protected:
