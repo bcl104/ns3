@@ -23,5 +23,6 @@ using namespace ns3;
 int 
 main (int argc, char *argv[])
 {
+	std::cout<<"aaaa"<<std::endl;
   NS_LOG_UNCOND ("Scratch Simulator");
 }
