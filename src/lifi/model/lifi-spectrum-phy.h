@@ -36,7 +36,7 @@ struct LifiSpectrumSignalParameters : public SpectrumSignalParameters
 	uint8_t trxId;
 	bool cellMode;
 	uint8_t band;
-	double txPower
+	double txPower;
 
 };
 
@@ -99,11 +99,11 @@ private:
 	 * .
 	 */
 	Ptr<AntennaModel> m_antenna;
-	c
 	Ptr<NetDevice> m_device;
 	Ptr<MobilityModel> m_mobility;
 	Ptr<LifiInterference> m_interference;
 	Ptr<LifiSpectrumSignalParameters> m_SignalParameters;
+	Ptr<LifiSpectrumChannel> m_channel;
 
 };
 
