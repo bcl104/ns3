@@ -43,6 +43,11 @@ public:
 	 */
 	static const uint32_t aTurnaroundTime_TX_RX = 240;
 
+	/**
+	 * optical clock:200k for PHY1, 3.75M for PHY2.
+	 */
+	static const uint32_t optical_clock = 3.75e6;
+
 	LifiPhy();
 	virtual ~LifiPhy();
 
