@@ -1,22 +1,35 @@
  /* lifi-spectrum-phy.cc*/
 
 #include "lifi-spectrum-phy.h"
+#include "ns3/spectrum-channel.h"
 #include "ns3/log.h"
-
+NS_LOG_COMPONENT_DEFINE ("LifiSpectrumPhy");
 namespace ns3 {
-
+NS_OBJECT_ENSURE_REGISTERED (LifiSpectrumPhy);
 LifiSpectrumPhy::LifiSpectrumPhy() {
 	NS_LOG_FUNCTION(this);
-	m_band = 0;
-	m_cellId = 0;
+	m_rxPowerTh = 1;
+
+}
+
+
+void LifiSpectrumPhy::SetRxPowerTh(double th){
+	NS_LOG_FUNCTION(this);
+	m_rxPowerTh = th ;
+}
+
+double LifiSpectrumPhy::GetmRxPowerTh(void){
+	NS_LOG_FUNCTION(this);
+	return m_rxPowerTh;
 }
 
 LifiSpectrumPhy::LifiSpectrumPhy(Ptr<NetDevice> device) {
 	NS_LOG_FUNCTION(this);
-	LifiSpectrumPhy();
+//	LifiSpectrumPhy();//?????????????
 	m_device = device;
-	m_cellId = 0;
-	m_band = 0;
+	m_rxPowerTh = 1;
+//	m_cellId = 0;
+//	m_band = 0;
 }
 
 LifiSpectrumPhy::~LifiSpectrumPhy() {
@@ -24,7 +37,6 @@ LifiSpectrumPhy::~LifiSpectrumPhy() {
 }
 
 TypeId LifiSpectrumPhy::GetTypeId() {
-	NS_LOG_FUNCTION(this);
 	static TypeId tid = TypeId ("ns3::LifiSpectrumPhy")
 						.SetParent<SpectrumPhy>()
 						.AddConstructor<LifiSpectrumPhy>();
@@ -45,7 +57,7 @@ void LifiSpectrumPhy::Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCel
 	m_SignalParameters->trxId = trxid;
 	m_SignalParameters->txPower = txPower;
 	m_SignalParameters->txPhy = this;
-	m_channel->StartTx(m_SignalParameters);
+	m_channel->StartTx(DynamicCast<SpectrumSignalParameters>(m_SignalParameters));//turn LifiSpectrumSignalParamters to SpectrumSignalParameters
 }
 
 bool LifiSpectrumPhy::CarrierSense() {
@@ -83,7 +95,7 @@ void LifiSpectrumPhy::SetChannel(Ptr<SpectrumChannel> c) {
 	m_channel = c;
 }
 
-Ptr<LifiSpectrumChannel> LifiSpectrumPhy::GetChannel(){
+Ptr<SpectrumChannel> LifiSpectrumPhy::GetChannel(){
 	NS_LOG_FUNCTION(this);
 	return m_channel;
 }
@@ -113,12 +125,12 @@ void LifiSpectrumPhy::SetAntennaModel(Ptr<AntennaModel> antenna) {
 
 void LifiSpectrumPhy::SetCellId(uint16_t id){
 	NS_LOG_FUNCTION(this);
-	m_cellId = id;
+//	m_cellId = id;
 }
 
 uint16_t LifiSpectrumPhy::GetCellId(){
 	NS_LOG_FUNCTION(this);
-	return m_cellId;
+	return 0;
 }
 
 void LifiSpectrumPhy::SetSpectrumSignalParameters (Ptr<LifiSpectrumSignalParameters> param){
@@ -130,9 +142,9 @@ Ptr<LifiSpectrumSignalParameters> LifiSpectrumPhy::GetSpectrumSignalParameters()
 	NS_LOG_FUNCTION(this);
 	return m_SignalParameters;
 }
-void LifiSpectrumPhy::EndRx(Ptr<SpectrumSignalParameters> params) {
-	NS_LOG_FUNCTION(this);
-}
+//void LifiSpectrumPhy::EndRx(Ptr<SpectrumSignalParameters> params) {
+//	NS_LOG_FUNCTION(this);
+//}
 
 void LifiSpectrumPhy::SetErrorModel(Ptr<LifiSpectrumErrorModel> e){
 	NS_LOG_FUNCTION(this);
@@ -140,5 +152,10 @@ void LifiSpectrumPhy::SetErrorModel(Ptr<LifiSpectrumErrorModel> e){
 		m_interference->SetErrorModel(e);
 	}
 }
+
+//uint8_t LifiSpectrumPhy::GetBand(){
+//	NS_LOG_FUNCTION(this);
+//	return m_b
+//}
 
 } /* namespace ns3 */

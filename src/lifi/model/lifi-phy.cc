@@ -6,8 +6,9 @@
  */
 
 #include "lifi-phy.h"
+#include "lifi-net-device.h"
+//#include "lifi-spectrum-channel.h"
 #include "ns3/log.h"
-
 
 NS_LOG_COMPONENT_DEFINE("LifiPhy");
 
@@ -15,9 +16,25 @@ namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED(LifiPhy);
 
+//class LifiSpectrumChannel;
+//struct LifiSpectrumSignalParameters;
+
 LifiPhy::LifiPhy() {
 	NS_LOG_FUNCTION(this);
 	NS_FATAL_ERROR ("This constructor should not be called");
+	m_cellMode = false;
+	m_trxid = 1;
+	m_cellId = 0;
+	m_trxStatus = TRX_OFF;
+	m_csTh = 1.0;
+	m_edTh = 1.0;
+	m_trxMode = MULTIPLEX;
+	m_txPower = 1;
+	duration = Seconds(1);
+	m_band = 1;
+	m_burstMode = false;
+	m_mcsId = 0x00;
+	m_ookDim = false;
 }
 
 LifiPhy::~LifiPhy() {
@@ -31,11 +48,15 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	duration = 1;
+	m_band = 1;
+	duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
 	m_spectrumPhy = spectrum;
+	m_burstMode = false;
+	m_mcsId = 0x00;
+	m_ookDim = false;
 }
 
 LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) {
@@ -45,26 +66,34 @@ LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) 
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	duration = 1;
+	m_band = 1;
+	duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
 	m_attributes = attributes;
 	m_spectrumPhy = spectrum;
+	m_burstMode = false;
+	m_mcsId = 0x00;
+	m_ookDim = false;
 }
 
 LifiPhy::LifiPhy(std::vector< Ptr<LifiCell> > cellList){
 	NS_LOG_FUNCTION(this);
 	m_csTh = 1.0;
 	m_edTh = 1.0;
+	m_band = 1;
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	duration = 1;
+	duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
 	m_cellList = cellList;
+	m_burstMode = false;
+	m_mcsId = 0x00;
+	m_ookDim = false;
 }
 
 TypeId LifiPhy::GetTypeId() {
@@ -89,18 +118,20 @@ uint8_t LifiPhy::DoCca(uint8_t band) {
 	return 0;
 }
 
-void LifiPhy::SetDeviceAttribute(PhyOpStatus status) {
-	NS_LOG_FUNCTION(this);
-
-}
+//void LifiPhy::SetDeviceAttribute(PhyOpStatus status) {
+//	NS_LOG_FUNCTION(this);
+//
+//}
 
 void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	NS_LOG_FUNCTION(this);
 	if(m_trxStatus == TX_ON){
-		m_spectrumPhy->GetChannel()->AddTx((uint8_t)m_attributes.GetAttributes(PHY_CURRENT_CHANNEL),m_spectrumPhy);
-		double rate = GetRate (m_phyheader->GetMcsId());
-		duration = Seconds(m_phyheader->GetSerializedSize()/200000 + pb->GetSize()/(1000*rate));
-		pb->AddHeader (*m_phyheader);
+		uint8_t* channel = (uint8_t*)(m_attributes.GetAttributes(PHY_CURRENT_CHANNEL));
+		LifiPhyHeader header = SetLifiPhyHeader(m_burstMode,*channel,m_mcsId,size,m_ookDim,0x00);
+		pb->AddHeader(header);
+		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
+		double rate = GetRate (m_mcsId);
+		duration = Seconds(header.GetSerializedSize()/200000 + pb->GetSize()/(1000*rate));
 		StartTx (pb);
 	}
 	else
@@ -115,10 +146,11 @@ void LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
 	m_trxStatus = state;
 		if(m_trxStatus == RX_ON)
-			m_spectrumPhy->GetChannel()->AddRx((uint8_t)m_attributes.GetAttributes(PHY_CURRENT_CHANNEL),m_spectrumPhy);
+//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddRx(m_band,m_spectrumPhy);
+			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
 		else if(m_trxStatus == TRX_OFF){
-			m_spectrumPhy->GetChannel()->DeleteRx((uint8_t)m_attributes.GetAttributes(PHY_CURRENT_CHANNEL),m_spectrumPhy);
-			m_spectrumPhy->GetChannel()->DeleteTx((uint8_t)m_attributes.GetAttributes(PHY_CURRENT_CHANNEL),m_spectrumPhy);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_band,m_spectrumPhy);
 		}
 		else{
 
@@ -170,15 +202,25 @@ void LifiPhy::SettrxId(uint8_t trxid){
 uint8_t LifiPhy::GettrxId(){
 	NS_LOG_FUNCTION(this);
 	return m_trxid;
+}
 
+uint8_t LifiPhy::GetbandId(){
+	NS_LOG_FUNCTION(this);
+	return m_band;
+}
+
+void LifiPhy::SetbandId(uint8_t band){
+	NS_LOG_FUNCTION(this);
+	m_band = band;
 }
 
 void LifiPhy::StartTx(Ptr<Packet> pb) {
 	NS_LOG_FUNCTION(this);
 //	m_spectrumPhy->Send()
 	if(!m_cellMode){
-		m_spectrumPhy->Send(pb,pb->GetSize(),(uint8_t)m_attributes.GetAttributes(PHY_CURRENT_CHANNEL),m_cellMode,m_cellId,m_trxid,m_txPower,duration );
-		m_endTxEvent = Simulator::Schedule (duration, &LifiPhy::EndTx, TX_ON);
+		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,duration );
+//		m_endTxEvent = Simulator::Schedule (duration, &LifiPhy::EndTx, PHY_SUCCESS);
+		Simulator::Schedule (duration, &LifiPhy::EndTx, this,  PHY_SUCCESS);
 	}
 	else{
 
@@ -189,12 +231,13 @@ void LifiPhy::StartTx(Ptr<Packet> pb) {
 
 }
 
-void LifiPhy::EndTx(PhyOpStatus m_trxStatus) {
+void LifiPhy::EndTx(PhyOpStatus trxStatus) {
 	NS_LOG_FUNCTION(this);
 	if(m_trxStatus == TX_ON){
-		SetTRxState(TRX_OFF);
+//		SetTRxState(TRX_OFF);
+		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 	}
-	m_pdSapUser->PdDataConfirm (m_trxStatus);
+	m_pdSapUser->PdDataConfirm (trxStatus);
 }
 
 void LifiPhy::Switch(bool** sw_bit_map, bool dir) {
@@ -310,13 +353,20 @@ double LifiPhy::GetRate(uint8_t mcsId) {
 	}
 	return -1;
 }
-void LifiPhy::SetLifiPhyHeader (Ptr<LifiPhyHeader> lifiphyheader){
+LifiPhyHeader LifiPhy::SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uint8_t mcsId,uint16_t psduLength,bool ookDimmed,uint8_t reservedFields){
 	NS_LOG_FUNCTION(this);
-	m_phyheader = lifiphyheader ;
+	LifiPhyHeader header;
+	header.SetBurstMode(isBurstMode);
+	header.SetChannelNum(channelNum);
+	header.SetMcsId(mcsId);
+	header.SetOokDimmed(ookDimmed);
+	header.SetPsduLength(psduLength);
+	header.SetReservedFields(reservedFields);
+	return header;
 }
-Ptr<LifiPhyHeader> LifiPhy::GetLifiPhyHeader(){
-	NS_LOG_FUNCTION(this);
-	return m_phyheader;
-}
+//LifiPhyHeader LifiPhy::GetLifiPhyHeader(){
+//	NS_LOG_FUNCTION(this);
+//	return m_phyheader;
+//}
 } /* namespace ns3 */
 
