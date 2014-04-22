@@ -75,6 +75,8 @@ public:
 		//
 	virtual Ptr<SpectrumPropagationLossModel> GetSpectrumPropagationLossModel (void);
 
+	Ptr<PropagationLossModel> GetPropagationModel(void);//added to get propagation loss model
+
     void SetSpectrumMap(std::map<int,int> spectrum);
 
 	void AddTx(Ptr<LifiSpectrumPhy> phy);

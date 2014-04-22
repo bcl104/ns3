@@ -23,7 +23,13 @@ struct LifiSpectrumSignalParameters : public SpectrumSignalParameters
 	uint8_t trxId;
 	bool cellMode;
 	uint8_t band;
-	double txPower;
+	double trxPower;
+	Time time;
+	uint32_t PsduSize;
+	bool burstMode;
+	uint8_t mcsId;
+	bool ookDim;
+	uint8_t reservedFields;
 
 };
 }

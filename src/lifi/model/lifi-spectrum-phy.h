@@ -17,6 +17,7 @@
 #include "lifi-interference.h"
 #include "lifi-spectrum-channel.h"
 #include "lifi-spectrum-signal-parameters.h"
+//#include "lifi-phy.h"
 
 namespace ns3 {
 
@@ -27,6 +28,7 @@ namespace ns3 {
 //class SpecturmModel;
 //struct SpectrumSignalParameters;
 //class LifiSpectrumChannel;
+class LifiPhy;
 
 
 class LifiSpectrumPhy : public SpectrumPhy
@@ -44,7 +46,8 @@ public:
 
 	void SetNodeSpectrum(uint8_t channel);
 
-	void  Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid,double txPower,Time duration);
+	void  Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid,double txPower,Time duration,
+			    Ptr<SpectrumValue> psd,Time txTime,uint8_t mcsId,uint8_t PsduSize,uint8_t reservedFields,bool ookDim,bool burstMode);
 
 	bool CarrierSense();
 
@@ -86,6 +89,14 @@ public:
 
 	double GetmRxPowerTh(void);
 
+	void EndRx(Ptr<LifiSpectrumSignalParameters> params);
+
+	uint8_t CalculateWqi(Ptr<SpectrumValue> sinr);
+
+//	void SetLifiPhy(Ptr<LifiPhy> phy);
+//
+//	Ptr<LifiPhy> GetLifiPhy(void);
+
 //	uint8_t GetBand();
 
 private:
@@ -101,7 +112,10 @@ private:
 	Ptr<LifiInterference> m_interference;
 	Ptr<LifiSpectrumSignalParameters> m_SignalParameters;
 	Ptr<SpectrumChannel> m_channel;
+//	Ptr<LifiPhy> m_phy;
 	double m_rxPowerTh;
+//	uint8_t m_WQI;
+//	spectrum
 
 };
 

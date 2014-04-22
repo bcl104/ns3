@@ -20,7 +20,13 @@ LifiSpectrumSignalParameters::LifiSpectrumSignalParameters (){
 	trxId = -1;
 	cellMode = false;
 	band = 0x01;
-	txPower = 1.0;
+	trxPower = 1.0;
+	time = Seconds(0);
+	PsduSize = 0;
+	burstMode = false;
+	mcsId = 0;
+	ookDim = false;
+	reservedFields = 0;
 }
 
 LifiSpectrumSignalParameters::LifiSpectrumSignalParameters (const LifiSpectrumSignalParameters& p)
@@ -32,7 +38,13 @@ LifiSpectrumSignalParameters::LifiSpectrumSignalParameters (const LifiSpectrumSi
 	trxId = p.trxId;
 	cellMode = p.cellMode;
 	band = p.band;
-	txPower = p.txPower;
+	trxPower = p.trxPower;
+	time = p.time;
+	PsduSize = 0;
+	burstMode = false;
+	mcsId = 0;
+	ookDim = false;
+	reservedFields = 0;
 }
 
 Ptr<SpectrumSignalParameters> LifiSpectrumSignalParameters::Copy (){

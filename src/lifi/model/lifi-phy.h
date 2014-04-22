@@ -13,7 +13,7 @@
 #include "ns3/core-module.h"
 #include "lifi-phy-pib-attributes.h"
 //#include "lifi-net-device.h"
-#include "lifi-spectrum-phy.h"
+//#include "lifi-spectrum-phy.h"
 #include "pd-sap-user.h"
 #include "pd-sap-provider.h"
 #include "plme-sap-user.h"
@@ -25,9 +25,10 @@
 namespace ns3 {
 
 class LifiNetDevice;
-//class LifiSpectrumPhy;
+class LifiSpectrumPhy;
 //class LifiSpectrumChannel;
 //EventId m_endTxEvent;
+class LifiCell;
 
 class LifiPhy : public Object
 {
@@ -67,7 +68,7 @@ public:
 
 	void Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band);
 
-	void Receive(Ptr<LifiSpectrumSignalParameters> param);
+	void Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi);
 
 	void Switch (bool** sw_bit_map, bool dir);
 
@@ -116,6 +117,31 @@ public:
 
 	void AddCellList(Ptr<LifiCell> cell);
 
+	void SetSpectrumValue(Ptr<SpectrumValue> value);
+
+	Ptr<SpectrumValue> GetSpectrumValue(void);
+
+	void SetTxTime(Time time);
+
+	Time GetTxTime(void);
+
+	void SetOokDim(bool dim);
+
+	bool GetOokDim(void);
+
+	void SetBurstMode(bool burst);
+
+	bool GetBurstMode(void);
+
+	void SetMcsId(uint8_t mcsid);
+
+	uint8_t GetMcsId(void);
+
+	void SetReservedFields(uint8_t fields);
+
+	uint8_t GetReservedFields(void);
+
+
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
 //	Ptr<PlmeSapProvider> m_plmeSapProvider;
@@ -147,9 +173,13 @@ private:
 	Ptr<LifiNetDevice> m_device;
 	Ptr<LifiSpectrumPhy> m_spectrumPhy;
 	std::vector< Ptr<LifiCell> > m_cellList;
+	Ptr<SpectrumValue> m_psd;
 	bool m_burstMode;
 	uint8_t m_mcsId;
 	bool m_ookDim;
+	Time m_Time;
+	uint8_t m_PsduSize;
+	uint8_t m_reservedFields;
 //	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 	Ptr<PdSapProvider> m_pdSapProvider;
