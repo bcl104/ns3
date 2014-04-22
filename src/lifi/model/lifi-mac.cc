@@ -51,7 +51,7 @@ void LifiMac::DoDataConfirm(PhyOpStatus status)
 	NS_LOG_FUNCTION (this << status);
 }
 
-void LifiMac::DoReceive(uint32_t size, Ptr<PacketBurst> pb,
+void LifiMac::DoReceive(uint32_t size, Ptr<Packet> pb,
 		uint8_t quality)
 {
 	NS_LOG_FUNCTION (this << size << pb << (uint32_t)quality);
@@ -161,7 +161,7 @@ const Ptr<PlmeSapUser>& LifiMac::GetPlmeSapUser() {
 	return m_plmeSapUser;
 }
 
-void LifiMac::DoTransmit(uint32_t size, Ptr<PacketBurst> pb, uint8_t band)
+void LifiMac::DoTransmit(uint32_t size, Ptr<Packet> pb, uint8_t band)
 {
 	NS_LOG_FUNCTION (this << size << pb << (uint32_t) band);
 	m_pdSapProvider->DataRequest (size, pb, band);
