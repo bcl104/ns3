@@ -105,8 +105,8 @@ public:
 
 protected:
 	void DoDataConfirm(PhyOpStatus status);
-	void DoReceive(uint32_t size, Ptr<PacketBurst> pb, uint8_t quality);
-	void DoTransmit(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
+	void DoReceive(uint32_t size, Ptr<Packet> pb, uint8_t quality);
+	void DoTransmit(uint32_t size, Ptr<Packet> pb, uint8_t band);
 
 	LifiMacPibAttribute m_attributes;
 	Ptr<LifiMacImpl> m_lifiMacImpl;
