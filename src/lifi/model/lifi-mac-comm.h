@@ -199,20 +199,30 @@ struct InfoElementComm : public LifiMacComm
 public:
 	InfoElementComm ();
 
-	InfoElementComm (uint8_t id, uint8_t payload, uint8_t lenth);
+	InfoElementComm (uint8_t id, uint8_t lenth, uint8_t *payload);
 
 	virtual ~InfoElementComm();
 
 	static InfoElementComm& Construct (Ptr<Packet> p);
+
+
+	uint8_t GetElementId () const;
+
+	void SetElementId(uint8_t elementid);
+
+	uint8_t GetElementLenth () const;
+
+	void SetElementLenth(uint8_t lenth);
 
 private:
 	InfoElementComm (Ptr<Packet> p);
 	virtual void Deserialize(const uint8_t *data, uint32_t size);
 	virtual Buffer Serialize();
 
-	uint8_t m_elementId;
-	uint8_t m_playload;
+
+	ElementId m_elementId;
 	uint8_t m_lenth;
+	uint8_t m_payload[256];
 
 };
 

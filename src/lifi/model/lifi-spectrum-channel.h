@@ -12,12 +12,20 @@
 #include "ns3/network-module.h"
 #include "ns3/spectrum-channel.h"
 #include "ns3/spectrum-model.h"
+//#include "lifi-indoor-propagation-loss-model.h"
+//#include "lifi-spectrum-phy.h"
 #include <map>
 #include <vector>
 
 namespace ns3 {
 
-typedef std::vector<Ptr<SpectrumPhy> > PhyList;
+struct LifiSpectrumSignalParameters;
+class LifiSpectrumPhy;
+
+//typedef std::multimap<uint8_t ,std::pair<Ptr<LifiSpectrumPhy>,uint32_t> > PhyList;
+
+typedef std::multimap<uint8_t ,Ptr<LifiSpectrumPhy> > PhyList;
+//typedef std::multimap<uint8_t ,Ptr<SpectrumPhy> > PhyList;
 
 class LifiSpectrumChannel: public SpectrumChannel {
 
@@ -35,7 +43,14 @@ public:
 
 	virtual void StartTx(Ptr<SpectrumSignalParameters> params);
 
-	virtual void AddRx(Ptr<SpectrumPhy> phy);
+	std::pair<PhyList::iterator,PhyList::iterator> SearchRxList(uint8_t band);
+
+	std::pair<PhyList::iterator,PhyList::iterator> SearchTxList(uint8_t band);
+
+//	virtual void AddRx(uint8_t band ,Ptr<LifiSpectrumPhy> phy);
+//	void AddRx(uint8_t band ,Ptr<LifiSpectrumPhy> phy);
+
+	virtual void AddRx (Ptr<SpectrumPhy> phy) ;
 
 	// inherited from Channel
   /**
@@ -43,7 +58,9 @@ public:
    *
    * This method must be implemented by subclasses.
    */
-	virtual uint32_t GetNDevices (void) const;
+	virtual Ptr<NetDevice> GetDevice (uint32_t i) const ;
+
+	virtual uint32_t GetNDevices (void) const ;
 
   /**
    * \param i index of NetDevice to retrieve
@@ -51,19 +68,33 @@ public:
    *
    * This method must be implemented by subclasses.
    */
-	virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
+	virtual Ptr<NetDevice> GetRxDevice (uint32_t i) const;
 
+	virtual Ptr<NetDevice> GetTxDevice (uint32_t i) const;
+
+		//
 	virtual Ptr<SpectrumPropagationLossModel> GetSpectrumPropagationLossModel (void);
 
-	//
-	void SetSpectrumMap(std::map<int,int> spectrum);
+    void SetSpectrumMap(std::map<int,int> spectrum);
 
-	void AddTx(Ptr<SpectrumPhy> phy);
+	void AddTx(Ptr<LifiSpectrumPhy> phy);
 
-	void DeleteRx(Ptr<SpectrumPhy> phy);
+	bool DeleteRx(Ptr<LifiSpectrumPhy> phy);
 
-	void DeleteTx(Ptr<SpectrumPhy> phy);
+	bool DeleteTx(Ptr<LifiSpectrumPhy> phy);
+//    void AddTx(uint8_t band,Ptr<SpectrumPhy> phy);
+//
+//	bool DeleteRx(uint8_t band,Ptr<SpectrumPhy> phy);
+//
+//	bool DeleteTx(uint8_t band,Ptr<SpectrumPhy> phy);
 
+//	void SetRxPowerTh(double th);
+//
+//	double GetmRxPowerTh(void);
+
+//	void SetDelay(Time dalay);
+//
+//	Time GetDelay(void);
 
 protected:
 	std::map<int,int> m_channelMap;
@@ -75,7 +106,8 @@ private:
    * @param params
    * @param receiver
    */
-	void StartRx (Ptr<SpectrumSignalParameters> params, Ptr<SpectrumPhy> receiver);
+	void StartRx (Ptr<LifiSpectrumSignalParameters> params, Ptr<LifiSpectrumPhy> receiver);
+//	void StartRx (Ptr<SpectrumSignalParameters> params, Ptr<SpectrumPhy> receiver);
 
   /**
    * SpectrumModel that this channel instance
@@ -95,7 +127,7 @@ private:
 	* single-frequency propagation loss model to be used with this channel
 	*
 	*/
-	Ptr<PropagationLossModel> m_propagationLoss;
+
 
   /**
    * frequency-dependent propagation loss model to be used with this channel
@@ -103,10 +135,17 @@ private:
    */
 	Ptr<SpectrumPropagationLossModel> m_spectrumPropagationLoss;
 
+	Ptr<PropagationLossModel>  m_propagationLossModel;
+
 	uint32_t m_numDevices;
+
 	uint32_t m_rxNumDevices;
+
 	uint32_t m_txNumDevices;
 
+//	double m_rxPowerTh;
+
+//	Time m_delay ;
 
 	PhyList m_rxPhyList;
 

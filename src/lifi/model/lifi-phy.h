@@ -12,19 +12,22 @@
 
 #include "ns3/core-module.h"
 #include "lifi-phy-pib-attributes.h"
-#include "lifi-net-device.h"
+//#include "lifi-net-device.h"
 #include "lifi-spectrum-phy.h"
 #include "pd-sap-user.h"
 #include "pd-sap-provider.h"
 #include "plme-sap-user.h"
 #include "plme-sap-provider.h"
 #include "lifi-cell.h"
+#include "lifi-phy-header.h"
 #include <vector>
 
 namespace ns3 {
 
 class LifiNetDevice;
-class LifiSpectrumPhy;
+//class LifiSpectrumPhy;
+//class LifiSpectrumChannel;
+//EventId m_endTxEvent;
 
 class LifiPhy : public Object
 {
@@ -65,9 +68,9 @@ public:
 
 	uint8_t DoCca(uint8_t band);
 
-	void SetDeviceAttribute(PhyOpStatus status);
+//	void SetDeviceAttribute(PhyOpStatus status);
 
-	void Transmit(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
+	void Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band);
 
 	void Receive(Ptr<LifiSpectrumSignalParameters> param);
 
@@ -91,41 +94,73 @@ public:
 
 	void SetPlmeSapUser (Ptr<PlmeSapUser> u);
 
+	void SetcellMode (bool cellmode);
+
+	bool GetcellMode (void);
+
 	Ptr<LifiNetDevice> GetLifiNetDevice ();
 
 	void SetLifiNetDevice (Ptr<LifiNetDevice> device);
+
+	void SetcellId(uint8_t cellId);
+
+	uint8_t GetcellId();
+
+	void SettrxId(uint8_t trxid);
+
+	uint8_t GettrxId();
 
 //	std::vector< Ptr<LifiSpectrumPhy> > GetSpectrumPhyList ();
 
 //	void AddLifiSpectrumPhy(Ptr<LifiSpectrumPhy> spectrum);
 	Ptr<LifiSpectrumPhy>  GetSpectrumPhy ();
 
+	void SetbandId(uint8_t);
+
+	uint8_t GetbandId(void);
+
 	void AddCellList(Ptr<LifiCell> cell);
+
+//	Ptr<PdSapProvider> m_pdSapProvider;
+//	Ptr<PdSapUser> m_pdSapUser;
+//	Ptr<PlmeSapProvider> m_plmeSapProvider;
+//	Ptr<PlmeSapUser> m_PlmeSapUser;
+//	Ptr<LifiPhyHeader> m_phyheader;
+//	LifiPhyHeader m_phyheader;
+protected:
+	void StartTx (Ptr<Packet> pb);
+	void EndTx (PhyOpStatus trxStatus);
+	double GetRate(uint8_t mcsId);
+
+private:
+
+	LifiPhyHeader SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uint8_t mcsId,uint16_t psduLength,bool ookDimmed,uint8_t reservedFields);
+
+//	LifiPhyHeader GetLifiPhyHeader(void);
+
+	double m_txPower;
+	double m_edTh;
+	double m_csTh;
+	bool m_cellMode;
+	uint8_t m_band;
+	PhyOpStatus m_trxStatus;
+	TRxMode m_trxMode;
+	uint8_t m_cellId;
+	uint8_t m_trxid;
+	Time duration;
+	LifiPhyPibAttribute m_attributes;
+	Ptr<LifiNetDevice> m_device;
+	Ptr<LifiSpectrumPhy> m_spectrumPhy;
+	std::vector< Ptr<LifiCell> > m_cellList;
+	bool m_burstMode;
+	uint8_t m_mcsId;
+	bool m_ookDim;
+//	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 	Ptr<PdSapProvider> m_pdSapProvider;
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_PlmeSapUser;
-protected:
-	void StartTx (Ptr<PacketBurst> pb);
-	void EndTx ();
-	double GetRate(char mcsID);
-
-private:
-
-	double m_txPower;
-	double m_edTh;
-	double m_csTh;
-	PhyOpStatus m_trxStatus;
-	TRxMode m_trxMode;
-	LifiPhyPibAttribute m_attributes;
-
-
-
-	Ptr<LifiNetDevice> m_device;
-	Ptr<LifiSpectrumPhy> m_spectrumPhy;
-	std::vector< Ptr<LifiCell> > m_cellList;
-//	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 };
 

@@ -20,7 +20,7 @@ public:
 	PdSapProvider();
 	virtual ~PdSapProvider();
 
-	virtual void DataRequest(uint32_t size, Ptr<PacketBurst> pb, uint8_t band) = 0;
+	virtual void DataRequest(uint32_t size, Ptr<Packet> pb, uint8_t band) = 0;
 };
 
 template <class C>
@@ -36,7 +36,7 @@ public:
 	{
 	}
 
-	virtual void DataRequest(uint32_t size, Ptr<PacketBurst> pb, uint8_t band)
+	virtual void DataRequest(uint32_t size, Ptr<Packet> pb, uint8_t band)
 	{
 		m_phy->Transmit (size, pb, band);
 	}

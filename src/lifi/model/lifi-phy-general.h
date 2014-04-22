@@ -20,7 +20,7 @@ enum PhyOpStatus {
 	RX_ON,
 	PHY_SUCCESS,
 	TRX_OFF,
-	TRX_ON,
+	TX_ON,
 	UNSUPPORTED_ATTRIBUTE,
 	FAIL,
 };

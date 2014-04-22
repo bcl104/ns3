@@ -179,6 +179,12 @@ enum Reason
 		DISASSOC_DEV = 0x02,
 		DISASSOC_NOT_SUPPORT = 0x03,
 };
+
+enum ElementId{
+	CAPABILITY = 0X01,
+	WAVE_QUA_INDI = 0X02,
+};
+
 enum AddrMode
 {
 	SHORT = 0x02,

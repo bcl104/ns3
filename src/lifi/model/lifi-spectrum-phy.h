@@ -9,34 +9,29 @@
 #define LIFI_SPECTRUM_PHY_H_
 
 #include "ns3/spectrum-phy.h"
-#include "ns3/spectrum-signal-parameters.h"
 #include "ns3/antenna-model.h"
-#include "ns3/spectrum-channel.h"
+//#include "ns3/spectrum-channel.h"
 #include "ns3/net-device.h"
 #include "ns3/mobility-model.h"
 #include "ns3/spectrum-model.h"
 #include "lifi-interference.h"
+#include "lifi-spectrum-channel.h"
+#include "lifi-spectrum-signal-parameters.h"
 
 namespace ns3 {
 
-class AntennaModel;
-class SpectrumChannel;
-class NetDevice;
-class MobilityModel;
-class SpecturmModel;
+//class AntennaModel;
+//class SpectrumChannel;
+//class NetDevice;
+//class MobilityModel;
+//class SpecturmModel;
+//struct SpectrumSignalParameters;
+//class LifiSpectrumChannel;
 
-struct LifiSpectrumSignalParameters : public SpectrumSignalParameters
-{
-	LifiSpectrumSignalParameters ();
-	LifiSpectrumSignalParameters (const LifiSpectrumSignalParameters& p);
-	virtual Ptr<SpectrumSignalParameters> Copy ();
-	Ptr<PacketBurst> packetBurst;
-	uint8_t cellId;
-	uint8_t trxId;
-};
 
 class LifiSpectrumPhy : public SpectrumPhy
 {
+
 
 public:
 	LifiSpectrumPhy(Ptr<NetDevice> device);
@@ -49,7 +44,7 @@ public:
 
 	void SetNodeSpectrum(uint8_t channel);
 
-	void Send(Ptr<PacketBurst> pb, uint32_t size, uint8_t band,  bool isCellMode, uint8_t cellId , uint8_t trxid);
+	void  Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid,double txPower,Time duration);
 
 	bool CarrierSense();
 
@@ -81,20 +76,32 @@ public:
 
 	void SetErrorModel(Ptr<LifiSpectrumErrorModel> e);
 
+	void SetSpectrumSignalParameters(Ptr<LifiSpectrumSignalParameters> param);
+
+	Ptr<LifiSpectrumSignalParameters> GetSpectrumSignalParameters();
+
+	Ptr<SpectrumChannel> GetChannel();
+
+	void SetRxPowerTh(double th);
+
+	double GetmRxPowerTh(void);
+
+//	uint8_t GetBand();
+
 private:
-	void EndRx (Ptr<SpectrumSignalParameters> params);
+//	void EndRx (Ptr<SpectrumSignalParameters> params);
 
 	/**
 	 * pp.214, Table 76&mdash;Visible light wavelength band plan.
 	 * .
 	 */
-	uint8_t m_band;
 	Ptr<AntennaModel> m_antenna;
-	Ptr<SpectrumChannel> m_channel;
 	Ptr<NetDevice> m_device;
 	Ptr<MobilityModel> m_mobility;
-	uint16_t m_cellId;
 	Ptr<LifiInterference> m_interference;
+	Ptr<LifiSpectrumSignalParameters> m_SignalParameters;
+	Ptr<SpectrumChannel> m_channel;
+	double m_rxPowerTh;
 
 };
 

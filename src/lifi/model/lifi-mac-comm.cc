@@ -6,6 +6,7 @@
  */
 
 #include "lifi-mac-comm.h"
+#include "ns3/log.h"
 
 
 namespace ns3 {
@@ -122,7 +123,7 @@ uint8_t DisassocNotificationComm::GetDissassocReason () const{
 }
 
 void DisassocNotificationComm::SetDissassocReason(uint8_t disassreason){
-	NS_ASSERT (disassreason == 0x00 || disassreason == 0x01|| disassreason == 0x03);
+	NS_ASSERT (disassreason == 0x01 || disassreason == 0x02  || disassreason == 0x03);
 	reason = (Reason)disassreason;
 }
 
@@ -134,6 +135,26 @@ uint8_t MultiChannelAssignComm::GetMultiChannel () const{
 void MultiChannelAssignComm::SetMultiChannel(uint8_t multichannel){
 	NS_ASSERT (multichannel >= 0 && multichannel <= 255);
 	m_multiChannel = multichannel;
+}
+
+
+
+/*  InfoElementComm Get and Set Function  */
+uint8_t InfoElementComm::GetElementId () const{
+	return m_elementId;
+}
+
+void InfoElementComm::SetElementId(uint8_t elementid){
+	NS_ASSERT(elementid == 0x01 || elementid == 0x02);
+	m_elementId = (ElementId)elementid;
+}
+
+uint8_t InfoElementComm::GetElementLenth () const{
+	return m_lenth;
+}
+
+void InfoElementComm::SetElementLenth(uint8_t lenth){
+	m_lenth = lenth;
 }
 
 /* GtsRequestComm Get and Set Function  */
@@ -180,7 +201,7 @@ uint8_t AssocResponseComm::GetAssocStatus () const{
 }
 
 void AssocResponseComm::SetAssocStatus(uint8_t assocstatus){
-	NS_ASSERT (assocstatus ==0x00 || assocstatus == 0x01|| assocstatus == 0x03);
+	NS_ASSERT (assocstatus ==0x00 || assocstatus == 0x01 || assocstatus == 0x02);
 	m_assocStatus = (MacAssocStatus)assocstatus;
 }
 
@@ -191,7 +212,6 @@ uint8_t AssocResponseComm::GetCapNegoResponse () const{
 void AssocResponseComm::SetCapNegoResponse(uint8_t capnegores){
 	m_capabilityNegoResponse = capnegores;
 }
-
 
 
 AssocRqstComm::AssocRqstComm() {
@@ -210,8 +230,9 @@ AssocRqstComm::~AssocRqstComm() {
 }
 
 void AssocRqstComm::Deserialize(const uint8_t *data, uint32_t size) {
-	uint8_t comm_id = *data ;
-	NS_ASSERT (((uint8_t)ASSOC_RESPONSE) == comm_id);
+	m_commId = (CommId)*data ;
+	NS_ASSERT(m_commId == GTS_REQUEST);
+
 }
 
 AssocRqstComm::AssocRqstComm(CapabilityInfo& info) {
@@ -245,7 +266,7 @@ GtsResponseComm::~GtsResponseComm() {
 void GtsResponseComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data;
 	data+=2;
-	NS_ASSERT(m_commId == ((uint8_t)GTS_RESPONSE));
+	NS_ASSERT(m_commId == GTS_RESPONSE);
 	m_characteristic.gtsLength = ((*data) & 0xf0)>> 4;
 	m_characteristic.gtsDirection = (GTSDirection)(((*data) & 0x08) >> 3);
 	m_characteristic.charType = (GTSCharType)(((*data) & 0x04) >> 2);
@@ -278,8 +299,10 @@ Buffer GtsResponseComm::Serialize() {
 	Buffer data;
 	data.AddAtStart(4);
 	Buffer::Iterator it = data.Begin();
+	NS_ASSERT(m_commId == GTS_RESPONSE);
 	it.WriteU8((uint8_t)m_commId);
-	it.WriteU8(2);
+	uint8_t payload_lenth = 1;
+	it.WriteU8(payload_lenth);
 	uint8_t gts_character = 0;
 	NS_ASSERT (m_characteristic.gtsLength >= 0 && m_characteristic.gtsLength <= 15);
 	gts_character = m_characteristic.gtsLength <<4
@@ -302,7 +325,7 @@ DisassocNotificationComm::~DisassocNotificationComm() {
 void DisassocNotificationComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data;
 	data += 2;
-	NS_ASSERT(m_commId == ((uint8_t)GTS_RESPONSE));
+	NS_ASSERT(m_commId == DISASSOC_NOTIFICATION);
 	reason = (Reason)*data;
 }
 
@@ -325,6 +348,7 @@ Buffer DisassocNotificationComm::Serialize() {
 	data.AddAtStart(3);
 	Buffer::Iterator it = data.Begin();
 	it.WriteU8((uint8_t)m_commId);
+	NS_ASSERT(m_commId == DISASSOC_NOTIFICATION);
 	uint8_t payload_length = 1;
 	it.WriteU8(payload_length);
 	it.WriteU8((uint8_t)reason);
@@ -347,8 +371,8 @@ BeaconRequestComm::~BeaconRequestComm() {
 }
 
 void BeaconRequestComm::Deserialize(const uint8_t *data, uint32_t size) {
-	uint8_t comm_id = *data;
-	NS_ASSERT (comm_id == ((uint8_t)BEACON_REQUEST));
+	m_commId = (CommId)*data;
+	NS_ASSERT (m_commId == BEACON_REQUEST);
 }
 
 BeaconRequestComm& BeaconRequestComm::Construct(Ptr<Packet> p) {
@@ -362,6 +386,7 @@ Buffer BeaconRequestComm::Serialize() {
 	data.AddAtStart(2);
 	Buffer::Iterator it = data.Begin();
 	it.WriteU8((uint8_t)m_commId);
+	NS_ASSERT (m_commId == BEACON_REQUEST);
 	uint8_t payload_length = 1;
 	it.WriteU8(payload_length);
 	return data;
@@ -385,7 +410,7 @@ MultiChannelAssignComm::~MultiChannelAssignComm() {
 
 void MultiChannelAssignComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data;
-	NS_ASSERT(m_commId == ((uint8_t)MULTI_CHANNEL_ASSIGNMENT));
+//	NS_ASSERT(m_commId == MULTI_CHANNEL_ASSIGNMENT);
 	data += 2;
 	m_multiChannel = *data;
 }
@@ -404,6 +429,7 @@ Buffer MultiChannelAssignComm::Serialize() {
 	Buffer data;
 	data.AddAtStart(3);
 	Buffer::Iterator it = data.Begin();
+	NS_ASSERT(m_commId == MULTI_CHANNEL_ASSIGNMENT);
 	it.WriteU8(m_commId);
 	uint8_t payload_length = 1;
 	it.WriteU8(payload_length);
@@ -411,31 +437,51 @@ Buffer MultiChannelAssignComm::Serialize() {
 	return data;
 }
 
-InfoElementComm::InfoElementComm() {
-	m_commId = INFORMANTION_ELEMENT;
-    m_elementId = 0x01;
-    m_lenth = 0x01;
-    m_playload = 0x01;
+//uint32_t InfoElementComm::WriteTo(Buffer::Iterator &it, uint8_t *data, uint32_t size) {
+//		it.Write(data, size);
+//		return size;
+//}
+//
+//uint8_t* ReadFrom (const uint8_t *data, uint8_t &m_lenth[], uint32_t m_lenthsize){
+//	for(uint8_t read = 0 ; read < m_lenthsize ; read ++){
+//		m_lenth[read] = *data++;
+//	}
+//	return data;
+//}
+
+
+InfoElementComm::InfoElementComm () {
+	m_commId = INFORMANTION_ELEMENT ;
+	m_elementId = CAPABILITY;
+	m_lenth = 0x00;
 }
 
-InfoElementComm::InfoElementComm(Ptr<Packet> p) {
+
+InfoElementComm::InfoElementComm (Ptr<Packet> p) {
 	uint32_t size = p->GetSize();
-	uint8_t* b = (uint8_t*) malloc (size);
-	p->CopyData(b, size);
-	Deserialize(b, size);
-	free (b);
+	uint8_t* data = (uint8_t*) malloc (size);
+	p->CopyData(data, size);
+	Deserialize(data, size);
+	free (data);
 }
 
-InfoElementComm::~InfoElementComm() {
+InfoElementComm::~InfoElementComm (){
+
 }
 
 void InfoElementComm::Deserialize(const uint8_t *data, uint32_t size) {
+	m_commId = (CommId)*data;
+	NS_ASSERT(m_commId == INFORMANTION_ELEMENT);
+	data += 2;
+	m_elementId =(ElementId)*data++;
+	m_lenth = *data++;
+	memcpy(m_payload, data, m_lenth);
 }
 
-InfoElementComm::InfoElementComm(uint8_t id, uint8_t lenth, uint8_t payload) {
-	    m_elementId = id;
+InfoElementComm::InfoElementComm(uint8_t id, uint8_t lenth, uint8_t *payload) {
+	    m_elementId = (ElementId)id;
 	    m_lenth = lenth;
-	    m_playload = payload;
+	    memcpy(m_payload, payload, lenth);
 }
 
 InfoElementComm& InfoElementComm::Construct(Ptr<Packet> p) {
@@ -444,8 +490,25 @@ InfoElementComm& InfoElementComm::Construct(Ptr<Packet> p) {
 	return comm;
 }
 
+
 Buffer InfoElementComm::Serialize() {
-	return 0;
+	uint32_t commidSize = 1;
+	uint32_t elementIdSize =1;
+	uint32_t lenthSize = 1;
+	uint32_t size = commidSize + elementIdSize + lenthSize + m_lenth + 1;
+	Buffer data;
+	data.AddAtStart(size);
+	Buffer::Iterator it = data.Begin();
+	NS_ASSERT(m_commId == INFORMANTION_ELEMENT);
+	it.WriteU8(m_commId);
+	uint8_t payload_length = 1;
+	it.WriteU8(payload_length);
+	it.WriteU8(m_elementId);
+	it.WriteU8(m_lenth);
+//	WriteTo(it, m_payload, m_lenth);
+	it.Write(m_payload, m_lenth);
+
+	return data;
 }
 
 GtsRequestComm::GtsRequestComm() {
@@ -464,8 +527,8 @@ GtsRequestComm::~GtsRequestComm() {
 }
 
 void GtsRequestComm::Deserialize(const uint8_t *data, uint32_t size) {
-	uint8_t comm_id = *data;
-	NS_ASSERT(comm_id == ((uint8_t)GTS_REQUEST));
+	m_commId = (CommId)*data;
+	NS_ASSERT(m_commId == GTS_REQUEST);
 	data += 2;
 	m_characteristic.gtsLength = (*data) & 0x0f;
 	m_characteristic.gtsDirection = (GTSDirection)(((*data) & 0x10) >> 4);
@@ -486,6 +549,7 @@ Buffer GtsRequestComm::Serialize() {
 	Buffer data;
 	data.AddAtStart(3);
 	Buffer::Iterator it = data.Begin();
+	NS_ASSERT(m_commId == GTS_REQUEST);
 	it.WriteU8((uint8_t)m_commId);
 	uint8_t payload_length = 1;
 	it.WriteU8(payload_length);
@@ -516,7 +580,7 @@ AssocResponseComm::~AssocResponseComm() {
 
 void AssocResponseComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data ;
-	NS_ASSERT (((uint8_t)ASSOC_RESPONSE) == m_commId);
+	NS_ASSERT (ASSOC_RESPONSE == m_commId);
 	data += 2;
 	m_shortAddr = *data++ ;
 	m_shortAddr = (m_shortAddr<<8)|(*data);
@@ -543,8 +607,10 @@ Buffer AssocResponseComm::Serialize() {
 	Buffer b;
 	b.AddAtStart(6);
 	Buffer::Iterator it = b.Begin();
+	NS_ASSERT (ASSOC_RESPONSE == m_commId);
 	it.WriteU8((uint8_t)m_commId);
-	it.WriteU8(2);
+	uint8_t payloadlenth = 1;
+	it.WriteU8(payloadlenth);
 	it.WriteU16((uint16_t)m_shortAddr);
 	it.WriteU8((uint8_t)m_assocStatus);
 	it.WriteU8(((m_capabilityNegoResponse)<<6));
@@ -567,7 +633,7 @@ MobilityNotifiComm::~MobilityNotifiComm() {
 
 void MobilityNotifiComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data;
-	NS_ASSERT (((uint8_t)MOBILITY_NOTIFICATION) == m_commId);
+	NS_ASSERT (MOBILITY_NOTIFICATION == m_commId);
 	data +=2;
 }
 
@@ -581,6 +647,7 @@ Buffer MobilityNotifiComm::Serialize() {
 	Buffer b;
 	b.AddAtStart(2);
 	Buffer::Iterator it = b.Begin();
+	NS_ASSERT (MOBILITY_NOTIFICATION == m_commId);
 	it.WriteU8((uint8_t)m_commId);
 	it.WriteU8(2);
 	return b;
@@ -595,7 +662,7 @@ DataRequestComm::~DataRequestComm() {
 
 void DataRequestComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data++;
-	NS_ASSERT (((uint8_t)DATA_REQUEST) == m_commId);
+	NS_ASSERT (DATA_REQUEST == m_commId);
 	data++;
 }
 
@@ -614,7 +681,14 @@ DataRequestComm::DataRequestComm(Ptr<Packet> p) {
 }
 
 Buffer DataRequestComm::Serialize() {
-	return 0;
+	Buffer b;
+	b.AddAtStart(2);
+	Buffer::Iterator it = b.Begin();
+	NS_ASSERT (DATA_REQUEST == m_commId);
+	it.WriteU8((uint8_t)m_commId);
+	uint8_t payloadlenth = 1;
+	it.WriteU8(payloadlenth);
+	return b;
 }
 
 } /* namespace ns3 */
