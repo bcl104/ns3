@@ -21,7 +21,7 @@ public:
 
 	virtual ~OpStatusCallback();
 
-	virtual void TxResultNotification(PhyOpStatus status) = 0;
+	virtual void TxResultNotification(MacOpStatus status) = 0;
 
 };
 

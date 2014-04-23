@@ -108,6 +108,13 @@ enum MacOpStatus
 	BEACON_LOST,
 };
 
+enum MacColorStabCapab{
+	NO_COLOR_STABI = 0X00,
+	FROM_DEVICE_TO_COORD = 0X01,
+	FROM_COORD_TO_DEVICE = 0X02,
+	EITHER_DIRECTION = 0X03,
+};
+
 enum MacAssocStatus
 {
 	ASSOC_SUCCESS = 0x00,
@@ -219,9 +226,9 @@ struct VPANDescriptor
 public:
 	Address coordAddr;
 	AddrMode coordAddrMode;
-	uint8_t coordVPANId;
+	uint16_t coordVPANId;
 	bool gtsPermit;
-	uint8_t logicChannel;
+	LogicChannelId logicChannel;
 	SupframeSpec supframeSpec;
 	uint32_t timestamp;
 	bool operator() (VPANDescriptor& d)
@@ -252,6 +259,25 @@ public:
 	bool SecCapabi;
 	bool CoordCapabi;
 	bool TrafficSup;
+
+};
+
+struct MacCapabilityInfo
+{
+
+public:
+	bool powerSource;
+	uint8_t batteryInfo;
+	bool SecCapabi;
+	bool CoordCapabi;
+	bool TrafficSup;
+	uint8_t TopoSupport;
+	uint8_t DeviceType;
+	bool BeaconSupport;
+	bool DimSupport;
+	bool ContinuVisiTrans;
+	bool CvdSopport;
+	bool AllocateAddr;
 
 };
 

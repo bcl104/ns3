@@ -27,7 +27,7 @@ TypeId LifiBeaconHandler::GetTypeId() {
 	return tid;
 }
 
-void LifiBeaconHandler::TxResultNotification(PhyOpStatus status) {
+void LifiBeaconHandler::TxResultNotification(MacOpStatus status) {
 }
 
 } /* namespace ns3 */

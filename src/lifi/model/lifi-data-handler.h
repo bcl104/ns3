@@ -24,7 +24,7 @@ public:
 	virtual ~LifiDataHandler();
 	static TypeId GetTypeId ();
 
-	virtual void TxResultNotification(PhyOpStatus status);
+	virtual void TxResultNotification(MacOpStatus status);
 
 protected:
 	DataService* m_dataService;

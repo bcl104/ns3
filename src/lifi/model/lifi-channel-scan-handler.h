@@ -35,7 +35,7 @@ public:
 
 	void ReceiveBeacon(uint32_t timestamp, Ptr<Packet> msdu);
 
-	virtual void TxResultNotification(PhyOpStatus status);
+	virtual void TxResultNotification(MacOpStatus status);
 
 	bool Start(ScanType scanType, uint32_t duration);
 
@@ -57,7 +57,7 @@ protected:
 
 	void onReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu);
 
-	void onTxRuesult(PhyOpStatus status);
+	void onTxRuesult(MacOpStatus status);
 
 	void SendBeaconRequest();
 

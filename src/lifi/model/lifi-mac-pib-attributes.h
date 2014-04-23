@@ -26,6 +26,7 @@ class LifiMacPibAttribute : public LifiPIBAttribute
 	friend class LifiMacCoordImpl;
 	friend class LifiMacDevImpl;
 	friend class LifiChannelScanHandler;
+	friend class LifiAssocHandler;
 
 public:
 	LifiMacPibAttribute();
@@ -208,7 +209,7 @@ private:
 	 * allocated an address. A value of 0xffff indicates that the device does not have a short address.
 	 * Range: 0x0000–0xffff
 	 */
-	uint32_t macShortAddress;
+	uint16_t macShortAddress;
 
 	/**
 	 * The length of the active portion of the outgoing superframe, including the beacon frame. If superframe

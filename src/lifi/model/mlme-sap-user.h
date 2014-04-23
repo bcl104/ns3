@@ -20,7 +20,7 @@ public:
 	MlmeSapUser();
 	virtual ~MlmeSapUser();
 
-	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status, MacOpStatus capNigoResponse) = 0;
+	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capNigoResponse) = 0;
 	virtual void MlmeAssociateIndication(Mac64Address devAddr, CapabilityInfo capInfo) = 0;
 	virtual void MlmeBeaconNotify(uint8_t bsn, VPANDescriptor vpanDiscriptor, PendAddrSpec pendAddrSpec, AddrList addrList, uint32_t size, uint8_t* payload) = 0;
 	virtual void MlmeCommStatusIndication(uint16_t vpanId, TypeId srcAddrMode, Address srcAddr, TypeId dsAddrMode, Address dstAddr, MacOpStatus status) = 0;

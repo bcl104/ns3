@@ -29,7 +29,7 @@ TypeId LifiDataHandler::GetTypeId() {
 	return tid;
 }
 
-void LifiDataHandler::TxResultNotification(PhyOpStatus status) {
+void LifiDataHandler::TxResultNotification(MacOpStatus status) {
 }
 
 } /* namespace ns3 */

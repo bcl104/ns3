@@ -48,6 +48,7 @@ def build(bld):
         'model/lifi-cell.cc',
         'model/lifi-phy-header.cc',
         'model/lifi-spectrum-channel.cc',
+        'model/lifi-mac-ack.cc',
         'helper/lifi-helper.cc',
         ]
 
@@ -98,6 +99,7 @@ def build(bld):
         'model/lifi-cell.h',
         'model/lifi-phy-header.h',
         'model/lifi-spectrum-channel.h',
+        'model/lifi-mac-ack.h',
         'helper/lifi-helper.h',
         ]
 
