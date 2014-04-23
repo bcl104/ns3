@@ -32,7 +32,7 @@ public:
 	LifiTxHandler();
 	virtual ~LifiTxHandler();
 
-	virtual void Confirm(PhyOpStatus status);
+	virtual void Confirm(MacOpStatus status);
 	LifiTxHandler::State GetStatus();
 	void Reset();
 	virtual void Run();

@@ -18,7 +18,7 @@ LifiTxHandler::~LifiTxHandler() {
 	// TODO Auto-generated destructor stub
 }
 
-void LifiTxHandler::Confirm(PhyOpStatus status) {
+void LifiTxHandler::Confirm(MacOpStatus status) {
 }
 
 LifiTxHandler::State LifiTxHandler::GetStatus() {

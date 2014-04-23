@@ -49,7 +49,7 @@ TypeId LifiChannelScanHandler::GetTypeId() {
 	return tid;
 }
 
-void LifiChannelScanHandler::TxResultNotification(PhyOpStatus status) {
+void LifiChannelScanHandler::TxResultNotification(MacOpStatus status) {
 	NS_LOG_FUNCTION (this);
 	onTxRuesult(status);
 }
@@ -71,7 +71,7 @@ bool LifiChannelScanHandler::Reset() {
 	return true;
 }
 
-void LifiChannelScanHandler::onTxRuesult(PhyOpStatus status) {
+void LifiChannelScanHandler::onTxRuesult(MacOpStatus status) {
 	NS_LOG_FUNCTION (this);
 }
 
@@ -100,8 +100,8 @@ void LifiChannelScanHandler::SetMacPibAttribtes(LifiMacPibAttribute* attributes)
 	m_attributes = attributes;
 }
 
-void LifiChannelScanHandler::DoRun() {
-
+void LifiChannelScanHandler::DoRun()
+{
 	// DoRun method is first invoked after the initialization.
 	if (m_state == NEW_CHANNEL)
 	{
