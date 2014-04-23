@@ -10,7 +10,7 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
-
+#include "lifi-phy-general.h"
 #define P1 111101011001000
 
 namespace ns3 {

@@ -22,7 +22,7 @@ public:
 	virtual ~PdSapUser();
 
 	virtual void PdDataConfirm(PhyOpStatus status) = 0;
-	virtual void PdDataIndication(uint32_t size, Ptr<PacketBurst> pb, uint8_t ppduLinkQuality) = 0;
+	virtual void PdDataIndication(uint32_t size, Ptr<Packet> pb, uint8_t ppduLinkQuality) = 0;
 
 };
 
@@ -40,7 +40,7 @@ public:
 		m_mac->DoDataConfirm (status);
 	}
 
-	virtual void PdDataIndication(uint32_t size, Ptr<PacketBurst> pb, uint8_t linkQuality)
+	virtual void PdDataIndication(uint32_t size, Ptr<Packet> pb, uint8_t linkQuality)
 	{
 		m_mac->DoReceive (size, pb, linkQuality);
 	}
