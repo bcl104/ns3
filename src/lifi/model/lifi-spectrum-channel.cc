@@ -76,6 +76,10 @@ std::pair<PhyList::iterator,PhyList::iterator> LifiSpectrumChannel::SearchTxList
 	return m_txPhyList.equal_range(band);
 }
 
+Ptr<PropagationLossModel> LifiSpectrumChannel::GetPropagationModel(void){
+	NS_LOG_FUNCTION(this);
+	return m_propagationLossModel;
+}
 //void LifiSpectrumChannel::SetDelay(Time delay){
 //	NS_LOG_FUNCTION(this);
 //	m_delay = delay;
@@ -95,19 +99,28 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	std::make_pair(beg,end) = SearchRxList(params->band);
 	while(beg != end){
 //		double Pr = 1;
-		double Pr = m_propagationLossModel->CalcRxPower(params->txPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
+		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
+		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
 		if(Pr > beg->second->GetmRxPowerTh()){
-			rxPoint.push_back(beg->second);
-		}
+//			rxPoint.push_back(beg->second);
+			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
+			Ptr<LifiSpectrumSignalParameters> rxParams = params;//????
+			rxParams->time = Simulator::Now();
+			rxParams->trxPower = Pr;
+			rxParams->psd = rxPsd->Copy();
+			Simulator::Schedule (delay, &LifiSpectrumChannel::StartRx, this, rxParams,beg->second);
+		}//by comparing the rxPower ,we can choose to compare the rxPsd;
 		++beg;
 	}
-	std::vector<Ptr<LifiSpectrumPhy> >::iterator it = rxPoint.begin();
-	while(it != rxPoint.end()){
-		Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),(*it)->GetMobility());
-		Simulator::Schedule (delay, &LifiSpectrumChannel::StartRx, this, params,*it);
-		++it;
-	}
+//	std::vector<Ptr<LifiSpectrumPhy> >::iterator it = rxPoint.begin();
+//	while(it != rxPoint.end()){
+//		Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),(*it)->GetMobility());
+//		Ptr<LifiSpectrumSignalParameters> rxParams = params;//????
+//		Simulator::Schedule (delay, &LifiSpectrumChannel::StartRx, this, rxParams,*it);
+//		++it;
+//	}
 }
+
 //
 //void LifiSpectrumChannel::SetRxPowerTh(double th){
 //	NS_LOG_FUNCTION(this);
@@ -179,36 +192,40 @@ uint32_t LifiSpectrumChannel::GetNDevices(void) const {
 
 Ptr<NetDevice> LifiSpectrumChannel::GetRxDevice(uint32_t i) const {
 	NS_LOG_FUNCTION(this);
-	NS_ASSERT(i<=m_numDevices);
-//	Ptr<NetDevice> pDevice = 0;
-//	PhyList ::const_iterator it = m_rxPhyList.begin();
-//	while(it != m_rxPhyList.end()){
-//	if(it->second.second == i){
-//			pDevice = it->second.first->GetDevice();
-//			return pDevice;
-//			break;
-//			}
-//			++it;
-//		}
-//		NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
+	NS_ASSERT(i<=m_rxNumDevices);
+	Ptr<NetDevice> pDevice = 0;
+	PhyList ::const_iterator it = m_rxPhyList.begin();
+	uint32_t count = 0;
+	while(it != m_rxPhyList.end()){
+		++count;
+	if(count == i){
+			pDevice = it->second->GetDevice();
+			return pDevice;
+			break;
+			}
+		++it;
+		}
+		NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_rxNumDevices << "RX Devices");
 		return 0;
 }
 
 Ptr<NetDevice> LifiSpectrumChannel::GetTxDevice(uint32_t i) const {
 	NS_LOG_FUNCTION(this);
-	NS_ASSERT(i<=m_numDevices);
-//	Ptr<NetDevice> pDevice = 0;
-//	PhyList ::const_iterator it = m_txPhyList.begin();
-//	while(it != m_txPhyList.end()){
-//		if(it->second.second == i){
-//		pDevice = it->second.first->GetDevice();
-//		return pDevice;
-//		break;
-//		}
-//		++it;
-//	}
-//	NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
-	return 0;
+	NS_ASSERT(i<=m_txNumDevices);
+	Ptr<NetDevice> pDevice = 0;
+	PhyList ::const_iterator it = m_txPhyList.begin();
+	uint32_t count = 0;
+	while(it != m_txPhyList.end()){
+		++count;
+	if(count == i){
+			pDevice = it->second->GetDevice();
+			return pDevice;
+			break;
+			}
+		++it;
+		}
+		NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
+		return 0;
 }
 
 Ptr<SpectrumPropagationLossModel> LifiSpectrumChannel::GetSpectrumPropagationLossModel(void) {
@@ -252,7 +269,7 @@ bool LifiSpectrumChannel::DeleteRx(Ptr<LifiSpectrumPhy> phy) {
 //	it = m_rxPhyList.lower_bound(band);
 //	end = m_rxPhyList.upper_bound(band);
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
-	std::make_pair(it,end) = m_rxPhyList.equal_range(band);
+	std::make_pair(it,end) = SearchTxList(band);
 
 	while(it != end){
 		if(it->second == phy){
@@ -297,7 +314,9 @@ void LifiSpectrumChannel::StartRx(Ptr<LifiSpectrumSignalParameters> params,Ptr<L
 //	std::vector<Ptr<LifiSpectrumPhy> > txPoint;
 //	std::pair<PhyList::iterator,PhyList::iterator> list_pair = std::make_pair(beg,end);
 //	list_pair = SearchTxList(params->band);
-//	receiver->StartRx(params);
+//	while(beg != end){
+	receiver->StartRx(params);
+//	}
 }
 
 } /* namespace ns3 */
