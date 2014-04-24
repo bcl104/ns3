@@ -33,12 +33,10 @@ public:
 	void SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters);
 	Ptr<LifiAntennaParameters> GetLifiAntennaParameters();
 //	double CalcRxPower (double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
-protected:
+private:
 	virtual int64_t DoAssignStreams(int64_t stream);
 	//input unit is dbm out unit id dbm.
 	virtual double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
-
-private:
 	Ptr<LifiAntennaParameters> m_antennaParameters;
 };
 
