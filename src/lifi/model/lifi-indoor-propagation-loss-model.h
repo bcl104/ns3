@@ -35,6 +35,7 @@ public:
 //	double CalcRxPower (double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
 protected:
 	virtual int64_t DoAssignStreams(int64_t stream);
+	//input unit is dbm out unit id dbm.
 	virtual double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
 
 private:

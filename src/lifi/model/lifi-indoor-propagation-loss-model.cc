@@ -14,10 +14,10 @@ LifiIndoorPropagationLossModel::LifiIndoorPropagationLossModel() {
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
-	m_antennaParameters->HalfPowerDegree = 15/180*M_PI;
-	m_antennaParameters->FOV = 120/180*M_PI;
-	m_antennaParameters->TransmitterDegree = 30/180*M_PI;
-	m_antennaParameters->ReceiverDegree = 30/180*M_PI;
+	m_antennaParameters->HalfPowerDegree = (double)15/180*M_PI;
+	m_antennaParameters->FOV = (double)120/180*M_PI;
+	m_antennaParameters->TransmitterDegree = (double)30/180*M_PI;
+	m_antennaParameters->ReceiverDegree = (double)30/180*M_PI;
 
 }
 

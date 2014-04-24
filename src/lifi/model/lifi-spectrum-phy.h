@@ -51,7 +51,7 @@ public:
 
 	bool CarrierSense();
 
-	uint8_t CarrierSense(uint8_t band);
+	bool CarrierSense(uint8_t band,double edTh);
 
 	virtual void SetDevice (Ptr<NetDevice> d);
 
@@ -91,7 +91,13 @@ public:
 
 	void EndRx(Ptr<LifiSpectrumSignalParameters> params);
 
-	uint8_t CalculateWqi(Ptr<SpectrumValue> sinr);
+	void SetInterference(Ptr<LifiInterference> interference);
+
+	Ptr<LifiInterference> GetInterference(void);
+
+	void SetBerTh(double ber);
+
+	double GetberTh(void);
 
 //	void SetLifiPhy(Ptr<LifiPhy> phy);
 //
@@ -106,6 +112,12 @@ private:
 	 * pp.214, Table 76&mdash;Visible light wavelength band plan.
 	 * .
 	 */
+	uint8_t CalculateWqi(double sinr);
+
+	double CalculateBer(double sinr);//ber = 1/2(erfc(sprt(sinr/4)))
+
+	double CalculateErf(double x,uint8_t n);//x:upper limit of integral n:number of check
+
 	Ptr<AntennaModel> m_antenna;
 	Ptr<NetDevice> m_device;
 	Ptr<MobilityModel> m_mobility;
@@ -114,6 +126,7 @@ private:
 	Ptr<SpectrumChannel> m_channel;
 //	Ptr<LifiPhy> m_phy;
 	double m_rxPowerTh;
+	double m_berTh;
 //	uint8_t m_WQI;
 //	spectrum
 

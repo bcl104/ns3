@@ -84,6 +84,13 @@ public:
 	bool DeleteRx(Ptr<LifiSpectrumPhy> phy);
 
 	bool DeleteTx(Ptr<LifiSpectrumPhy> phy);
+
+	void AddRxInterference(Ptr<LifiSpectrumPhy> phy);
+
+	void SubtraRxInterference(Ptr<LifiSpectrumPhy> phy);
+
+	double CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,uint8_t bandId);
+
 //    void AddTx(uint8_t band,Ptr<SpectrumPhy> phy);
 //
 //	bool DeleteRx(uint8_t band,Ptr<SpectrumPhy> phy);

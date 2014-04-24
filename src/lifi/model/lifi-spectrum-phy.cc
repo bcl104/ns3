@@ -7,12 +7,14 @@
 #include "ns3/spectrum-propagation-loss-model.h"
 #include "lifi-net-device.h"
 #include "lifi-phy.h"
+#include "cmath"
 NS_LOG_COMPONENT_DEFINE ("LifiSpectrumPhy");
 namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (LifiSpectrumPhy);
 LifiSpectrumPhy::LifiSpectrumPhy() {
 	NS_LOG_FUNCTION(this);
 	m_rxPowerTh = 1;
+	m_berTh = 0;
 
 }
 
@@ -32,6 +34,7 @@ LifiSpectrumPhy::LifiSpectrumPhy(Ptr<NetDevice> device) {
 //	LifiSpectrumPhy();//?????????????
 	m_device = device;
 	m_rxPowerTh = 1;
+	m_berTh = 0;
 //	m_cellId = 0;
 //	m_band = 0;
 }
@@ -79,9 +82,13 @@ bool LifiSpectrumPhy::CarrierSense() {
 	return false;
 }
 
-uint8_t LifiSpectrumPhy::CarrierSense(uint8_t band) {
+bool LifiSpectrumPhy::CarrierSense(uint8_t band,double edTh){
 	NS_LOG_FUNCTION(this);
-	return 0;
+    double power=0;
+    Ptr<LifiSpectrumChannel> lifiSpectrumChannel;
+    lifiSpectrumChannel=DynamicCast<LifiSpectrumChannel> (m_channel);
+	power=lifiSpectrumChannel->CalcMyCcaPower(m_mobility,band);
+    return (power>edTh)? false:true;
 }
 
 void LifiSpectrumPhy::SetDevice(Ptr<NetDevice> device) {
@@ -124,6 +131,16 @@ Ptr<AntennaModel> LifiSpectrumPhy::GetRxAntenna() {
 	return 0;
 }
 
+void LifiSpectrumPhy::SetInterference(Ptr<LifiInterference> interference){
+	NS_LOG_FUNCTION(this);
+	m_interference = interference;
+}
+
+Ptr<LifiInterference> LifiSpectrumPhy::GetInterference(void){
+	NS_LOG_FUNCTION(this);
+	return m_interference;
+}
+
 void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 	NS_LOG_FUNCTION(this);
 	Ptr<LifiSpectrumSignalParameters> lifi_params = DynamicCast<LifiSpectrumSignalParameters>(params);
@@ -155,9 +172,30 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 
 }
 
-uint8_t LifiSpectrumPhy::CalculateWqi(Ptr<SpectrumValue> sinr){
+uint8_t LifiSpectrumPhy::CalculateWqi(double sinr){
 	NS_LOG_FUNCTION(this);
 	return 255;
+}
+
+double LifiSpectrumPhy::CalculateErf(double x,uint8_t n){
+	NS_LOG_FUNCTION(this);
+	double resolution = x/n;
+	double result = 0;
+	for(uint8_t i = 0;i<n;i++){
+		result +=resolution * exp(resolution*i+resolution/2);
+	}
+	result *= 2/sqrt(M_PI);
+	return result;
+}
+
+void LifiSpectrumPhy::SetBerTh(double ber){
+	NS_LOG_FUNCTION(this);
+	m_berTh = ber;
+}
+
+double LifiSpectrumPhy::GetberTh(void){
+	NS_LOG_FUNCTION(this);
+	return m_berTh;
 }
 
 void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
@@ -165,12 +203,19 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	m_interference->SetReceiveState(false);
 	Ptr<SpectrumValue> averageAllSignal = m_interference->CalcuAveInterference(params->duration);
 	Ptr<SpectrumValue> sinr = m_interference->CalSinr(params->psd,averageAllSignal);
+	double TimeDomainSinr = Integral(*sinr);
+	double ber = CalculateBer(TimeDomainSinr);
 	m_interference->SetAllsignal(0);
+	//add a threshold detection statement
+	if(ber>m_berTh){
 	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);
 	Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
-	//add a threshold detection statement
-	uint8_t wqi = CalculateWqi(sinr);
+	uint8_t wqi = CalculateWqi(TimeDomainSinr);
 	lifiphy->Receive(params,wqi);
+	}
+	else{
+//		NS_LOG_WARN("the rxBer:"<<ber<<"is less than the berTh"<<m_berTh);
+	}
 }
 
 //void LifiSpectrumPhy::SetLifiPhy(Ptr<LifiPhy> phy){
@@ -222,9 +267,11 @@ void LifiSpectrumPhy::SetErrorModel(Ptr<LifiSpectrumErrorModel> e){
 	}
 }
 
-//uint8_t LifiSpectrumPhy::GetBand(){
-//	NS_LOG_FUNCTION(this);
-//	return m_b
-//}
+double LifiSpectrumPhy::CalculateBer(double sinr){
+	NS_LOG_FUNCTION(this);
+	double ber = 0;
+	ber = 1.0/2.0*(1.0-CalculateErf(sqrt(sinr/4.0),100));
+	return ber;
+}
 
 } /* namespace ns3 */

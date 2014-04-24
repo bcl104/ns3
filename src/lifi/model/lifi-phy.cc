@@ -38,6 +38,7 @@ LifiPhy::LifiPhy() {
 	m_Time = Simulator::Now();
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
+	m_subBandsNum = 1;
 }
 
 LifiPhy::~LifiPhy() {
@@ -63,6 +64,7 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_Time = Simulator::Now();
+	m_subBandsNum = 1;
 }
 
 LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) {
@@ -84,6 +86,7 @@ LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) 
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_ookDim = false;
+	m_subBandsNum = 1;
 }
 
 LifiPhy::LifiPhy(std::vector< Ptr<LifiCell> > cellList){
@@ -104,6 +107,7 @@ LifiPhy::LifiPhy(std::vector< Ptr<LifiCell> > cellList){
 	m_PsduSize = 0;
 	m_ookDim = false;
 	m_reservedFields = 0x00;
+	m_subBandsNum = 1;
 }
 
 TypeId LifiPhy::GetTypeId() {
@@ -125,7 +129,7 @@ bool LifiPhy::DoCca() {
 
 uint8_t LifiPhy::DoCca(uint8_t band) {
 	NS_LOG_FUNCTION(this);
-	return 0;
+	return m_spectrumPhy->CarrierSense(band,m_edTh);
 }
 
 //void LifiPhy::SetDeviceAttribute(PhyOpStatus status) {
@@ -179,6 +183,10 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	if(m_trxStatus == TX_ON){
 		uint8_t* channel = (uint8_t*)(m_attributes.GetAttributes(PHY_CURRENT_CHANNEL));
 		m_band = band;
+		double fb,fe,fc;
+		GetbandsInfo(fb,fe,fc,m_band);
+		Bands psdBand = GetBands(fb,fc,fe);
+		m_psd = CalculatetxPsd(m_txPower,psdBand,0);//modulation way is not used yet.
 		LifiPhyHeader header = SetLifiPhyHeader(m_burstMode,*channel,m_mcsId,size,m_ookDim,0x00);
 		pb->AddHeader(header);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
@@ -220,6 +228,12 @@ void LifiPhy::SetTRxState(PhyOpStatus state) {
 		else{
 
 		}
+}
+
+
+void LifiPhy::SetTxPower(double txPower){
+	NS_LOG_FUNCTION(this);
+	m_txPower = txPower;
 }
 
 double LifiPhy::GetTxPower() {
@@ -281,7 +295,7 @@ void LifiPhy::SetbandId(uint8_t band){
 
 void LifiPhy::StartTx(Ptr<Packet> pb) {
 	NS_LOG_FUNCTION(this);
-//	m_spectrumPhy->Send()
+	//	m_spectrumPhy->Send()
 	if(!m_cellMode){
 		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,duration,m_psd,m_Time,m_mcsId,
 							 m_PsduSize ,0x00,m_ookDim,m_burstMode);
@@ -451,5 +465,103 @@ LifiPhyHeader LifiPhy::SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uin
 //	NS_LOG_FUNCTION(this);
 //	return m_phyheader;
 //}
+
+
+Ptr<SpectrumValue> LifiPhy::CalculatetxPsd(double txPowerDbm,Bands band,uint8_t Modulation){
+	NS_LOG_FUNCTION(this);
+	Ptr<SpectrumModel> model = Create<SpectrumModel>(band);
+	Ptr<SpectrumValue> txPsd = Create<SpectrumValue>(model);
+	double powerTxW = std::pow (10., (txPowerDbm - 30) / 10);//turn the unit Dbm to w.
+	double bandwith = (--(band.end()))->fh - band.begin()->fl;
+	double txPowerDensity = powerTxW / bandwith;
+	//judge modulation way
+	Values::iterator beg = txPsd->ValuesBegin();
+	Values::iterator end = txPsd->ValuesEnd();
+	while(beg != end){
+		*beg = txPowerDensity;
+		beg++;
+	}
+	return txPsd;
+}
+
+void LifiPhy::SetSubBandsNum(uint8_t num){
+	NS_LOG_FUNCTION(this);
+	m_subBandsNum = num;
+}
+
+uint8_t LifiPhy::GetSunBandsNum(void){
+	NS_LOG_FUNCTION(this);
+	return m_subBandsNum;
+}
+
+Bands LifiPhy::GetBands(double fb,double f0,double fe){
+	NS_LOG_FUNCTION(this);
+	double resolution = (fe-fb)/m_subBandsNum;
+	Bands band;
+	for(double i = 0;i<m_subBandsNum;i++){
+		BandInfo info;
+		info.fl = fb+resolution*i;
+		info.fh = fb+resolution*(i+1);
+		info.fc = info.fl+resolution/2;
+		band.push_back(info);
+	}
+	return band;
+}
+/*fb fc and fe unit:MHZ
+ * f = c/l f:hz,c:3.0x10^8m/s,l:nm
+ * f = (3000/l)*10^8MHZ
+ */
+void LifiPhy::GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band){
+	NS_LOG_FUNCTION(this);
+	double templ;
+	double temph;
+	switch(band){
+	case 0 :templ = (double)3000/380;
+			temph = (double)3000/478;
+			fb = templ*1.0e8;
+			fe = temph*1.0e8;
+			fc = (fb-fe)/2.0;
+			break;
+	case 1 :templ = (double)3000/478;
+				temph = (double)3000/540;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	case 2 :templ = (double)3000/540;
+				temph = (double)3000/588;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	case 3 :templ = (double)3000/588;
+				temph = (double)3000/633;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	case 4 :templ = (double)3000/633;
+				temph = (double)3000/679;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	case 5 :templ = (double)3000/679;
+				temph = (double)3000/726;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	case 6 :templ = (double)3000/726;
+				temph = (double)3000/780;
+				fb = templ*1.0e8;
+				fe = temph*1.0e8;
+				fc = (fb-fe)/2.0;
+				break;
+	default:NS_LOG_WARN("the bandId:"<<band<<"is not using");
+			break;
+	}
+}
+
 } /* namespace ns3 */
 

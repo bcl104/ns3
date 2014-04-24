@@ -14,6 +14,7 @@
 #include "lifi-spectrum-channel.h"
 #include "lifi-spectrum-phy.h"
 #include "lifi-phy-pib-attributes.h" //attributes are used in function addTx deleteTx and deleteRx
+#include "lifi-net-device.h"//calculate cca
 
 NS_LOG_COMPONENT_DEFINE("LifiSpectrumChannel");
 
@@ -98,9 +99,9 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	std::vector<Ptr<LifiSpectrumPhy> > rxPoint;
 	std::make_pair(beg,end) = SearchRxList(params->band);
 	while(beg != end){
-//		double Pr = 1;
-		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
+//		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
+		double Pr = Integral(*rxPsd);//transform Psd into power unit w.
 		if(Pr > beg->second->GetmRxPowerTh()){
 //			rxPoint.push_back(beg->second);
 			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
@@ -143,6 +144,7 @@ void LifiSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy) {
 	while(it!=m_rxPhyList.end()){
 		if(it->second->GetDevice() == pD){
 			flag = false;
+			NS_LOG_WARN("this device has already been added to RxList");
 			break;
 		}
 		++it;
@@ -150,10 +152,11 @@ void LifiSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy) {
 	if(flag){
 		m_numDevices++;
 		m_rxNumDevices++;
+		uint8_t band = (lifi_phy->GetSpectrumSignalParameters()->band);
+		m_rxPhyList.insert(std::make_pair(band,lifi_phy));
 	}
 //	m_rxPhyList.insert(std::make_pair(band,std::make_pair(phy,m_rxNumDevices)));
-	uint8_t band = (lifi_phy->GetSpectrumSignalParameters()->band);
-	m_rxPhyList.insert(std::make_pair(band,lifi_phy));
+
 }
 
 //void LifiSpectrumChannel::AddRx(uint8_t band,Ptr<LifiSpectrumPhy> phy) {
@@ -205,7 +208,7 @@ Ptr<NetDevice> LifiSpectrumChannel::GetRxDevice(uint32_t i) const {
 			}
 		++it;
 		}
-		NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_rxNumDevices << "RX Devices");
+		NS_LOG_WARN ("ID number "<<i<<"out of range ,total " << m_rxNumDevices << "RX Devices");
 		return 0;
 }
 
@@ -224,7 +227,7 @@ Ptr<NetDevice> LifiSpectrumChannel::GetTxDevice(uint32_t i) const {
 			}
 		++it;
 		}
-		NS_LOG_LOGIC ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
+		NS_LOG_WARN ("ID number "<<i<<"out of range ,total " << m_txNumDevices << "RX Devices");
 		return 0;
 }
 
@@ -238,6 +241,8 @@ void LifiSpectrumChannel::SetSpectrumMap(std::map<int, int> spectrum) {
 	m_channelMap = spectrum;
 }
 
+
+
 void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 	NS_LOG_FUNCTION(this);
 	NS_ASSERT(phy!=0);
@@ -249,6 +254,7 @@ void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 	while(it!=m_txPhyList.end()){
 		if(it->second->GetDevice() == pD){
 			flag = false;
+			NS_LOG_WARN("this device has already been added to TxList.");
 			break;
 		}
 		++it;
@@ -256,9 +262,9 @@ void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 	if(flag){
 		m_numDevices++;
 		m_txNumDevices++;
+		uint8_t band = phy->GetSpectrumSignalParameters()->band;
+		m_txPhyList.insert(std::make_pair(band,phy));
 	}
-	uint8_t band = phy->GetSpectrumSignalParameters()->band;
-	m_txPhyList.insert(std::make_pair(band,phy));
 }
 
 bool LifiSpectrumChannel::DeleteRx(Ptr<LifiSpectrumPhy> phy) {
@@ -280,6 +286,9 @@ bool LifiSpectrumChannel::DeleteRx(Ptr<LifiSpectrumPhy> phy) {
 			break;
 		}
 		++it;
+	}
+	if(flag == false){
+		NS_LOG_WARN("can not find this device in RxList");
 	}
 	return flag;
 }
@@ -303,8 +312,39 @@ bool LifiSpectrumChannel::DeleteTx(Ptr<LifiSpectrumPhy> phy) {
 		}
 		++it;
 	}
+	if(flag == false){
+			NS_LOG_WARN("can not find this device in RxList");
+		}
 	return flag;
 
+}
+
+void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
+	NS_LOG_FUNCTION(this);
+	PhyList::iterator it;
+	PhyList::iterator end ;
+	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
+	std::make_pair(it,end) = SearchRxList(band);
+	while(it != end){
+		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
+		it->second->GetInterference()->LifiAddSignal(rxPsd,Simulator::Now());
+		++it;
+	}
+}
+
+void LifiSpectrumChannel::SubtraRxInterference(Ptr<LifiSpectrumPhy> phy){
+	NS_LOG_FUNCTION(this);
+	PhyList::iterator it;
+	PhyList::iterator end ;
+	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
+	std::make_pair(it,end) = SearchRxList(band);
+	while(it != end){
+		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
+		it->second->GetInterference()->LifiSubtractSignal(rxPsd,Simulator::Now());
+		++it;
+	}
 }
 
 void LifiSpectrumChannel::StartRx(Ptr<LifiSpectrumSignalParameters> params,Ptr<LifiSpectrumPhy> receiver) {
@@ -317,6 +357,36 @@ void LifiSpectrumChannel::StartRx(Ptr<LifiSpectrumSignalParameters> params,Ptr<L
 //	while(beg != end){
 	receiver->StartRx(params);
 //	}
+}
+
+double LifiSpectrumChannel::CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,uint8_t bandId)
+{
+	NS_ASSERT(myMobilityModel!=0);
+	double powerSum=0;
+	PhyList::iterator it;
+	it=m_txPhyList.find(bandId);
+	if(it==m_txPhyList.end())
+	{
+		NS_LOG_WARN("the bandId:"<<bandId<<"is not using");
+		return 0;
+	}
+	uint16_t k=0;
+	for(k=0;k!=m_txPhyList.count(bandId);k++,it++)
+	{
+		Ptr<LifiSpectrumPhy> lifiSpectrumPhy = it->second;
+//		lifiSpectrumPhy=DynamicCast<LifiSpectrumPhy> ((*it).second);
+		Ptr<MobilityModel> txMobilityModel=lifiSpectrumPhy->GetMobility();
+		NS_ASSERT(txMobilityModel!=0);
+		Ptr<NetDevice> netDevice;
+		netDevice=(*it).second->GetDevice();
+		Ptr<LifiNetDevice> lifiNetDevice;
+		lifiNetDevice=DynamicCast<LifiNetDevice> (netDevice);
+		NS_ASSERT(lifiNetDevice!=0);
+		double txPowerDbm=lifiNetDevice->GetPhy()->GetTxPower();
+		powerSum+=m_propagationLossModel->CalcRxPower(txPowerDbm,txMobilityModel,myMobilityModel);
+	}
+    return powerSum;
+
 }
 
 } /* namespace ns3 */

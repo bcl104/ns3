@@ -52,6 +52,7 @@ public:
 	 */
 	static const uint32_t optical_clock = 3.75e6;
 
+
 	LifiPhy();
 	virtual ~LifiPhy();
 
@@ -146,6 +147,15 @@ public:
 
 	uint8_t GetReservedFields(void);
 
+	//input unit is Dbm
+	Ptr<SpectrumValue> CalculatetxPsd(double txPowerDbm,Bands band,uint8_t Modulation);
+
+	void SetSubBandsNum(uint8_t num);
+
+	uint8_t GetSunBandsNum(void);
+
+	void SetTxPower(double txPower);
+
 
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
@@ -162,6 +172,9 @@ private:
 
 	LifiPhyHeader SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uint8_t mcsId,uint16_t psduLength,bool ookDimmed,uint8_t reservedFields);
 
+	Bands GetBands(double fl,double f0,double fh);
+
+	void GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band);
 //	LifiPhyHeader GetLifiPhyHeader(void);
 
 	double m_txPower;
@@ -185,6 +198,7 @@ private:
 	Time m_Time;
 	uint8_t m_PsduSize;
 	uint8_t m_reservedFields;
+	uint8_t m_subBandsNum;
 //	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 	Ptr<PdSapProvider> m_pdSapProvider;
