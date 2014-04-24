@@ -10,6 +10,7 @@
 #include <ns3/object.h>
 #include <ns3/mobility-model.h>
 #include <ns3/spectrum-value.h>
+#include "ns3/spectrum-propagation-loss-model.h"
 
 namespace ns3 {
 struct LifiAntennaParameters;
@@ -79,7 +80,7 @@ private:
 
 //  Ptr<SpectrumPropagationLossModel> m_next;
 private:
-	double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
+	double DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b);
 	Ptr<LifiAntennaParameters> m_antennaParameters;
 };
 

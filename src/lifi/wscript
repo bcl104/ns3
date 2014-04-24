@@ -104,7 +104,7 @@ def build(bld):
         'model/lifi-spectrum-channel.h',
         'model/lifi-spectrum-signal-parameters.h',
         'model/lifi-mac-ack.h',
-        'model/lifi-spectrum-loss-model.cc',     
+        'model/lifi-spectrum-loss-model.h',     
         'helper/lifi-helper.h',
         ]
 

@@ -39,7 +39,7 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 	return rxPsd;
 }
 
-double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b){
+double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b){
 	double distance = a->GetDistanceFrom (b);
 	double m_temp1 = log(2);
 	double m_temp2 = log(cosl(m_antennaParameters->HalfPowerDegree));
