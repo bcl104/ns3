@@ -275,8 +275,11 @@ bool LifiSpectrumChannel::DeleteRx(Ptr<LifiSpectrumPhy> phy) {
 //	it = m_rxPhyList.lower_bound(band);
 //	end = m_rxPhyList.upper_bound(band);
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
-	std::make_pair(it,end) = SearchTxList(band);
-
+//	std::make_pair(it,end) = SearchTxList(band);
+	std::pair<PhyList::iterator,PhyList::iterator> pos;
+	pos = SearchRxList(band);
+	it = pos.first;
+	end = pos.second;
 	while(it != end){
 		if(it->second == phy){
 			m_rxNumDevices--;
@@ -299,7 +302,11 @@ bool LifiSpectrumChannel::DeleteTx(Ptr<LifiSpectrumPhy> phy) {
 	PhyList::iterator it;
 	PhyList::iterator end ;
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
-	std::make_pair(it,end) = SearchTxList(band);
+//	std::make_pair(it,end) = SearchTxList(band);
+	std::pair<PhyList::iterator,PhyList::iterator> pos;
+	pos = SearchTxList(band);
+	it = pos.first;
+	end = pos.second;
 //	PhyList::iterator it = m_txPhyList.equal_range(band);
 //	PhyList::iterator end = m_txPhyList.equal_range(band);
 	while(it != end){
