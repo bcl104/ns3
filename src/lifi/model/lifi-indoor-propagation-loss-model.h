@@ -36,7 +36,7 @@ public:
 private:
 	virtual int64_t DoAssignStreams(int64_t stream);
 	//input unit is dbm out unit id dbm.
-	virtual double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b);
+	virtual double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 	Ptr<LifiAntennaParameters> m_antennaParameters;
 };
 

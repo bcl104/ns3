@@ -14,6 +14,7 @@ NS_LOG_COMPONENT_DEFINE ("SpectrumPropagationLossModel");
 
 namespace ns3 {
 LifiSpectrumPropagationLossModel::LifiSpectrumPropagationLossModel() {
+	m_antennaParameters = Create<LifiAntennaParameters>();
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
@@ -28,18 +29,19 @@ ns3::LifiSpectrumPropagationLossModel::~LifiSpectrumPropagationLossModel() {
 
 Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
 	Ptr<const SpectrumValue> txPsd, Ptr<const MobilityModel> a,
-	Ptr<const MobilityModel> b) {
+	Ptr<const MobilityModel> b) const{
 	Ptr<SpectrumValue> rxPsd = txPsd->Copy();
 	Values::iterator beg = rxPsd->ValuesBegin();
 	Values::iterator end = rxPsd->ValuesEnd();
 	while(beg != end){
-		*beg = DoCalcRxPower(*beg,a,b);
+		double temp = *beg;
+		(*beg) = DoCalcRxPower(temp,a,b);
 		beg++;
 	}
 	return rxPsd;
 }
 
-double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b){
+double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const{
 	double distance = a->GetDistanceFrom (b);
 	double m_temp1 = log(2);
 	double m_temp2 = log(cosl(m_antennaParameters->HalfPowerDegree));

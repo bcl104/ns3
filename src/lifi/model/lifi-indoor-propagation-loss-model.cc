@@ -11,6 +11,7 @@ namespace ns3 {
 
 LifiIndoorPropagationLossModel::LifiIndoorPropagationLossModel() {
 	// TODO Auto-generated constructor stub
+	m_antennaParameters = Create<LifiAntennaParameters>();
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
@@ -58,7 +59,7 @@ int64_t LifiIndoorPropagationLossModel::DoAssignStreams(int64_t stream){
    * txPowerDbm:tx power(dbm)
    * FOV:the concentrator field-of-view (radian)
    */
-double LifiIndoorPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b){
+double LifiIndoorPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b) const{
 	double distance = a->GetDistanceFrom (b);
 	double m_temp1 = log(2);
 	double m_temp2 = log(cosl(m_antennaParameters->HalfPowerDegree));

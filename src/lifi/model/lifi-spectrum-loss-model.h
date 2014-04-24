@@ -76,11 +76,10 @@ private:
 	 */
 	virtual Ptr<SpectrumValue> DoCalcRxPowerSpectralDensity(
 			Ptr<const SpectrumValue> txPsd, Ptr<const MobilityModel> a,
-			Ptr<const MobilityModel> b);
+			Ptr<const MobilityModel> b) const;
 
 //  Ptr<SpectrumPropagationLossModel> m_next;
-private:
-	double DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b);
+	double DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 	Ptr<LifiAntennaParameters> m_antennaParameters;
 };
 
