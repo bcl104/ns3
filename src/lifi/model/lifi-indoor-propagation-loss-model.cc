@@ -11,7 +11,7 @@ namespace ns3 {
 
 LifiIndoorPropagationLossModel::LifiIndoorPropagationLossModel() {
 	// TODO Auto-generated constructor stub
-	m_antennaParameters = Create<LifiAntennaParameters>();
+	m_antennaParameters = CreateObject<LifiAntennaParameters>();
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;

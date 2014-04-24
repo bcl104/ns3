@@ -10,11 +10,11 @@
 #include <ns3/log.h>
 #include <ns3/lifi-indoor-propagation-loss-model.h>
 
-NS_LOG_COMPONENT_DEFINE ("SpectrumPropagationLossModel");
+NS_LOG_COMPONENT_DEFINE ("LifiSpectrumPropagationLossModel");
 
 namespace ns3 {
 LifiSpectrumPropagationLossModel::LifiSpectrumPropagationLossModel() {
-	m_antennaParameters = Create<LifiAntennaParameters>();
+	m_antennaParameters = CreateObject<LifiAntennaParameters>();
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
