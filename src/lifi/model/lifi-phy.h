@@ -78,7 +78,7 @@ public:
 
 	void Switch (bool** sw_bit_map, bool dir);
 
-	void SetTRxState(PhyOpStatus state);
+	PhyOpStatus SetTRxState(PhyOpStatus state);
 
 	double GetTxPower ();
 

@@ -218,19 +218,27 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 
 }
 
-void LifiPhy::SetTRxState(PhyOpStatus state) {
+PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
-	m_trxStatus = state;
-		if(m_trxStatus == RX_ON)
+//	m_trxStatus = state;
+	PhyOpStatus tempState = m_trxStatus;
+	 if(state == RX_ON){
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddRx(m_band,m_spectrumPhy);
-			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
-		else if(m_trxStatus == TRX_OFF){
+		m_trxStatus = state;
+		m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
+	}
+		else if(state == TRX_OFF){
+			m_trxStatus = state;
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_band,m_spectrumPhy);
 		}
+		else if(state == DEFAULT){
+//	 		return tempState;
+	 	}
 		else{
-
+			NS_LOG_WARN("illegality TRxstate!");
 		}
+	 return tempState;
 }
 
 

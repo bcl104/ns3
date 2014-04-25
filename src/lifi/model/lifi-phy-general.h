@@ -23,6 +23,7 @@ enum PhyOpStatus {
 	TX_ON,
 	UNSUPPORTED_ATTRIBUTE,
 	FAIL,
+	DEFAULT,
 };
 
 enum PhyPIBAttributeId
