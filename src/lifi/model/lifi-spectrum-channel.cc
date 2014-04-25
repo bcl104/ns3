@@ -97,7 +97,10 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	PhyList::iterator beg;
 	PhyList::iterator end;
 	std::vector<Ptr<LifiSpectrumPhy> > rxPoint;
-	std::make_pair(beg,end) = SearchRxList(params->band);
+	std::pair<PhyList::iterator,PhyList::iterator> pos;
+	pos = SearchRxList(params->band);
+	pos.first = beg;
+	pos.second = end;
 	while(beg != end){
 //		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
@@ -153,7 +156,10 @@ void LifiSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy) {
 		m_numDevices++;
 		m_rxNumDevices++;
 		uint8_t band = (lifi_phy->GetSpectrumSignalParameters()->band);
-		m_rxPhyList.insert(std::make_pair(band,lifi_phy));
+		std::pair<uint8_t,Ptr<LifiSpectrumPhy> > insertElement;
+		insertElement.first = band;
+		insertElement.second = lifi_phy;
+		m_rxPhyList.insert(insertElement);//modification at 10:57 04 25 by st125475466
 	}
 //	m_rxPhyList.insert(std::make_pair(band,std::make_pair(phy,m_rxNumDevices)));
 
@@ -263,7 +269,10 @@ void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 		m_numDevices++;
 		m_txNumDevices++;
 		uint8_t band = phy->GetSpectrumSignalParameters()->band;
-		m_txPhyList.insert(std::make_pair(band,phy));
+		std::pair<uint8_t,Ptr<LifiSpectrumPhy> > insertElement;
+		insertElement.first = band;
+		insertElement.second = phy;
+		m_txPhyList.insert(insertElement);
 	}
 }
 
@@ -332,7 +341,11 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	PhyList::iterator end ;
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
-	std::make_pair(it,end) = SearchRxList(band);
+	std::pair<PhyList::iterator,PhyList::iterator> pos;
+//	std::make_pair(it,end) = SearchRxList(band);
+	pos = SearchRxList(band);
+	it = pos.first;
+	end = pos.second;
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
 		it->second->GetInterference()->LifiAddSignal(rxPsd,Simulator::Now());
@@ -346,7 +359,11 @@ void LifiSpectrumChannel::SubtraRxInterference(Ptr<LifiSpectrumPhy> phy){
 	PhyList::iterator end ;
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
-	std::make_pair(it,end) = SearchRxList(band);
+	std::pair<PhyList::iterator,PhyList::iterator> pos;
+	pos = SearchRxList(band);
+//	std::make_pair(it,end) = SearchRxList(band);
+	it = pos.first;
+	end = pos.second;
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
 		it->second->GetInterference()->LifiSubtractSignal(rxPsd,Simulator::Now());

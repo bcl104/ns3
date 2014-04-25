@@ -84,7 +84,10 @@ void LifiInterference::SetNoisePowerSpectralDensity(Ptr<const SpectrumValue> noi
 void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd,Time rxTime){
 	NS_LOG_FUNCTION (this);
 	*m_allSignal +=*psd;
-	std::pair<std::map<Time,Ptr<SpectrumValue> >::iterator ,bool > it =m_allSignalPsd.insert(std::make_pair(rxTime,psd));
+	std::pair<Time,Ptr<SpectrumValue> > insertElement;
+	insertElement.first = rxTime;
+	insertElement.second = psd;
+	std::pair<std::map<Time,Ptr<SpectrumValue> >::iterator ,bool > it =m_allSignalPsd.insert(insertElement);
 	if(!it.second){
 		it.first->second = m_allSignal;
 	}
@@ -93,7 +96,10 @@ void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd,Time rxTime){
 void LifiInterference::DoLifiSubtractSignal(Ptr<SpectrumValue> psd,Time rxTime){
 	NS_LOG_FUNCTION (this);
 	*m_allSignal -=*psd;
-	std::pair<std::map<Time,Ptr<SpectrumValue> >::iterator ,bool > it =m_allSignalPsd.insert(std::make_pair(rxTime,psd));
+	std::pair<Time,Ptr<SpectrumValue> > insertElement;
+	insertElement.first = rxTime;
+	insertElement.second = psd;
+	std::pair<std::map<Time,Ptr<SpectrumValue> >::iterator ,bool > it =m_allSignalPsd.insert(insertElement);
 	if(!it.second){
 		it.first->second = m_allSignal;
 	}

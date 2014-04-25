@@ -50,7 +50,7 @@ public:
 	/**
 	 * optical clock:200k for PHY1, 3.75M for PHY2.
 	 */
-	static const uint32_t optical_clock = 3.75e6;
+//	static const uint32_t optical_clock = 3.75e6;
 
 
 	LifiPhy();
@@ -156,7 +156,9 @@ public:
 
 	void SetTxPower(double txPower);
 
+	double GetOpticClock(void);
 
+	double SearchOpticClock(uint8_t mcsid);
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
 //	Ptr<PlmeSapProvider> m_plmeSapProvider;
@@ -167,7 +169,7 @@ protected:
 	void StartTx (Ptr<Packet> pb);
 	void EndTx (PhyOpStatus trxStatus);
 	double GetRate(uint8_t mcsId);
-
+	double GetHeaderRate(uint8_t mcsid);
 private:
 
 	LifiPhyHeader SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uint8_t mcsId,uint16_t psduLength,bool ookDimmed,uint8_t reservedFields);
@@ -199,6 +201,7 @@ private:
 	uint8_t m_PsduSize;
 	uint8_t m_reservedFields;
 	uint8_t m_subBandsNum;
+	double m_opticClock;
 //	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 	Ptr<PdSapProvider> m_pdSapProvider;

@@ -149,10 +149,12 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 		PhyList::iterator beg;
 		PhyList::iterator  end;
 //		std::vector<Ptr<LifiSpectrumPhy> > txPoint;
-		std::pair<PhyList::iterator,PhyList::iterator> list_pair = std::make_pair(beg,end);
+		std::pair<PhyList::iterator,PhyList::iterator> list_pair;
 		Ptr<LifiSpectrumChannel> channel = DynamicCast<LifiSpectrumChannel>(m_channel);
 		Ptr<LifiSpectrumSignalParameters> lifi_param = DynamicCast<LifiSpectrumSignalParameters>(params);
 		list_pair = channel->SearchTxList(lifi_params->band);
+		beg = list_pair.first;
+		end = list_pair.second;//last modified at 11.05 04.25 by st125475466
 		Ptr<SpectrumPropagationLossModel> propagationlossmodel = channel->GetSpectrumPropagationLossModel();
 //		m_interference
 		m_interference->SetReceiveState(true);

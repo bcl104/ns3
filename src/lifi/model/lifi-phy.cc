@@ -39,6 +39,7 @@ LifiPhy::LifiPhy() {
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_subBandsNum = 1;
+	m_opticClock = 0;
 }
 
 LifiPhy::~LifiPhy() {
@@ -160,6 +161,7 @@ bool LifiPhy::GetBurstMode(void){
 void LifiPhy::SetMcsId(uint8_t mcsid){
 	NS_LOG_FUNCTION(this);
 	m_mcsId = mcsid;
+	m_opticClock = SearchOpticClock(mcsid);
 }
 
 uint8_t LifiPhy::GetMcsId(void){
@@ -187,11 +189,12 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 		GetbandsInfo(fb,fe,fc,m_band);
 		Bands psdBand = GetBands(fb,fc,fe);
 		m_psd = CalculatetxPsd(m_txPower,psdBand,0);//modulation way is not used yet.
+		double headerrate = GetHeaderRate(m_mcsId);
 		LifiPhyHeader header = SetLifiPhyHeader(m_burstMode,*channel,m_mcsId,size,m_ookDim,0x00);
 		pb->AddHeader(header);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
 		double rate = GetRate (m_mcsId);
-		duration = Seconds(header.GetSerializedSize()/200000 + pb->GetSize()/(1000*rate));
+		duration = Seconds(header.GetSerializedSize()/headerrate + pb->GetSize()/(1000*rate));
 		StartTx (pb);
 	}
 	else
@@ -369,7 +372,9 @@ Ptr<LifiSpectrumPhy>  LifiPhy::GetSpectrumPhy () {
 //	NS_LOG_FUNCTION(this);
 //	m_spectrumPhyList.push_back(spectrum);
 //}
-
+/*
+ * unit:kb/s
+ */
 double LifiPhy::GetRate(uint8_t mcsId) {
 	NS_LOG_FUNCTION(this);
 	switch(mcsId){
@@ -561,6 +566,123 @@ void LifiPhy::GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band){
 	default:NS_LOG_WARN("the bandId:"<<band<<"is not using");
 			break;
 	}
+}
+/*
+ * 2014 04 25 10:13
+ * byst125475466
+ */
+
+double LifiPhy::GetOpticClock(void){
+	NS_LOG_FUNCTION(this);
+	return m_opticClock;
+}
+/*
+ * 2014 04 25 10:13
+ * byst125475466
+ * unit:hz
+ */
+double LifiPhy::SearchOpticClock(uint8_t mcsid){
+	NS_LOG_FUNCTION(this);
+	switch(mcsid){
+		/*PHY I*/
+		case 0:
+		case 1:
+		case 2:
+		case 4:
+			return 2.0e5;break;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			return 4.0e5;break;
+		/*PHY II*/
+		case 16:
+		case 17:
+			return 3.75e6;break;
+		case 18:
+		case 19:
+		case 20:
+			return 7.5e6;break;
+		case 21:
+		case 22:
+			return 15.0e6;break;
+		case 23:
+		case 24:
+			return 30.0e6;break;
+		case 25:
+		case 26:
+			return 60.0e6;break;
+		case 27:
+		case 28:
+		case 29:
+			return 120.0e6;break;
+		/*PHY III*/
+		case 32:
+		case 33:
+			return 12.0e6;break;
+		case 34:
+		case 35:
+		case 36:
+		case 37:
+		default:
+			return 24.0e6;break;
+		}
+	NS_LOG_WARN("mcsid:"<<mcsid<<" is not supported ");
+	return 0;
+}
+/*
+ * 2014 04 25 10:43
+ * byst125475466
+ * unit:b/s
+ */
+double LifiPhy::GetHeaderRate(uint8_t mcsid){
+	NS_LOG_FUNCTION(this);
+		switch(mcsid){
+			/*PHY I*/
+			case 0:
+			case 1:
+			case 2:
+			case 4:
+				return 11.67e3;break;
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+				return 35.56e3;break;
+			/*PHY II*/
+			case 16:
+			case 17:
+				return 1.25e6;break;
+			case 18:
+			case 19:
+			case 20:
+				return 2.5e6;break;
+			case 21:
+			case 22:
+				return 6.0e6;break;
+			case 23:
+			case 24:
+				return 12.0e6;break;
+			case 25:
+			case 26:
+				return 24.0e6;break;
+			case 27:
+			case 28:
+			case 29:
+				return 48.0e6;break;
+			/*PHY III*/
+			case 32:
+			case 33:
+				return 12.0e6;break;
+			case 34:
+			case 35:
+			case 36:
+			case 37:
+			default:
+				return 24.0e6;break;
+			}
+		NS_LOG_WARN("mcsid:"<<mcsid<<" is not supported ");
+		return 0;
 }
 
 } /* namespace ns3 */
