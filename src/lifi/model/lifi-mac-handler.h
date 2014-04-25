@@ -19,7 +19,11 @@ class LifiMacHandler: public Object
 {
 public:
 	LifiMacHandler();
+
 	virtual ~LifiMacHandler();
+
+	static TypeId GetTypeId ();
+
 protected:
 	template <class T> void AddTrigger (T trigger, bool enable)
 	{

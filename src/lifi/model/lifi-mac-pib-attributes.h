@@ -27,6 +27,7 @@ class LifiMacPibAttribute : public LifiPIBAttribute
 	friend class LifiMacDevImpl;
 	friend class LifiChannelScanHandler;
 	friend class LifiAssocHandler;
+	friend class LifiDevAssocHandler;
 
 public:
 	LifiMacPibAttribute();

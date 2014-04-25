@@ -8,6 +8,7 @@
 #include "ns3/network-module.h"
 #include "ns3/lte-module.h"
 #include "ns3/lifi-module.h"
+#include "src/lifi/utils/utils.h"
 
 using namespace ns3;
 
@@ -139,6 +140,13 @@ int main ()
 //	beacon.AddPendingAddress(addr2);
 //	beacon.AddPendingAddress(addr3);
 //	beacon.AddPendingAddress(addr4);
+
+//	LogComponentEnable("LifiDevAssocHandler", LOG_LEVEL_FUNCTION);
+//	LifiDevAssocHandler handler;
+//	TrigMap::iterator it = handler.m_trigger.find(mem_cast(&LifiDevAssocHandler::ReceiveBeacon));
+//	it->second = true;
+//	handler.ReceiveAck(0, 0);
+//	handler.ReceiveBeacon(0, 0);
 
 	return 0;
 }

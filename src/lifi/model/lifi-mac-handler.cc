@@ -21,4 +21,12 @@ LifiMacHandler::~LifiMacHandler()
 {
 }
 
+TypeId LifiMacHandler::GetTypeId()
+{
+	static TypeId tid = TypeId ("ns3::LifiMacHandler")
+						.AddConstructor<LifiMacHandler> ()
+						.SetParent<Object> ();
+	return tid;
+}
+
 } /* namespace ns3 */
