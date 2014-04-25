@@ -67,7 +67,10 @@ void LifiDevAssocHandler::TxResultNotification(MacOpStatus status)
 	if (CheckTrigger(LifiDevAssocHandler::TxResultNotification))
 	{
 		NS_LOG_FUNCTION (this << (uint32_t) status);
-		m_txRstNotification (status);
+		if (!m_txRstNotification.IsNull())
+			m_txRstNotification (status);
+		else
+			NS_LOG_ERROR ("m_txRstNotification is null.");
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::onTxRuesult");
@@ -78,7 +81,10 @@ void LifiDevAssocHandler::ReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu){
 	if (CheckTrigger(LifiDevAssocHandler::ReceiveBeacon))
 	{
 		NS_LOG_FUNCTION (this << timestamp << msdu);
-		m_beaconNotification (timestamp,msdu);
+		if (!m_beaconNotification.IsNull())
+			m_beaconNotification (timestamp,msdu);
+		else
+			NS_LOG_ERROR ("m_beaconNotification is null.");
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveBeacon");
@@ -89,7 +95,10 @@ void LifiDevAssocHandler::ReceiveAck (uint32_t timestamp, Ptr<Packet> msdu){
 	if (CheckTrigger(LifiDevAssocHandler::ReceiveAck))
 	{
 		NS_LOG_FUNCTION (this << timestamp << msdu);
-		m_ackNotification (timestamp,msdu);
+		if (!m_ackNotification.IsNull())
+			m_ackNotification (timestamp,msdu);
+		else
+			NS_LOG_ERROR ("m_ackNotification is null.");
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveAck");
@@ -100,7 +109,10 @@ void LifiDevAssocHandler::ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> 
 	if (CheckTrigger(LifiDevAssocHandler::ReceiveAssocResponse))
 	{
 		NS_LOG_FUNCTION (this << timestamp << msdu);
-		m_assocRspNotification (timestamp,msdu);
+		if (!m_assocRspNotification.IsNull())
+			m_assocRspNotification (timestamp,msdu);
+		else
+			NS_LOG_ERROR ("m_assocRspNotification is null.");
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveAssocResponse");
@@ -226,7 +238,12 @@ void LifiDevAssocHandler::Initialize()
 void LifiDevAssocHandler::InitializeTxNotificationCallback(MacOpStatus status)
 {
 	NS_LOG_FUNCTION (this << (uint32_t) status);
-	SwitchState(LifiDevAssocHandler::WaitForAck1);
+	NS_ASSERT ((status == MAC_SUCCESS)
+			|| (status == CHANNEL_ACCESS_FAILURE));
+	if (status == MAC_SUCCESS)
+		SwitchState(LifiDevAssocHandler::WaitForAck1);
+	else
+		EndAssoc(CHANNEL_ACCESS_FAILURE);
 }
 
 void LifiDevAssocHandler::WaitForAck1()
