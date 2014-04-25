@@ -187,6 +187,14 @@ void LifiMac::SetMlmeSapUser(const Ptr<MlmeSapUser>& mlmeSapUser) {
 	m_mlmeSapUser = mlmeSapUser;
 }
 
+void LifiMac::SetDevice(Ptr<LifiNetDevice> device) {
+	m_device = device;
+}
+
+Ptr<LifiNetDevice> LifiMac::GetDevice() const {
+	return m_device;
+}
+
 }
 
 

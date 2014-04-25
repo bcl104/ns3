@@ -136,6 +136,14 @@ void LifiMacImpl::onInformationElement(uint32_t timestamp,
 void LifiMacImpl::onMultipleChannelAssignment(uint32_t timestamp,
 		Ptr<Packet> msdu) {
 }
+
+void LifiMacImpl::SetLifiMac(Ptr<LifiMac> mac) {
+	m_mac = mac;
+}
+
+Ptr<LifiMac> LifiMacImpl::GetLifiMac() const {
+	return m_mac;
+}
 } /* namespace ns3 */
 
 

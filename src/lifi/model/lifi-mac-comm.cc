@@ -196,13 +196,13 @@ void AssocResponseComm::SetShortAddr(uint16_t shortaddr){
 	m_shortAddr = shortaddr;
 }
 
-uint8_t AssocResponseComm::GetAssocStatus () const{
+MacOpStatus AssocResponseComm::GetAssocStatus () const{
 	return m_assocStatus;
 }
 
 void AssocResponseComm::SetAssocStatus(uint8_t assocstatus){
 	NS_ASSERT (assocstatus ==0x00 || assocstatus == 0x01 || assocstatus == 0x02);
-	m_assocStatus = (MacAssocStatus)assocstatus;
+//	m_assocStatus = (MacAssocStatus)assocstatus;
 }
 
 uint8_t AssocResponseComm::GetCapNegoResponse () const{
@@ -563,7 +563,7 @@ Buffer GtsRequestComm::Serialize() {
 
 AssocResponseComm::AssocResponseComm() {
 	m_commId = ASSOC_RESPONSE;
-    m_assocStatus = VPAN_CAPACITY;
+//    m_assocStatus = VPAN_CAPACITY;
 	m_capabilityNegoResponse = 0x01;
 	m_shortAddr = 0x0f0f;
 }
@@ -585,14 +585,14 @@ void AssocResponseComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_shortAddr = *data++ ;
 	m_shortAddr = (m_shortAddr<<8)|(*data);
 	data++;
-	m_assocStatus =(MacAssocStatus)(*data);
+//	m_assocStatus =(MacAssocStatus)(*data);
 	data++;
 	m_capabilityNegoResponse= (uint8_t)(((*data) & 0xc0) >> 6) ;
 }
 
 AssocResponseComm::AssocResponseComm(MacAssocStatus assoc, uint8_t cap,
 		uint16_t address) {
-	 m_assocStatus = assoc;
+//	 m_assocStatus = assoc;
 	 m_capabilityNegoResponse = cap;
 	 m_shortAddr = address;
 }

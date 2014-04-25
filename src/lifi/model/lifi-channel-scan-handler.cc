@@ -115,12 +115,14 @@ void LifiChannelScanHandler::DoRun()
 		if (m_scanType == ACTIVE_SCAN)
 		{
 			SendBeaconRequest();
+//			m_provider->PlmeSetTRXStateRequest(RX_ON);
 			m_state = WAIT_FOR_BCN;
 			return;
 		}
 
 		if (m_scanType == INACTIVE_SCAN)
 		{
+//			m_provider->PlmeSetTRXStateRequest(RX_ON);
 			m_state = WAIT_FOR_BCN;
 			return;
 		}
@@ -146,16 +148,16 @@ void LifiChannelScanHandler::EndScannOnOneChannel() {
 		return;
 	}
 
+	// Reset the timer.
+	if (!m_timer.IsExpired())
+		m_timer.Remove();
+
 	// 7 logic channel has already been scanned.
 	if (!SwitchChannel())
 	{
 		Complete();
 		return;
 	}
-
-	// Reset the timer.
-	if (!m_timer.IsExpired())
-		m_timer.Remove();
 
 	DoRun();
 }

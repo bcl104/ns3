@@ -12,7 +12,7 @@
 
 #include "ns3/core-module.h"
 #include "lifi-phy-pib-attributes.h"
-//#include "lifi-net-device.h"
+#include "lifi-net-device.h"
 //#include "lifi-spectrum-phy.h"
 #include "pd-sap-user.h"
 #include "pd-sap-provider.h"
@@ -24,11 +24,11 @@
 
 namespace ns3 {
 
-class LifiNetDevice;
 class LifiSpectrumPhy;
 //class LifiSpectrumChannel;
 //EventId m_endTxEvent;
 class LifiCell;
+class LifiNetDevice;
 
 class LifiPhy : public Object
 {

@@ -17,6 +17,7 @@ namespace ns3 {
 
 class LifiPhy;
 class LifiMacImpl;
+class LifiNetDevice;
 
 
 class LifiMac : public Object
@@ -103,6 +104,10 @@ public:
 
 	void SetLifiMacImpl (const Ptr<LifiMacImpl>& impl);
 
+	void SetDevice (Ptr<LifiNetDevice> device);
+
+	Ptr<LifiNetDevice> GetDevice () const;
+
 protected:
 	void DoDataConfirm(PhyOpStatus status);
 	void DoReceive(uint32_t size, Ptr<Packet> pb, uint8_t quality);
@@ -110,6 +115,7 @@ protected:
 
 	LifiMacPibAttribute m_attributes;
 	Ptr<LifiMacImpl> m_lifiMacImpl;
+	Ptr<LifiNetDevice> m_device;
 
 	Ptr<McpsSapProvider> m_mcpsSapProvider;
 	Ptr<McpsSapUser> m_mcpsSapUser;
@@ -119,7 +125,6 @@ protected:
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_plmeSapUser;
-	uint32_t a;
 };
 
 }

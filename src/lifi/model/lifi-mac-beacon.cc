@@ -312,9 +312,9 @@ void LifiMacBeacon::SetCellSearchLenth(uint8_t lenth) {
 	m_cellEnLenth = lenth;
 }
 
-AddrList::iterator LifiMacBeacon::CheckPendingAddress(Address address) {
+bool LifiMacBeacon::CheckPendingAddress(Address address) {
 	AddrList::iterator it = std::find_if(m_pendingAddrs.begin(), m_pendingAddrs.end(), address);
-	return it;
+	return (it != m_pendingAddrs.end());
 }
 
 GtsList::iterator LifiMacBeacon::FindAssignedGts(Mac16Address address) {

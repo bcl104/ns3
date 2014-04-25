@@ -159,6 +159,10 @@ public:
 	 * */
 	virtual void Synchronize(LogicChannelId channel, bool trackBeacon);
 
+	void SetLifiMac (Ptr<LifiMac> mac);
+
+	Ptr<LifiMac> GetLifiMac () const;
+
 protected:
 
 	/*

@@ -69,7 +69,7 @@ public:
 
 	uint8_t GetExtendedAddressCount () const;
 
-	AddrList::iterator CheckPendingAddress (Address address);
+	bool CheckPendingAddress (Address address);
 
 	GtsList::iterator FindAssignedGts (Mac16Address address);
 

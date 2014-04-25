@@ -279,7 +279,7 @@ public:
 
     void SetShortAddr(uint16_t shortaddr);
 
-    uint8_t GetAssocStatus () const;
+    MacOpStatus GetAssocStatus () const;
 
     void SetAssocStatus(uint8_t assocstatus);
 
@@ -294,7 +294,7 @@ private:
 	virtual Buffer Serialize();
 
 	uint16_t m_shortAddr;
-	MacAssocStatus m_assocStatus;
+	MacOpStatus m_assocStatus;
 	uint8_t m_capabilityNegoResponse;
 
 };
