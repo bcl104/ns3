@@ -22,7 +22,7 @@ NS_OBJECT_ENSURE_REGISTERED (LifiDevAssocHandler);
 LifiDevAssocHandler::LifiDevAssocHandler()
 {
 	NS_LOG_FUNCTION (this);
-	NS_FATAL_ERROR("Unavailable instantialize with this constructor.");
+	NS_FATAL_ERROR("Unavailable instantiation with this constructor.");
 	AddTrigger (LifiDevAssocHandler::TxResultNotification, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveAck, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveBeacon, false);
