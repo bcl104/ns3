@@ -55,8 +55,7 @@ void LifiSpectrumPhy::SetNodeSpectrum(uint8_t channel) {
 }
 
 void LifiSpectrumPhy::Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid , double trxPower,
-							Time duration,Ptr<SpectrumValue> apsd,Time txTime,uint8_t mcsId,uint8_t lifipsduSize,uint8_t lifireservedFields,
-							bool lifiookDim,bool lifiburstMode) {
+							Time duration,Ptr<SpectrumValue> apsd,Time txTime){
 	NS_LOG_FUNCTION(this);
 	m_SignalParameters->band = band;
 	m_SignalParameters->cellId = cellId;
@@ -68,11 +67,11 @@ void LifiSpectrumPhy::Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCel
 	m_SignalParameters->txPhy = this;
 	m_SignalParameters->psd = apsd;
 	m_SignalParameters->time = txTime;
-	m_SignalParameters->mcsId = mcsId;
-	m_SignalParameters->PsduSize = lifipsduSize;
-	m_SignalParameters->reservedFields = lifireservedFields;
-	m_SignalParameters->ookDim = lifiookDim;
-	m_SignalParameters->burstMode = lifiburstMode;
+//	m_SignalParameters->mcsId = mcsId;
+//	m_SignalParameters->PsduSize = lifipsduSize;
+//	m_SignalParameters->reservedFields = lifireservedFields;
+//	m_SignalParameters->ookDim = lifiookDim;
+//	m_SignalParameters->burstMode = lifiburstMode;
 	m_channel->StartTx(m_SignalParameters);//subclasses pointer can be transfered to the upper class formal parameters
 //	m_channel->StartTx(DynamicCast<SpectrumSignalParameters>(m_SignalParameters));//turn LifiSpectrumSignalParamters to SpectrumSignalParameters
 }
@@ -202,12 +201,13 @@ double LifiSpectrumPhy::GetberTh(void){
 
 void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	NS_LOG_FUNCTION(this);
-	m_interference->SetReceiveState(false);
 	Ptr<SpectrumValue> averageAllSignal = m_interference->CalcuAveInterference(params->duration);
 	Ptr<SpectrumValue> sinr = m_interference->CalSinr(params->psd,averageAllSignal);
 	double TimeDomainSinr = Integral(*sinr);
 	double ber = CalculateBer(TimeDomainSinr);
 	m_interference->SetAllsignal(0);
+	m_interference->SetReceiveState(false);
+	m_interference->CancelEvent();
 	//add a threshold detection statement
 	if(ber>m_berTh){
 	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);

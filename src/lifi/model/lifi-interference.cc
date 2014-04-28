@@ -44,18 +44,33 @@ void LifiInterference::AddSignal(Ptr<const SpectrumValue> psd, const Time durati
 	Simulator::Schedule (duration, &LifiInterference::DoSubtractSignal, this, psd->Copy());
 }
 
-void LifiInterference::LifiAddSignal(Ptr<SpectrumValue> psd,Time rxTime){
+void LifiInterference::LifiAddSignal(Ptr<SpectrumValue> psd,Time duration){
 	NS_LOG_FUNCTION (this);
+	Time rxTime = Simulator::Now();
 	if(m_receiving == true){
-	DoLifiAddSignal (psd->Copy(),rxTime);
+	DoLifiAddSignal (psd->Copy());
 	}
-//	Simulator::Schedule (duration, &LifiInterference::DoSubtractSignalDbm, this, rxPower);
+	EventId id = Simulator::Schedule (duration, &LifiInterference::LifiSubtractSignal, this, psd);
+	m_eventId.push_back(id);
 }
 
-void LifiInterference::LifiSubtractSignal(Ptr<SpectrumValue> psd,Time rxTime){
+void LifiInterference::CancelEvent(){
+	NS_LOG_FUNCTION (this);
+	std::vector<EventId>::iterator beg = m_eventId.begin();
+	std::vector<EventId>::iterator end = m_eventId.end();
+	while(beg != end){
+		if(!(beg->IsExpired())){
+			beg->Cancel();
+		}
+		++beg;
+	}
+	m_eventId.clear();
+}
+
+void LifiInterference::LifiSubtractSignal(Ptr<SpectrumValue> psd){
 	NS_LOG_FUNCTION (this);
 	if(m_receiving == true){
-	DoLifiSubtractSignal(psd->Copy(),rxTime);
+	DoLifiSubtractSignal(psd->Copy());
 	}
 }
 
@@ -81,8 +96,9 @@ void LifiInterference::SetNoisePowerSpectralDensity(Ptr<const SpectrumValue> noi
 	NS_LOG_FUNCTION (this);
 }
 
-void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd,Time rxTime){
+void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd){
 	NS_LOG_FUNCTION (this);
+	Time rxTime = Simulator::Now();
 	*m_allSignal +=*psd;
 	std::pair<Time,Ptr<SpectrumValue> > insertElement;
 	insertElement.first = rxTime;
@@ -93,8 +109,9 @@ void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd,Time rxTime){
 	}
 }
 
-void LifiInterference::DoLifiSubtractSignal(Ptr<SpectrumValue> psd,Time rxTime){
+void LifiInterference::DoLifiSubtractSignal(Ptr<SpectrumValue> psd){
 	NS_LOG_FUNCTION (this);
+	Time rxTime = Simulator::Now();
 	*m_allSignal -=*psd;
 	std::pair<Time,Ptr<SpectrumValue> > insertElement;
 	insertElement.first = rxTime;
@@ -120,7 +137,7 @@ return average;
 Ptr<SpectrumValue> LifiInterference::CalSinr(Ptr<SpectrumValue> rxSignal , Ptr<SpectrumValue> AveAllSignal ){
 	NS_LOG_FUNCTION (this);
 	m_rxSignal = rxSignal;
-	SpectrumValue sinr = *m_rxSignal / (*AveAllSignal+*m_noise);
+	SpectrumValue sinr = *m_rxSignal / (*AveAllSignal+*m_noise-*m_rxSignal);
 	return &sinr;
 }
 
@@ -136,6 +153,7 @@ void LifiInterference::DoAddSignal(Ptr<const SpectrumValue> psd){
 void LifiInterference::SetReceiveState(bool state){
 	NS_LOG_FUNCTION (this);
 	m_receiving = state;
+	m_allSignalPsd.clear();
 }
 bool LifiInterference::GetReceiveState(void){
 	NS_LOG_FUNCTION (this);

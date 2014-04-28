@@ -188,7 +188,7 @@ private:
 	TRxMode m_trxMode;
 	uint8_t m_cellId;
 	uint8_t m_trxid;
-	Time duration;
+	Time m_duration;
 	LifiPhyPibAttribute m_attributes;
 	Ptr<LifiNetDevice> m_device;
 	Ptr<LifiSpectrumPhy> m_spectrumPhy;
