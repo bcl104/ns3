@@ -109,10 +109,11 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 //			rxPoint.push_back(beg->second);
 			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
 			Ptr<LifiSpectrumSignalParameters> rxParams = params;//????
+			uint32_t detNode = beg->second->GetDevice()->GetNode()->GetId();
 			rxParams->time = Simulator::Now();
 			rxParams->trxPower = Pr;
 			rxParams->psd = rxPsd->Copy();
-			Simulator::Schedule (delay, &LifiSpectrumChannel::StartRx, this, rxParams,beg->second);
+			Simulator::ScheduleWithContext (detNode,delay, &LifiSpectrumChannel::StartRx, this, rxParams,beg->second);
 		}//by comparing the rxPower ,we can choose to compare the rxPsd;
 		++beg;
 	}
@@ -273,6 +274,7 @@ void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 		insertElement.first = band;
 		insertElement.second = phy;
 		m_txPhyList.insert(insertElement);
+		AddRxInterference(phy);
 	}
 }
 
@@ -341,6 +343,7 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	PhyList::iterator end ;
 	uint8_t band = phy->GetSpectrumSignalParameters()->band;
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
+	Time lifi_duration = phy->GetSpectrumSignalParameters()->duration;
 	std::pair<PhyList::iterator,PhyList::iterator> pos;
 //	std::make_pair(it,end) = SearchRxList(band);
 	pos = SearchRxList(band);
@@ -348,7 +351,7 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	end = pos.second;
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
-		it->second->GetInterference()->LifiAddSignal(rxPsd,Simulator::Now());
+		it->second->GetInterference()->LifiAddSignal(rxPsd,lifi_duration );//transform now() into duration 10:34 04.28
 		++it;
 	}
 }
@@ -366,7 +369,7 @@ void LifiSpectrumChannel::SubtraRxInterference(Ptr<LifiSpectrumPhy> phy){
 	end = pos.second;
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
-		it->second->GetInterference()->LifiSubtractSignal(rxPsd,Simulator::Now());
+		it->second->GetInterference()->LifiSubtractSignal(rxPsd);
 		++it;
 	}
 }

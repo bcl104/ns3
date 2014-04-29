@@ -30,7 +30,7 @@ LifiPhy::LifiPhy() {
 	m_edTh = 1.0;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	duration = Seconds(1);
+	m_duration = Seconds(1);
 	m_band = 1;
 	m_burstMode = false;
 	m_mcsId = 0x00;
@@ -54,7 +54,7 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
 	m_band = 1;
-	duration = Seconds(1);
+	m_duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
@@ -76,7 +76,7 @@ LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) 
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
 	m_band = 1;
-	duration = Seconds(1);
+	m_duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
@@ -98,7 +98,7 @@ LifiPhy::LifiPhy(std::vector< Ptr<LifiCell> > cellList){
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	duration = Seconds(1);
+	m_duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
@@ -194,7 +194,7 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 		pb->AddHeader(header);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
 		double rate = GetRate (m_mcsId);
-		duration = Seconds(header.GetSerializedSize()/headerrate + pb->GetSize()/(1000*rate));
+		m_duration = Seconds(header.GetSerializedSize()/headerrate + pb->GetSize()/(1000*rate));
 		StartTx (pb);
 	}
 	else
@@ -204,16 +204,18 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	NS_LOG_FUNCTION(this);
 	Ptr<Packet> pb = param->pb;
-	uint8_t txChannel = param->band;
+//	uint8_t txChannel = param->band;
 //	Ptr<LifiSpectrumPhy> txSpectrumPhy = DynamicCast<LifiSpectrumPhy>(param->txPhy);
 //	Ptr<LifiNetDevice> txDevice = DynamicCast<LifiNetDevice>(txSpectrumPhy->GetDevice());
 //	Ptr<LifiPhy> txPhy = txDevice->GetPhy();
-	bool txBurstMode = param->burstMode;
-	bool txOokdim = param->ookDim;
-	uint8_t txMcsid = param->mcsId;
-	uint32_t size = param->PsduSize;
-	LifiPhyHeader header = SetLifiPhyHeader(txBurstMode,txChannel,txMcsid,size,txOokdim,0x00);
+//	bool txBurstMode = param->burstMode;
+//	bool txOokdim = param->ookDim;
+//	uint8_t txMcsid = param->mcsId;
+//	uint32_t size = param->PsduSize;
+//	LifiPhyHeader header = SetLifiPhyHeader(txBurstMode,txChannel,txMcsid,size,txOokdim,0x00);
+	LifiPhyHeader header;
 	pb->RemoveHeader(header);
+	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
 
 }
@@ -235,6 +237,9 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 		else if(state == DEFAULT){
 //	 		return tempState;
 	 	}
+		else if(state == FORCE_TRX_OFF){
+			m_trxStatus = state;
+		}
 		else{
 			NS_LOG_WARN("illegality TRxstate!");
 		}
@@ -308,10 +313,9 @@ void LifiPhy::StartTx(Ptr<Packet> pb) {
 	NS_LOG_FUNCTION(this);
 	//	m_spectrumPhy->Send()
 	if(!m_cellMode){
-		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,duration,m_psd,m_Time,m_mcsId,
-							 m_PsduSize ,0x00,m_ookDim,m_burstMode);
+		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,m_duration,m_psd,m_Time);
 //		m_endTxEvent = Simulator::Schedule (duration, &LifiPhy::EndTx, PHY_SUCCESS);
-		Simulator::Schedule (duration, &LifiPhy::EndTx, this,  PHY_SUCCESS);
+		Simulator::Schedule (m_duration, &LifiPhy::EndTx, this,  PHY_SUCCESS);
 	}
 	else{
 
@@ -323,6 +327,7 @@ void LifiPhy::EndTx(PhyOpStatus trxStatus) {
 	if(m_trxStatus == TX_ON){
 //		SetTRxState(TRX_OFF);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
+		m_pdSapUser->PdDataConfirm (PHY_SUCCESS);
 	}
 	m_pdSapUser->PdDataConfirm (trxStatus);
 }

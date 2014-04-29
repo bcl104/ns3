@@ -47,7 +47,7 @@ public:
 	void SetNodeSpectrum(uint8_t channel);
 
 	void  Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCellMode,  uint8_t cellId,  uint8_t trxid,double txPower,Time duration,
-			    Ptr<SpectrumValue> psd,Time txTime,uint8_t mcsId,uint8_t PsduSize,uint8_t reservedFields,bool ookDim,bool burstMode);
+			    Ptr<SpectrumValue> psd,Time txTime);
 
 	bool CarrierSense();
 
