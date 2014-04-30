@@ -69,6 +69,14 @@ std::pair<PhyList ::iterator,PhyList::iterator> LifiSpectrumChannel::SearchRxLis
 	NS_LOG_FUNCTION(this);
 //	PhyList::iterator it;
 //	PhyList::iterator end ;
+	//full-band while band==7
+	if(band == 7){
+		std::pair<PhyList ::iterator,PhyList::iterator> pos;
+		pos.first = m_rxPhyList.begin();
+		pos.second = m_rxPhyList.end();
+		return pos;
+	}
+	else
 	return m_rxPhyList.equal_range(band);
 }
 
@@ -96,9 +104,11 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	Ptr<LifiSpectrumSignalParameters> params = DynamicCast<LifiSpectrumSignalParameters>(param);
 	PhyList::iterator beg;
 	PhyList::iterator end;
-	std::vector<Ptr<LifiSpectrumPhy> > rxPoint;
+//	std::vector<Ptr<LifiSpectrumPhy> > rxPoint;
 	std::pair<PhyList::iterator,PhyList::iterator> pos;
-	pos = SearchRxList(params->band);
+	uint8_t rxBand = 7;
+//	rxBand = params->band;full band receive
+	pos = SearchRxList(rxBand);
 	pos.first = beg;
 	pos.second = end;
 	while(beg != end){
@@ -108,7 +118,8 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 		if(Pr > beg->second->GetmRxPowerTh()){
 //			rxPoint.push_back(beg->second);
 			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
-			Ptr<LifiSpectrumSignalParameters> rxParams = params;//????
+			Ptr<LifiSpectrumSignalParameters> rxParams = Create<LifiSpectrumSignalParameters>(*params);//????
+//			Ptr<LifiSpectrumSignalParameters> rxParams = params;
 			uint32_t detNode = beg->second->GetDevice()->GetNode()->GetId();
 			rxParams->time = Simulator::Now();
 			rxParams->trxPower = Pr;

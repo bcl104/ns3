@@ -150,7 +150,7 @@ public:
 	uint8_t GetReservedFields(void);
 
 	//input unit is Dbm
-	Ptr<SpectrumValue> CalculatetxPsd(double txPowerDbm,Bands band,uint8_t Modulation);
+	Ptr<SpectrumValue> CalculatetxPsd(double txPowerDbm,Bands band,uint8_t bandid,uint8_t Modulation);
 
 	void SetSubBandsNum(uint8_t num);
 
@@ -178,6 +178,8 @@ private:
 	LifiPhyHeader SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uint8_t mcsId,uint16_t psduLength,bool ookDimmed,uint8_t reservedFields);
 
 	Bands GetBands(double fl,double f0,double fh);
+
+	Bands GetFullBands(void);
 
 	void GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band);
 //	LifiPhyHeader GetLifiPhyHeader(void);

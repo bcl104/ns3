@@ -127,6 +127,7 @@ private:
 //	Ptr<LifiPhy> m_phy;
 	double m_rxPowerTh;
 	double m_berTh;
+	uint8_t m_rxNumCount;
 //	uint8_t m_WQI;
 //	spectrum
 

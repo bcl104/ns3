@@ -34,9 +34,11 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 	Values::iterator beg = rxPsd->ValuesBegin();
 	Values::iterator end = rxPsd->ValuesEnd();
 	while(beg != end){
+		if(*beg != 0){
 		double temp = *beg;
 		(*beg) = DoCalcRxPower(temp,a,b);
 		beg++;
+		}
 	}
 	return rxPsd;
 }

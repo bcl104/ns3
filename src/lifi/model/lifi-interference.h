@@ -13,6 +13,7 @@
 #include "lifi-spectrum-error-model.h"
 #include <map>
 #include <vector>
+#include "lifi-phy-general.h"
 
 namespace ns3 {
 
@@ -33,15 +34,15 @@ public:
 //	double GetAllSignalDbm(void);
 //	void SetAllSignalSpd(SpectrumValue);
 //	Ptr<SpectrumValue> GetAllSignalSpd(void);
-	void SetReceiveState(bool state);//change receive state and clear m_allsignalPsd
-	bool GetReceiveState(void);
+	void SetReceiveState(PhyOpStatus state);//change receive state and clear m_allsignalPsd
+	PhyOpStatus GetReceiveState(void);
 	Ptr<SpectrumValue> GetAllSignal(void);
 	void SetAllsignal(Ptr<SpectrumValue> allsignal);
-	Ptr<SpectrumValue> CalcuAveInterference(Time duration);
+	Ptr<SpectrumValue> CalcuAveInterference(Time duration,Time startTime);
 	Ptr<SpectrumValue> CalSinr(Ptr<SpectrumValue> rxSignal,Ptr<SpectrumValue> AveAllSignal );
 	void CancelEvent(void);//cancel unfinished event when finish receiving
 private:
-	bool m_receiving;
+	PhyOpStatus m_receiving;
 	Time m_lastChangeTime;
 	Ptr<SpectrumValue> m_rxSignal;
 	Ptr<SpectrumValue> m_allSignal;
