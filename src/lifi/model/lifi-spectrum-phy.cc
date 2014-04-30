@@ -67,6 +67,7 @@ void LifiSpectrumPhy::Send(Ptr<Packet>pb,uint32_t size,uint8_t band,  bool isCel
 	m_SignalParameters->txPhy = this;
 	m_SignalParameters->psd = apsd;
 	m_SignalParameters->time = txTime;
+	DynamicCast<LifiSpectrumChannel>(GetChannel())->AddTx(this);//add to TxList  9:59 4.29 by st125475466
 //	m_SignalParameters->mcsId = mcsId;
 //	m_SignalParameters->PsduSize = lifipsduSize;
 //	m_SignalParameters->reservedFields = lifireservedFields;
@@ -142,6 +143,10 @@ Ptr<LifiInterference> LifiSpectrumPhy::GetInterference(void){
 
 void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 	NS_LOG_FUNCTION(this);
+	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);
+	Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
+	lifiphy->SetTRxState(RX_ON_BUSY);
+	lifiphy->GetPlmeSapUser()->PlemStateIndication(RX_ON_BUSY);
 	Ptr<LifiSpectrumSignalParameters> lifi_params = DynamicCast<LifiSpectrumSignalParameters>(params);
 	bool cellMode = lifi_params->cellMode;
 	if(!cellMode){

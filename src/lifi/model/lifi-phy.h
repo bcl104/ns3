@@ -92,6 +92,8 @@ public:
 
 	Ptr<PlmeSapProvider> GetPlmeSapProvider ();
 
+	Ptr<PlmeSapUser> GetPlmeSapUser();//used to change tr_xstate in spectrum phy when receive a packet
+
 	void SetPdSapUser (Ptr<PdSapUser> u);
 
 	void SetPlmeSapUser (Ptr<PlmeSapUser> u);
@@ -159,6 +161,7 @@ public:
 	double GetOpticClock(void);
 
 	double SearchOpticClock(uint8_t mcsid);
+
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
 //	Ptr<PlmeSapProvider> m_plmeSapProvider;

@@ -26,6 +26,7 @@ public:
 //	virtual void PlmeSetConfirm(PhyOpStatus status, PhyPIBAttributeId id) = 0;
 //	virtual void PlmeSetTRXStateConfirm(PhyOpStatus status) = 0;
 	virtual void PlmeSwitchConfirm(PhyOpStatus status) = 0;
+	virtual void PlemStateIndication(PhyOpStatus status)=0;
 
 };
 
@@ -45,6 +46,9 @@ public:
 	virtual void PlmeSwitchConfirm(PhyOpStatus status)
 	{
 		m_mac->SwitchConfirm (status);
+	}
+	virtual void PlemStateIndication(PhyOpStatus status){
+
 	}
 
 private:

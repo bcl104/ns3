@@ -182,7 +182,9 @@ uint8_t LifiPhy::GetReservedFields(void){
 
 void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	NS_LOG_FUNCTION(this);
-	if(m_trxStatus == TX_ON){
+	if(m_trxStatus == TX_ON_IDLE){
+		m_trxStatus = TX_ON_BUSY;
+		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		uint8_t* channel = (uint8_t*)(m_attributes.GetAttributes(PHY_CURRENT_CHANNEL));
 		m_band = band;
 		double fb,fe,fc;
@@ -192,7 +194,7 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 		double headerrate = GetHeaderRate(m_mcsId);
 		LifiPhyHeader header = SetLifiPhyHeader(m_burstMode,*channel,m_mcsId,size,m_ookDim,0x00);
 		pb->AddHeader(header);
-		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
+//		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
 		double rate = GetRate (m_mcsId);
 		m_duration = Seconds(header.GetSerializedSize()/headerrate + pb->GetSize()/(1000*rate));
 		StartTx (pb);
@@ -217,6 +219,8 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	pb->RemoveHeader(header);
 	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
+	m_trxStatus = RX_ON_IDLE;
+	m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 
 }
 
@@ -224,28 +228,132 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
 //	m_trxStatus = state;
 	PhyOpStatus tempState = m_trxStatus;
-	 if(state == RX_ON){
-//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddRx(m_band,m_spectrumPhy);
-		m_trxStatus = state;
-		m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
-	}
-		else if(state == TRX_OFF){
-			m_trxStatus = state;
+	if(tempState == RX_ON_BUSY){
+		switch (state){
+//		case RX_ON :{
+//			m_PlmeSapUser->PlemStateIndication(RX_ON_BUSY);
+//			break;
+//		}
+		case FORCE_TRX_OFF:{
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			m_trxStatus = TRX_OFF;
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
-//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_band,m_spectrumPhy);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
+			 break;
 		}
-		else if(state == DEFAULT){
-//	 		return tempState;
-	 	}
-		else if(state == FORCE_TRX_OFF){
+		default :{
+			m_PlmeSapUser->PlemStateIndication(RX_ON_BUSY);
+			break;
+		}
+		}
+	}
+	else if(tempState == TX_ON_BUSY){
+		switch(state){
+//			case TX_ON:{
+//				m_PlmeSapUser->PlemStateIndication(TX_ON_BUSY);
+//				break;
+//			}
+			case FORCE_TRX_OFF:{
+						m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+						m_trxStatus = TRX_OFF;
+						DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+						DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
+						 break;
+			}
+			default :{
+						m_PlmeSapUser->PlemStateIndication(TX_ON_BUSY);
+						break;
+			}
+		}
+	}
+	else if(tempState == RX_ON_IDLE){
+		switch(state){
+		case RX_ON:{
+			m_trxStatus = RX_ON_IDLE;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+//			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
+			break;
+			}
+		case TRX_OFF:{
 			m_trxStatus = state;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			break;
 		}
-		else{
+		case TX_ON:{
+			m_trxStatus = TX_ON_IDLE;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			break;
+		}
+		case FORCE_TRX_OFF:{
+			m_trxStatus = TRX_OFF;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
+			break;
+		}
+		default:{
 			NS_LOG_WARN("illegality TRxstate!");
 		}
+		}
+	}
+	else {
+		switch(state){
+		case RX_ON:{
+			m_trxStatus = RX_ON_IDLE;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
+			break;
+			}
+		case TRX_OFF:{
+			m_trxStatus = state;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			break;
+		}
+		case TX_ON:{
+			m_trxStatus = TX_ON_IDLE;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			break;
+		}
+		case FORCE_TRX_OFF:{
+			m_trxStatus = TRX_OFF;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
+			break;
+		}
+		default:{
+			NS_LOG_WARN("illegality TRxstate!");
+		}
+		}
+	}
+//	 if(state == RX_ON){
+////			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddRx(m_band,m_spectrumPhy);
+//		m_trxStatus = state;
+//		m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
+//	}
+//		else if(state == TRX_OFF){
+//			m_trxStatus = state;
+//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+////			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_band,m_spectrumPhy);
+//		}
+//		else if(state == DEFAULT){
+////	 		return tempState;
+//	 	}
+//		else if(state == FORCE_TRX_OFF){
+//			m_trxStatus = state;
+//		}
+//		else{
+//			NS_LOG_WARN("illegality TRxstate!");
+//		}
 	 return tempState;
 }
 
+Ptr<PlmeSapUser> LifiPhy::GetPlmeSapUser(){
+	NS_LOG_FUNCTION(this);
+	return m_PlmeSapUser;
+}
 
 void LifiPhy::SetTxPower(double txPower){
 	NS_LOG_FUNCTION(this);
@@ -315,6 +423,8 @@ void LifiPhy::StartTx(Ptr<Packet> pb) {
 	if(!m_cellMode){
 		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,m_duration,m_psd,m_Time);
 //		m_endTxEvent = Simulator::Schedule (duration, &LifiPhy::EndTx, PHY_SUCCESS);
+		m_trxStatus = TX_ON_BUSY;
+		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		Simulator::Schedule (m_duration, &LifiPhy::EndTx, this,  PHY_SUCCESS);
 	}
 	else{
@@ -324,12 +434,20 @@ void LifiPhy::StartTx(Ptr<Packet> pb) {
 
 void LifiPhy::EndTx(PhyOpStatus trxStatus) {
 	NS_LOG_FUNCTION(this);
-	if(m_trxStatus == TX_ON){
+	if(trxStatus == PHY_SUCCESS){
 //		SetTRxState(TRX_OFF);
+		m_trxStatus = TX_ON_IDLE;
+		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
-		m_pdSapUser->PdDataConfirm (PHY_SUCCESS);
+		m_pdSapUser->PdDataConfirm (trxStatus);
 	}
-	m_pdSapUser->PdDataConfirm (trxStatus);
+	else if(trxStatus == RX_ON_IDLE || trxStatus == RX_ON_BUSY )
+		m_pdSapUser->PdDataConfirm (RX_ON);
+	else if(trxStatus == TRX_OFF)
+		m_pdSapUser->PdDataConfirm (TRX_OFF);
+	else{
+		m_pdSapUser->PdDataConfirm (TX_ON_BUSY);
+	}
 }
 
 void LifiPhy::Switch(bool** sw_bit_map, bool dir) {
