@@ -613,18 +613,21 @@ LifiPhyHeader LifiPhy::SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uin
 
 Ptr<SpectrumValue> LifiPhy::CalculatetxPsd(double txPowerDbm,Bands band,uint8_t bandid,uint8_t Modulation){
 	NS_LOG_FUNCTION(this);
+	NS_ASSERT(bandid < 7);
 	Ptr<SpectrumModel> model = Create<SpectrumModel>(band);
 	Ptr<SpectrumValue> txPsd = Create<SpectrumValue>(model);
 //	double fb,fe,fc;
 //	GetbandsInfo(fb,fe,fc,bandid);
 	double powerTxW = std::pow (10., (txPowerDbm - 30) / 10);//turn the unit Dbm to w.
-	double bandwith = (--(band.end()))->fh - band.begin()->fl;
+//	double bandwith = (--(band.end()))->fh - band.begin()->fl;
+	double bandwith = (band.begin()+(8-bandid)*m_subBandsNum )->fl-(band.begin()+(7-bandid)*m_subBandsNum )->fl;
+//	double bandwith = 0.72059e8;
 	double txPowerDensity = powerTxW / bandwith;
 	//judge modulation way
-	NS_ASSERT(bandid != 7);
-	Values::iterator beg = txPsd->ValuesBegin()+(double)bandid*m_subBandsNum;
+	NS_ASSERT(bandid < 7);
+	Values::iterator beg = txPsd->ValuesBegin()+(double)(7-bandid)*m_subBandsNum;
 //	Values::iterator end = txPsd->ValuesEnd();
-	Values::iterator end =beg + (double)(bandid+1)*m_subBandsNum;
+	Values::iterator end =beg + m_subBandsNum;
 	while(beg != end){
 		*beg = txPowerDensity;
 		beg++;
@@ -659,9 +662,9 @@ Bands LifiPhy::GetBands(double fb,double f0,double fe){
 Bands LifiPhy::GetFullBands(void){
 	NS_LOG_FUNCTION(this);
 	Bands allBand;
-	for(uint8_t i = 0;i < 7;i++){
+	for(uint8_t i = 7;i > 0;i--){
 		double fb,fc,fe;
-		GetbandsInfo(fb,fc,fe,i);
+		GetbandsInfo(fb,fc,fe,i-1);
 		Bands band = GetBands(fb,fc,fe);
 		allBand.insert(allBand.end(),band.begin(),band.end());
 	}

@@ -162,6 +162,8 @@ public:
 
 	double SearchOpticClock(uint8_t mcsid);
 
+	Bands GetFullBands(void);
+
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
 //	Ptr<PlmeSapProvider> m_plmeSapProvider;
@@ -179,7 +181,7 @@ private:
 
 	Bands GetBands(double fl,double f0,double fh);
 
-	Bands GetFullBands(void);
+//	Bands GetFullBands(void);
 
 	void GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band);
 //	LifiPhyHeader GetLifiPhyHeader(void);

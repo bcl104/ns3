@@ -109,8 +109,8 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	uint8_t rxBand = 7;
 //	rxBand = params->band;full band receive
 	pos = SearchRxList(rxBand);
-	pos.first = beg;
-	pos.second = end;
+	beg = pos.first;
+	end = pos.second;
 	while(beg != end){
 //		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
@@ -149,6 +149,7 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 //}
 
 void LifiSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy) {
+	NS_LOG_FUNCTION(this);
 	NS_ASSERT(phy!=0);
 	Ptr<LifiSpectrumPhy> lifi_phy = DynamicCast<LifiSpectrumPhy>(phy);
 	Ptr<NetDevice> pD = lifi_phy->GetDevice();

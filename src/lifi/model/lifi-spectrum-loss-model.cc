@@ -14,22 +14,25 @@ NS_LOG_COMPONENT_DEFINE ("LifiSpectrumPropagationLossModel");
 
 namespace ns3 {
 LifiSpectrumPropagationLossModel::LifiSpectrumPropagationLossModel() {
+	NS_LOG_FUNCTION(this);
 	m_antennaParameters = CreateObject<LifiAntennaParameters>();
 	m_antennaParameters->DetectorArea = 0.01;
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
 	m_antennaParameters->HalfPowerDegree = (double)15/180*M_PI;
-	m_antennaParameters->FOV = (double)120/180*M_PI;
+	m_antennaParameters->FOV = (double)30/180*M_PI;
 	m_antennaParameters->TransmitterDegree = (double)30/180*M_PI;
-	m_antennaParameters->ReceiverDegree = (double)30/180*M_PI;
+	m_antennaParameters->ReceiverDegree = (double)120/180*M_PI;
 }
 
 ns3::LifiSpectrumPropagationLossModel::~LifiSpectrumPropagationLossModel() {
+	NS_LOG_FUNCTION(this);
 }
 
 Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensity(
 	Ptr<const SpectrumValue> txPsd, Ptr<const MobilityModel> a,
 	Ptr<const MobilityModel> b) const{
+	NS_LOG_FUNCTION(this);
 	Ptr<SpectrumValue> rxPsd = txPsd->Copy();
 	Values::iterator beg = rxPsd->ValuesBegin();
 	Values::iterator end = rxPsd->ValuesEnd();
@@ -37,13 +40,14 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 		if(*beg != 0){
 		double temp = *beg;
 		(*beg) = DoCalcRxPower(temp,a,b);
-		beg++;
 		}
+		beg++;
 	}
 	return rxPsd;
 }
 
 double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const{
+	NS_LOG_FUNCTION(this);
 	double distance = a->GetDistanceFrom (b);
 	double m_temp1 = log(2);
 	double m_temp2 = log(cosl(m_antennaParameters->HalfPowerDegree));
@@ -61,10 +65,12 @@ double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<co
 }
 
 void LifiSpectrumPropagationLossModel::SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters){
+	NS_LOG_FUNCTION(this);
 	m_antennaParameters = parameters;
 }
 
 Ptr<LifiAntennaParameters> LifiSpectrumPropagationLossModel::GetLifiAntennaParameters(){
+	NS_LOG_FUNCTION(this);
 	return m_antennaParameters;
 }
 }
