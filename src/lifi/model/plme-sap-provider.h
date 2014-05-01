@@ -38,7 +38,7 @@ public:
 		Set(id, (void*)(&v));
 	}
 
-	virtual void PlmeSetTRXStateRequest(PhyOpStatus status) = 0;
+	virtual PhyOpStatus PlmeSetTRXStateRequest(PhyOpStatus status) = 0;
 
 	virtual void PlmeSwitchRequest(bool** sw_bit_map, bool dir) = 0;
 
@@ -72,9 +72,9 @@ public:
 		return m_phy->DoCca (band);
 	}
 
-	virtual void PlmeSetTRXStateRequest(PhyOpStatus status)
+	virtual PhyOpStatus PlmeSetTRXStateRequest(PhyOpStatus status)
 	{
-		m_phy->SetTRxState (status);
+		return m_phy->SetTRxState (status);
 	}
 
 	virtual void PlmeSwitchRequest(bool** sw_bit_map, bool dir)
