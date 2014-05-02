@@ -736,9 +736,9 @@ void LifiPhy::GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band){
  * byst125475466
  */
 
-double LifiPhy::GetOpticClock(void){
+const double* LifiPhy::GetOpticClock(void){
 	NS_LOG_FUNCTION(this);
-	return m_opticClock;
+	return &m_opticClock;
 }
 /*
  * 2014 04 25 10:13

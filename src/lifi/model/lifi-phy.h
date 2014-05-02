@@ -158,7 +158,7 @@ public:
 
 	void SetTxPower(double txPower);
 
-	double GetOpticClock(void);
+	const double* GetOpticClock(void);
 
 	double SearchOpticClock(uint8_t mcsid);
 
