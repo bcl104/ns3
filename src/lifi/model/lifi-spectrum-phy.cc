@@ -164,16 +164,16 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 		Ptr<SpectrumPropagationLossModel> propagationlossmodel = channel->GetSpectrumPropagationLossModel();
 //		m_interference
 		if(m_rxNumCount == 0){
-		NS_ASSERT(m_interference->GetReceiveState() == RX_ON_IDLE);
+		NS_ASSERT(m_interference->GetReceiveState() == RX_ON);
 		m_rxNumCount++;
-		m_interference->SetReceiveState(RX_ON_BUSY);
+		m_interference->SetReceiveState(RX_BUSY);
 		Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
-		lifiphy->SetTRxState(RX_ON_BUSY);
-		lifiphy->GetPlmeSapUser()->PlemStateIndication(RX_ON_BUSY);
+		lifiphy->SetTRxState(RX_BUSY);
+		lifiphy->GetPlmeSapUser()->PlemStateIndication(RX_BUSY);
 //		m_interference->SetAllsignal(0);
 		}
 		else{
-			NS_ASSERT(m_interference->GetReceiveState() == RX_ON_BUSY);
+			NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
 			m_rxNumCount++;
 		}
 		Time startTime = Simulator::Now();
@@ -224,12 +224,12 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	Ptr<SpectrumValue> sinr = m_interference->CalSinr(params->psd,averageAllSignal);
 	double TimeDomainSinr = Integral(*sinr);
 	double ber = CalculateBer(TimeDomainSinr);
-	NS_ASSERT(m_interference->GetReceiveState() == RX_ON_BUSY);
+	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
 	NS_ASSERT(m_rxNumCount > 0);
 	if(m_rxNumCount == 1){
 	m_rxNumCount--;
 //	m_interference->SetAllsignal(0);
-	m_interference->SetReceiveState(RX_ON_IDLE);
+	m_interference->SetReceiveState(RX_ON);
 	m_interference->CancelEvent();
 	}
 	else{

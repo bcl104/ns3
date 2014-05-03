@@ -16,7 +16,7 @@ NS_OBJECT_ENSURE_REGISTERED(LifiInterference);
 LifiInterference::LifiInterference() {
 	// TODO Auto-generatedSpectrumInterference constructor stub
 	NS_LOG_FUNCTION (this);
-	m_receiving = RX_ON_IDLE;
+	m_receiving = RX_ON;
 	m_rxSignal = 0;
 	m_allSignal = 0;
 	m_noise = 0;
@@ -47,7 +47,7 @@ void LifiInterference::AddSignal(Ptr<const SpectrumValue> psd, const Time durati
 void LifiInterference::LifiAddSignal(Ptr<SpectrumValue> psd,Time duration){
 	NS_LOG_FUNCTION (this);
 
-	if(m_receiving == RX_ON_BUSY){
+	if(m_receiving == RX_BUSY){
 	Time rxTime = Simulator::Now();
 	DoLifiAddSignal (psd->Copy());
 	EventId id = Simulator::Schedule (duration, &LifiInterference::DoLifiSubtractSignal, this, psd->Copy());
@@ -71,7 +71,7 @@ void LifiInterference::CancelEvent(){
 
 void LifiInterference::LifiSubtractSignal(Ptr<SpectrumValue> psd){
 	NS_LOG_FUNCTION (this);
-	if(m_receiving == RX_ON_BUSY){
+	if(m_receiving == RX_BUSY){
 	DoLifiSubtractSignal(psd->Copy());
 	}
 }
@@ -80,7 +80,7 @@ void LifiInterference::StartRx(Ptr<const Packet> p , Ptr<const SpectrumValue> rx
 	  NS_LOG_FUNCTION (this);
 	  m_rxSignal = rxPsd->Copy();
 	  m_lastChangeTime = Now ();
-	  m_receiving = RX_ON_IDLE;
+	  m_receiving = RX_ON;
 //	  m_errorModel->StartRx (p);      /*not added yet*/
 }
 

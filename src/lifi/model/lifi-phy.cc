@@ -182,8 +182,8 @@ uint8_t LifiPhy::GetReservedFields(void){
 
 void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	NS_LOG_FUNCTION(this);
-	if(m_trxStatus == TX_ON_IDLE){
-		m_trxStatus = TX_ON_BUSY;
+	if(m_trxStatus == TX_ON){
+		m_trxStatus = TX_BUSY;
 		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		uint8_t* channel = (uint8_t*)(m_attributes.GetAttributes(PHY_CURRENT_CHANNEL));
 		m_band = band;
@@ -226,7 +226,7 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	pb->RemoveHeader(header);
 	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
-	m_trxStatus = RX_ON_IDLE;
+	m_trxStatus = RX_ON;
 	m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 
 }
@@ -235,7 +235,7 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
 //	m_trxStatus = state;
 	PhyOpStatus tempState = m_trxStatus;
-	if(tempState == RX_ON_BUSY){
+	if(tempState == RX_BUSY){
 		switch (state){
 //		case RX_ON :{
 //			m_PlmeSapUser->PlemStateIndication(RX_ON_BUSY);
@@ -249,12 +249,12 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 			 break;
 		}
 		default :{
-			m_PlmeSapUser->PlemStateIndication(RX_ON_BUSY);
+			m_PlmeSapUser->PlemStateIndication(RX_BUSY);
 			break;
 		}
 		}
 	}
-	else if(tempState == TX_ON_BUSY){
+	else if(tempState == TX_BUSY){
 		switch(state){
 //			case TX_ON:{
 //				m_PlmeSapUser->PlemStateIndication(TX_ON_BUSY);
@@ -268,15 +268,15 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 						 break;
 			}
 			default :{
-						m_PlmeSapUser->PlemStateIndication(TX_ON_BUSY);
+						m_PlmeSapUser->PlemStateIndication(TX_BUSY);
 						break;
 			}
 		}
 	}
-	else if(tempState == RX_ON_IDLE){
+	else if(tempState == RX_ON){
 		switch(state){
 		case RX_ON:{
-			m_trxStatus = RX_ON_IDLE;
+			m_trxStatus = RX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 //			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
 			break;
@@ -288,7 +288,7 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 			break;
 		}
 		case TX_ON:{
-			m_trxStatus = TX_ON_IDLE;
+			m_trxStatus = TX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			break;
 		}
@@ -307,7 +307,7 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	else {
 		switch(state){
 		case RX_ON:{
-			m_trxStatus = RX_ON_IDLE;
+			m_trxStatus = RX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			m_spectrumPhy->GetSpectrumSignalParameters()->band = 7;
 			m_spectrumPhy->GetChannel()->AddRx(m_spectrumPhy);
@@ -320,7 +320,7 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 			break;
 		}
 		case TX_ON:{
-			m_trxStatus = TX_ON_IDLE;
+			m_trxStatus = TX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			break;
 		}
@@ -431,7 +431,7 @@ void LifiPhy::StartTx(Ptr<Packet> pb) {
 	if(!m_cellMode){
 		m_spectrumPhy->Send(pb,pb->GetSize(),m_band,m_cellMode,m_cellId,m_trxid,m_txPower,m_duration,m_psd->Copy(),m_Time);
 //		m_endTxEvent = Simulator::Schedule (duration, &LifiPhy::EndTx, PHY_SUCCESS);
-		m_trxStatus = TX_ON_BUSY;
+		m_trxStatus = TX_BUSY;
 		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		Simulator::Schedule (m_duration, &LifiPhy::EndTx, this,  PHY_SUCCESS);
 	}
@@ -444,17 +444,17 @@ void LifiPhy::EndTx(PhyOpStatus trxStatus) {
 	NS_LOG_FUNCTION(this);
 	if(trxStatus == PHY_SUCCESS){
 //		SetTRxState(TRX_OFF);
-		m_trxStatus = TX_ON_IDLE;
+		m_trxStatus = TX_ON;
 		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 		m_pdSapUser->PdDataConfirm (trxStatus);
 	}
-	else if(trxStatus == RX_ON_IDLE || trxStatus == RX_ON_BUSY )
+	else if(trxStatus == RX_ON || trxStatus == RX_ON)
 		m_pdSapUser->PdDataConfirm (RX_ON);
 	else if(trxStatus == TRX_OFF)
 		m_pdSapUser->PdDataConfirm (TRX_OFF);
 	else{
-		m_pdSapUser->PdDataConfirm (TX_ON_BUSY);
+		m_pdSapUser->PdDataConfirm (TX_BUSY);
 	}
 }
 
