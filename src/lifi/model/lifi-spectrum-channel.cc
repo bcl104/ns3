@@ -8,6 +8,7 @@
 #include "ns3/log.h"
 //#include "ns3/spectrum-phy.h"
 #include "ns3/spectrum-propagation-loss-model.h"
+#include "ns3/lifi-spectrum-loss-model.h"
 #include "ns3/propagation-loss-model.h"
 #include "ns3/propagation-delay-model.h"
 #include "ns3/antenna-model.h"
@@ -111,13 +112,21 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	pos = SearchRxList(rxBand);
 	beg = pos.first;
 	end = pos.second;
+	uint8_t bandid = params->band;
+	Ptr<NetDevice> device = params->txPhy->GetDevice();
+	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(device);
+	Ptr<LifiPhy> lifi_phy = lifi_device->GetPhy();
+	uint8_t subBand = lifi_phy->GetSunBandsNum();
+	Ptr<LifiSpectrumPropagationLossModel> lifi_loss = DynamicCast<LifiSpectrumPropagationLossModel>(m_spectrumPropagationLoss);
+	lifi_loss->SetBandWidth(params->psd,bandid,subBand);
 	while(beg != end){
 //		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
 //		Ptr<LifiSpectrumPropagationLossModel> lifipropagation = DynamicCast<LifiSpectrumPropagationLossModel>(m_spectrumPropagationLoss);
 //		Ptr<SpectrumValue> tempPsd = lifipropagation->GetBandPsd(params->psd,params->band,)
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
 		double Pr = Integral(*rxPsd);//transform Psd into power unit w.
-		if(Pr > beg->second->GetmRxPowerTh()){
+		double PrDbm = 10*log10(Pr);
+		if(PrDbm > beg->second->GetmRxPowerTh()){
 //			rxPoint.push_back(beg->second);
 			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
 			Ptr<LifiSpectrumSignalParameters> rxParams = Create<LifiSpectrumSignalParameters>(*params);//????
@@ -355,7 +364,8 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	NS_LOG_FUNCTION(this);
 	PhyList::iterator it;
 	PhyList::iterator end ;
-	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+//	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+	uint8_t band = 7;
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
 	Time lifi_duration = phy->GetSpectrumSignalParameters()->duration;
 	std::pair<PhyList::iterator,PhyList::iterator> pos;
@@ -374,7 +384,8 @@ void LifiSpectrumChannel::SubtraRxInterference(Ptr<LifiSpectrumPhy> phy){
 	NS_LOG_FUNCTION(this);
 	PhyList::iterator it;
 	PhyList::iterator end ;
-	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+//	uint8_t band = phy->GetSpectrumSignalParameters()->band;
+	uint8_t band = 7;
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
 	std::pair<PhyList::iterator,PhyList::iterator> pos;
 	pos = SearchRxList(band);

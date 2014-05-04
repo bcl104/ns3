@@ -222,7 +222,13 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	NS_LOG_FUNCTION(this);
 	Ptr<SpectrumValue> averageAllSignal = m_interference->CalcuAveInterference(params->duration,params->time);
 	Ptr<SpectrumValue> sinr = m_interference->CalSinr(params->psd,averageAllSignal);
-	double TimeDomainSinr = Integral(*sinr);
+//	double TimeDomainSinr = Integral(*sinr);
+	uint8_t band = params->band;
+	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);
+//	Ptr<LifiPhy> lifi_phy = DynamicCast<LifiNetDevice>()
+	Ptr<LifiPhy> lifi_phy = lifi_device->GetPhy();
+	uint8_t subBand = lifi_phy->GetSunBandsNum();
+	double TimeDomainSinr = m_interference->BandIntegral(sinr,band,subBand);
 	double ber = CalculateBer(TimeDomainSinr);
 	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
 	NS_ASSERT(m_rxNumCount > 0);

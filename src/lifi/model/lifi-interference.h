@@ -41,6 +41,7 @@ public:
 	Ptr<SpectrumValue> CalcuAveInterference(Time duration,Time startTime);
 	Ptr<SpectrumValue> CalSinr(Ptr<SpectrumValue> rxSignal,Ptr<SpectrumValue> AveAllSignal );
 	void CancelEvent(void);//cancel unfinished event when finish receiving
+	double  BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
 private:
 	PhyOpStatus m_receiving;
 	Time m_lastChangeTime;

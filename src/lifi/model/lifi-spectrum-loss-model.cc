@@ -24,6 +24,7 @@ LifiSpectrumPropagationLossModel::LifiSpectrumPropagationLossModel() {
 	m_antennaParameters->FOV = (double)30/180*M_PI;
 	m_antennaParameters->TransmitterDegree = (double)30/180*M_PI;
 	m_antennaParameters->ReceiverDegree = (double)30/180*M_PI;
+	m_bandwith = 100;
 }
 
 ns3::LifiSpectrumPropagationLossModel::~LifiSpectrumPropagationLossModel() {
@@ -40,9 +41,11 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 	double temp = Integral(*rxPsd);//unit W
 	temp = 10.0*log10(1000.0*temp);//unit dbm
 	double rxPower = DoCalcRxPower(temp,a,b);
+	double rxPowerW = std::pow (10., (rxPower - 30) / 10);
+	double rxPowerDendity = rxPowerW/m_bandwith;
 	while(beg != end){
 		if(*beg != 0){
-		(*beg) = rxPower;
+		(*beg) = rxPowerDendity;
 		}
 		beg++;
 	}
@@ -52,21 +55,21 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 /**
  * return txPower unit dbm
  */
-double  LifiSpectrumPropagationLossModel::BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand){
-	NS_LOG_FUNCTION(this);
-	NS_ASSERT(band < 7);
-	Values::iterator ValueBeg = psd->ValuesBegin() + (7 - band) * SubBand;
-	Values::iterator ValueEnd = psd->ValuesBegin() + (8 - band) * SubBand;
-	std::vector<BandInfo>::const_iterator BandBeg = psd->ConstBandsBegin()+ (7 - band) * SubBand;
-	double txPower = 0;
-	while(ValueBeg != ValueEnd){
-		txPower = *ValueBeg * (BandBeg->fh - BandBeg->fl);
-		++ValueBeg;
-		++BandBeg;
-	}
-	txPower = 10.0 * log10(txPower*1000.0);
-	return txPower;
-}
+//double  LifiSpectrumPropagationLossModel::BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand){
+//	NS_LOG_FUNCTION(this);
+//	NS_ASSERT(band < 7);
+//	Values::iterator ValueBeg = psd->ValuesBegin() + (7 - band) * SubBand;
+//	Values::iterator ValueEnd = psd->ValuesBegin() + (8 - band) * SubBand;
+//	std::vector<BandInfo>::const_iterator BandBeg = psd->ConstBandsBegin()+ (7 - band) * SubBand;
+//	double txPower = 0;
+//	while(ValueBeg != ValueEnd){
+//		txPower = *ValueBeg * (BandBeg->fh - BandBeg->fl);
+//		++ValueBeg;
+//		++BandBeg;
+//	}
+//	txPower = 10.0 * log10(txPower*1000.0);
+//	return txPower;
+//}
 
 Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::GetBandPsd(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand){
 	NS_LOG_FUNCTION(this);
@@ -104,6 +107,19 @@ double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<co
 			}
 			else
 				return 0;
+}
+
+void LifiSpectrumPropagationLossModel::SetBandWidth(Ptr<SpectrumValue>psd , uint8_t band , uint8_t subBand){
+	NS_LOG_FUNCTION(this);
+	Bands::const_iterator psdBeg = psd->ConstBandsBegin() + (7 - band) * subBand;
+	Bands::const_iterator psdEnd = psdBeg + subBand;
+	double bandwidth = psdEnd->fl - psdBeg->fl;
+	m_bandwith = bandwidth;
+}
+
+double LifiSpectrumPropagationLossModel::GetBandWidth(){
+	NS_LOG_FUNCTION(this);
+	return m_bandwith;
 }
 
 void LifiSpectrumPropagationLossModel::SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters){
