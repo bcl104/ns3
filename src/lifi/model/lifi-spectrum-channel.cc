@@ -113,6 +113,8 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	end = pos.second;
 	while(beg != end){
 //		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
+//		Ptr<LifiSpectrumPropagationLossModel> lifipropagation = DynamicCast<LifiSpectrumPropagationLossModel>(m_spectrumPropagationLoss);
+//		Ptr<SpectrumValue> tempPsd = lifipropagation->GetBandPsd(params->psd,params->band,)
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
 		double Pr = Integral(*rxPsd);//transform Psd into power unit w.
 		if(Pr > beg->second->GetmRxPowerTh()){

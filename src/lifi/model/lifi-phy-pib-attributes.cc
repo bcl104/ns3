@@ -16,6 +16,8 @@ LifiPhyPibAttribute::LifiPhyPibAttribute() {
 	LOAD_PIB_ATTRIBUTE (PHY_USE_EXTENDE_MODE,phyUseExtendedMode,true);
 //	LOAD_PIB_ATTRIBUTE (PHY_COLOR_FUNCTION,phyColorFunction);
 	LOAD_PIB_ATTRIBUTE (PHY_BLINK_NOTIFICATION_FREQUENCY,phyBlinkingNotificationFrequency,0);
+	LOAD_PIB_ATTRIBUTE (PHY_MCSID,m_mcsid,0);
+
 }
 
 LifiPhyPibAttribute::~LifiPhyPibAttribute() {

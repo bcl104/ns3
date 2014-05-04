@@ -39,7 +39,8 @@ LifiPhy::LifiPhy() {
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_subBandsNum = 1;
-	m_opticClock = 0;
+	m_opticClock = NanoSeconds(0);
+	m_opticClockHz = 0;
 }
 
 LifiPhy::~LifiPhy() {
@@ -161,7 +162,14 @@ bool LifiPhy::GetBurstMode(void){
 void LifiPhy::SetMcsId(uint8_t mcsid){
 	NS_LOG_FUNCTION(this);
 	m_mcsId = mcsid;
-	m_opticClock = SearchOpticClock(mcsid);
+	m_opticClockHz = SearchOpticClock(mcsid);
+	m_opticClock = NanoSeconds(SearchOpticClock(mcsid));
+	m_attributes.m_mcsid = mcsid;
+}
+
+const double* LifiPhy::GetOpticClockHz(void){
+	NS_LOG_FUNCTION(this);
+	return &m_opticClockHz;
 }
 
 uint8_t LifiPhy::GetMcsId(void){
@@ -515,7 +523,7 @@ Ptr<LifiSpectrumPhy>  LifiPhy::GetSpectrumPhy () {
  * unit:kb/s
  */
 double LifiPhy::GetRate(uint8_t mcsId) {
-	NS_LOG_FUNCTION(this);
+//	NS_LOG_FUNCTION(this);
 	switch(mcsId){
 	/*PHY I*/
 	case 0:
@@ -736,7 +744,7 @@ void LifiPhy::GetbandsInfo(double &fb,double &fc,double &fe,uint8_t band){
  * byst125475466
  */
 
-const double* LifiPhy::GetOpticClock(void){
+const Time* LifiPhy::GetOpticClock(void){
 	NS_LOG_FUNCTION(this);
 	return &m_opticClock;
 }

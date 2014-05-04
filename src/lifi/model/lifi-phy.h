@@ -66,6 +66,8 @@ public:
 
 	Ptr<LifiPhyPibAttribute> GetPhyPibAttributes ();
 
+	static double GetRate(uint8_t mcsId);
+
 	bool DoCca();
 
 	uint8_t DoCca(uint8_t band);
@@ -158,7 +160,9 @@ public:
 
 	void SetTxPower(double txPower);
 
-	const double* GetOpticClock(void);
+	const Time* GetOpticClock(void);
+
+	const double* GetOpticClockHz(void);
 
 	double SearchOpticClock(uint8_t mcsid);
 
@@ -173,7 +177,6 @@ public:
 protected:
 	void StartTx (Ptr<Packet> pb);
 	void EndTx (PhyOpStatus trxStatus);
-	double GetRate(uint8_t mcsId);
 	double GetHeaderRate(uint8_t mcsid);
 private:
 
@@ -208,7 +211,8 @@ private:
 	uint8_t m_PsduSize;
 	uint8_t m_reservedFields;
 	uint8_t m_subBandsNum;
-	double m_opticClock;
+	Time m_opticClock;
+	double m_opticClockHz;
 //	std::vector< Ptr<LifiSpectrumPhy> > m_spectrumPhyList;
 
 	Ptr<PdSapProvider> m_pdSapProvider;

@@ -18,6 +18,7 @@ namespace ns3 {
 
 class LifiPhyPibAttribute : public LifiPIBAttribute
 {
+	friend class LifiPhy;
 public:
 	LifiPhyPibAttribute ();
 
@@ -60,6 +61,8 @@ private:
 	 * visibility pattern is to be used. Otherwise, it is set to zero.
 	 */
 	bool phyUseExtendedMode;
+
+	uint8_t m_mcsid;
 
 };
 
