@@ -181,7 +181,9 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 		Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
 		while(beg != end){
 			Ptr<SpectrumValue> txPsd = beg->second->GetSpectrumSignalParameters()->psd->Copy();
+//			std::cout<<"aaa"<<Integral(*txPsd)<<std::endl;
 			Ptr<SpectrumValue> rxPsd = propagationlossmodel->CalcRxPowerSpectralDensity(txPsd,beg->second->GetMobility(),m_mobility);
+//			std::cout<<Integral(*rxPsd)<<std::endl;
 			m_interference->LifiAddSignal(rxPsd,lifi_params->duration);
 			++beg;
 		}
@@ -234,8 +236,8 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	uint8_t subBand = lifi_phy->GetSunBandsNum();
 	double TimeDomainSinr = m_interference->BandIntegral(sinr,band,subBand);
 	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
-	TimeDomainSinr = Integral(*sinr);//??????????
-	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
+//	TimeDomainSinr = Integral(*sinr);//??????????
+//	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
 	double ber = CalculateBer(TimeDomainSinr);
 	std::cout<<"ber:"<<ber<<std::endl;
 	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);

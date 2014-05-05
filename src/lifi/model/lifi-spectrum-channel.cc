@@ -127,6 +127,7 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 //		Ptr<SpectrumValue> tempPsd = lifipropagation->GetBandPsd(params->psd,params->band,)
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
 		double Pr = Integral(*rxPsd);//transform Psd into power unit w.
+//		std::cout<< "Pr:"<<Pr<<std::endl;
 		double PrDbm = 10*log10(1000.0*Pr);
 		if(PrDbm > beg->second->GetmRxPowerTh()){
 //			rxPoint.push_back(beg->second);
