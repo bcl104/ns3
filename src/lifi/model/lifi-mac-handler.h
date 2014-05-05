@@ -74,6 +74,11 @@ protected:
 
 		(type->*newState) ();
 	}
+	template <typename T1, typename T2> int compare(const T1 &v1, const T2 &v2){
+		if(v1<v2) return -1;
+		if(v1>v2) return 1;
+		return 0;
+	}
 
 
 	TrigMap m_trigger;
