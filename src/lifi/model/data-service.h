@@ -10,15 +10,129 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
+#include "op-status-callback.h"
+#include "lifi-mac-general.h"
 
 namespace ns3 {
 
-class DataService {
+template <class T> class DataServiceImpl;
+
+class DataServiceImplBase
+{
 public:
-	DataService();
-	virtual ~DataService();
-	virtual void Send(uint32_t size, Ptr<Packet> p, uint8_t band, bool contention) = 0;
+	DataServiceImplBase () {};
+	virtual ~DataServiceImplBase () {};
+	virtual bool Transmit(PacketInfo& info) = 0;
+	virtual void Receceive (bool enable) = 0;
+//	virtual PhyOpStatus SetTrxState (PhyOpStatus s) = 0;
+	virtual void Suspend () = 0;
+	virtual void Release () = 0;
 };
+
+class DataService : public SimpleRefCount<DataService>
+{
+	friend class TrxHandlerListener;
+
+public:
+
+	DataService ();
+
+	virtual ~DataService();
+
+	template <class T> static Ptr<DataService> Create (T t)
+	{
+		return Create<DataService> (t);
+	}
+
+	bool Transmit(PacketInfo& info)
+	{
+		NS_ASSERT (m_connected);
+		return m_base->Transmit(info);
+	}
+
+	void Receceive (bool enable)
+	{
+		NS_ASSERT (m_connected);
+		m_base->Receceive(enable);
+	}
+
+//	PhyOpStatus SetTrxState (PhyOpStatus s)
+//	{
+//		NS_ASSERT (m_connected);
+//		return m_base->SetTrxState(s);
+//	}
+
+	void Suspend ()
+	{
+		NS_ASSERT (m_connected);
+		m_base->Suspend();
+		Disconnect();
+	}
+
+	void Release ()
+	{
+		NS_ASSERT (m_connected);
+		m_base->Release();
+		Disconnect();
+	}
+private:
+	template<class T> DataService(T *impl)
+	{
+		m_base = new DataServiceImpl<T> (impl);
+		m_connected = true;
+	}
+
+	void Disconnect ()
+	{
+		m_connected = false;
+	}
+
+	bool m_connected;
+	DataServiceImplBase *m_base;
+};
+
+template <class T>
+class DataServiceImpl : public DataServiceImplBase
+{
+public:
+	DataServiceImpl ()
+	{
+	}
+	DataServiceImpl (T *impl) : m_impl(impl)
+	{
+	}
+
+	virtual ~DataServiceImpl () { if (m_impl != 0) free (m_impl); };
+
+	virtual bool Transmit(PacketInfo& info)
+	{
+		return m_impl->Transmit (info);
+	}
+
+	virtual void Receceive (bool enable)
+	{
+		m_impl->Receceive (enable);
+	}
+
+//	virtual PhyOpStatus SetTrxState (PhyOpStatus s)
+//	{
+//		return m_impl->SetTrxState(s);
+//	}
+
+	virtual void Suspend ()
+	{
+		m_impl->Suspend ();
+	}
+
+	virtual void Release ()
+	{
+		m_impl->Release ();
+	}
+private:
+	T *m_impl;
+};
+
+
 
 } /* namespace ns3 */
 

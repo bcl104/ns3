@@ -9,9 +9,15 @@
 #define LIFI_MAC_HANDLER_H_
 #include "ns3/object.h"
 #include "src/lifi/utils/utils.h"
+
 #include <map>
 
 namespace ns3 {
+
+class LifiMacImpl;
+class PlmeSapProvider;
+class PdSapProvider;
+class LifiMacPibAttribute;
 
 typedef std::map<void*, bool> TrigMap;
 
@@ -25,6 +31,7 @@ public:
 	static TypeId GetTypeId ();
 
 protected:
+
 	template <class T> void AddTrigger (T trigger, bool enable)
 	{
 		void* key = mem_cast(trigger);
@@ -55,6 +62,26 @@ protected:
 		it->second = false;
 	}
 
+	void EnableAllTrigger ()
+	{
+		TrigMap::iterator it = m_trigger.begin();
+		while (it != m_trigger.end())
+		{
+			it->second = true;
+			it++;
+		}
+	}
+
+	void DisableAllTrigger ()
+	{
+		TrigMap::iterator it = m_trigger.begin();
+		while (it != m_trigger.end())
+		{
+			it->second = false;
+			it++;
+		}
+	}
+
 	template <class T> bool CheckTrigger (T trigger)
 	{
 		void* key = mem_cast(trigger);
@@ -82,6 +109,12 @@ protected:
 
 
 	TrigMap m_trigger;
+
+	LifiMacImpl* m_impl;
+	PlmeSapProvider* m_plmeProvider;
+	PdSapProvider* m_pdProvider;
+	LifiMacPibAttribute* m_attributes;
+	const Time* m_opticalPeriod;
 };
 
 #define AddTrigger(trigger, enable) AddTrigger(&trigger,enable)

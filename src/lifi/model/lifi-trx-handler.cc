@@ -1,0 +1,658 @@
+/*
+ * ifi-tx-handler.cc
+ *
+ *  Created on: 2014年3月30日
+ *      Author: will
+ */
+
+#include "lifi-trx-handler.h"
+#include "lifi-assoc-handler.h"
+#include "lifi-gts-handler.h"
+#include "lifi-data-handler.h"
+#include "lifi-transaction-handler.h"
+#include "lifi-mac-header.h"
+#include "lifi-mac-beacon.h"
+#include "ns3/log.h"
+
+NS_LOG_COMPONENT_DEFINE("LifiTrxHandler");
+
+namespace ns3 {
+
+LifiTrxHandler::LifiTrxHandler()
+{
+	NS_LOG_FUNCTION (this);
+	m_curTranceiverTask.Clear();
+	m_impl = 0;
+	m_listens.clear();
+	m_plmeProvider = 0;
+	m_pdProvider = 0;
+	m_opticalPeriod = 0;
+	m_opStatus = IDLE;
+	AddTrigger(LifiTrxHandler::TxConfirm, false);
+	AddTrigger(LifiTrxHandler::ReceivePacket, true);
+}
+
+LifiTrxHandler::~LifiTrxHandler() {
+
+}
+
+void LifiTrxHandler::TxConfirm(PhyOpStatus status) {
+	if (CheckTrigger(LifiTrxHandler::TxConfirm))
+	{
+		onTxConfirm(status);
+	}else
+	{
+		NS_LOG_WARN ("Ignore LifiTrxHandler::TxConfirm.");
+	}
+}
+
+void LifiTrxHandler::ReceivePacket(uint32_t timestamp, Ptr<Packet> p)
+{
+	if (CheckTrigger(LifiTrxHandler::ReceivePacket))
+	{
+		onReceivePacket(timestamp, p);
+	}else
+	{
+		NS_LOG_WARN ("Ignore LifiTrxHandler::ReceivePacket.");
+	}
+}
+
+void LifiTrxHandler::Reset()
+{
+	NS_LOG_FUNCTION (this);
+	m_curTranceiverTask.Clear();
+}
+
+void LifiTrxHandler::ServiceRequest(TranceiverTask task)
+{
+	NS_LOG_FUNCTION (this << task.priority);
+	NS_ASSERT ((task.priority > 0) && (task.listener != 0));
+	m_tranceiverTasks.push(task);
+	if (m_opStatus == LifiTrxHandler::IDLE)
+//		Simulator::ScheduleNow(&LifiTrxHandler::Fetch, this);
+		Fetch ();
+}
+
+bool LifiTrxHandler::Transmit(PacketInfo& info)
+{
+	NS_LOG_FUNCTION (this);
+	PhyOpStatus phyStatus = m_plmeProvider->PlmeSetTRXStateRequest(DEFAULT);
+	NS_ASSERT (phyStatus == ns3::IDLE);
+	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
+	m_curTransmission.Reset();
+	m_curTransmission.m_info = info;
+	NS_ASSERT (!info.m_option.gtsTx);
+
+	if (info.m_force)
+		return DoTransmitData();
+	else
+		StartRandomAccess(info);
+
+	return true;
+}
+
+void LifiTrxHandler::Receceive(bool enable)
+{
+	NS_LOG_FUNCTION (this << enable);
+	PhyOpStatus phyStatus = m_plmeProvider->PlmeSetTRXStateRequest(DEFAULT);
+	NS_ASSERT ((phyStatus != TX_BUSY));
+	if (enable)
+		m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+	else
+		m_plmeProvider->PlmeSetTRXStateRequest(TRX_OFF);
+}
+
+void LifiTrxHandler::Suspend()
+{
+//	NS_LOG_FUNCTION (this);
+//	NS_ASSERT (m_curTask.Available());
+//	m_suspendedTasks.push(m_curTask);
+//	ClearCurTask();
+//	Simulator:: ScheduleNow(&LifiTrxHandler::Fetch, this);
+}
+
+void LifiTrxHandler::Release()
+{
+	NS_LOG_FUNCTION (this);
+	Simulator:: ScheduleNow(&LifiTrxHandler::Fetch, this);
+}
+
+void LifiTrxHandler::Fetch()
+{
+	NS_LOG_FUNCTION (this);
+	NS_ASSERT (m_opStatus == LifiTrxHandler::IDLE);
+	NS_ASSERT (!m_curTranceiverTask.Available());
+
+	if ((!m_tranceiverTasks.empty()) &&
+		(m_superframeStruct.m_state == SuperframeStrcut::CAP))
+	{
+		m_curTranceiverTask = m_tranceiverTasks.top();
+		m_tranceiverTasks.pop();
+		NS_ASSERT (m_curTranceiverTask.listener);
+		Simulator::ScheduleNow(&TrxHandlerListener::AllocNotification,
+				m_curTranceiverTask.listener,DataService::Create(this));
+		return;
+	}
+	switch (m_superframeStruct.m_state)
+	{
+	case SuperframeStrcut::CAP:
+		if (m_raTasks.empty()) return;
+		m_curTransmission.Reset();
+		m_curTransmission.m_info = m_raTasks.front();
+		StartRandomAccess(m_curTransmission.m_info);
+		m_raTasks.pop();
+		break;
+	case SuperframeStrcut::CFP:
+		if (m_gtsTasks.empty()) return;
+		m_curTransmission.Reset();
+		m_curTransmission.m_info = m_gtsTasks.front();
+		StartGtsTransmit(m_gtsTasks.front());
+		m_gtsTasks.pop();
+		break;
+	default:
+		return;
+	}
+}
+
+void LifiTrxHandler::SetLifiMacImpl(LifiMacImpl* impl)
+{
+	NS_LOG_FUNCTION (this << impl);
+	m_impl = impl;
+//	m_curTransmission = TransmissionInfo (&(impl->m_attributes.macMaxFrameRetries));
+//	m_curTransmission.m_info.m_backoff = LifiBackoff (&(impl->m_attributes.macMinBE),
+//			&(impl->m_attributes.macMaxBE), &(impl->m_attributes.macMaxCSMABackoffs));
+}
+
+LifiMacImpl* LifiTrxHandler::GetLifiMacImpl() const
+{
+	NS_LOG_FUNCTION (this);
+	return m_impl;
+}
+
+void LifiTrxHandler::SetPlmeSapProvider(PlmeSapProvider* provider)
+{
+	NS_LOG_FUNCTION (this << provider);
+	m_plmeProvider = provider;
+}
+
+PlmeSapProvider* LifiTrxHandler::GetPlmeSapProvider() const
+{
+	NS_LOG_FUNCTION (this);
+	return m_plmeProvider;
+}
+
+void LifiTrxHandler::SetPdSapProvider(PdSapProvider* provider)
+{
+	NS_LOG_FUNCTION (this << provider);
+	m_pdProvider = provider;
+}
+
+PdSapProvider* LifiTrxHandler::GetPdSapProvider() const
+{
+	NS_LOG_FUNCTION (this);
+	return m_pdProvider;
+}
+
+void LifiTrxHandler::SetOpticalPeriod(const Time* oc)
+{
+	m_opticalPeriod = oc;
+}
+
+const Time* LifiTrxHandler::GetOpticalPeriod() const
+{
+	return m_opticalPeriod;
+}
+
+void LifiTrxHandler::ClearCurTask()
+{
+	NS_LOG_FUNCTION (this);
+//	m_curTask.Clear();
+	PhyOpStatus tranceiverState = m_plmeProvider->PlmeSetTRXStateRequest(DEFAULT);
+	NS_ASSERT ((tranceiverState != TX_BUSY) || (tranceiverState != RX_BUSY));
+	// There is something more to do for clearing random access process.
+	m_plmeProvider->PlmeSetTRXStateRequest(TRX_OFF);
+}
+
+void LifiTrxHandler::AddListener(TypeId id, TrxHandlerListener& listener)
+{
+	NS_LOG_FUNCTION (this << (uint32_t)id.GetUid() << (uint64_t)(&listener));
+	TrxHandlerListeners::iterator it = m_listens.find(id.GetUid());
+	if (it == m_listens.end())
+	{
+		m_listens.insert(std::pair<uint16_t, TrxHandlerListener&>(id.GetUid(), listener));
+	}else
+	{
+		NS_LOG_WARN ("Duplicated registration of TrxHandlerListener.");
+	}
+}
+
+void LifiTrxHandler::RemoveListener(TypeId id, TrxHandlerListener& listener)
+{
+	NS_LOG_FUNCTION (this << (uint32_t)id.GetUid() << (uint64_t)(&listener));
+	TrxHandlerListeners::iterator it = m_listens.find(id.GetUid());
+	if (it != m_listens.end())
+	{
+		m_listens.erase(it);
+	}else
+	{
+		NS_LOG_WARN ("TrxHandlerListener not exist.");
+	}
+}
+
+void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
+{
+	NS_LOG_FUNCTION (this << timestamp <<p);
+	LifiMacHeader header;
+	p->PeekHeader(header);
+	if (header.GetFrameType() == LIFI_BEACON)
+	{
+		BuildSuperframeStruct(p);
+		Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
+	}else if (header.GetFrameType() == LIFI_DATA)
+	{
+		Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
+	}else if (header.GetFrameType() == LIFI_ACK)
+	{
+		onReceiveAck(timestamp, p);
+	}else if (header.GetFrameType() == LIFI_COMMAND)
+	{
+		LifiMacHeader temp;
+		p->RemoveHeader(temp);
+		CommId commId = (CommId)0;
+		p->CopyData((uint8_t*)(&commId), 1);
+		p->AddHeader(temp);
+		switch (commId)
+		{
+		case ASSOC_REQUEST:
+			Broadcast(TrxHandlerListener::ReceiveAssocRequest, timestamp, p);
+			break;
+		case ASSOC_RESPONSE:
+			Broadcast(TrxHandlerListener::ReceiveAssocResponse, timestamp, p);
+			break;
+		case DISASSOC_NOTIFICATION:
+			Broadcast(TrxHandlerListener::ReceiveDisassocNotification, timestamp, p);
+			break;
+		case DATA_REQUEST:
+			Broadcast(TrxHandlerListener::ReceiveDataRequest, timestamp, p);
+			break;
+		case BEACON_REQUEST:
+			Broadcast(TrxHandlerListener::ReceiveBeaconRequest, timestamp, p);
+			break;
+		case GTS_REQUEST:
+			Broadcast(TrxHandlerListener::ReceiveGtsRequest, timestamp, p);
+			break;
+		case GTS_RESPONSE:
+			Broadcast(TrxHandlerListener::ReceiveGtsResponse, timestamp, p);
+			break;
+		case INFORMANTION_ELEMENT:
+			NS_FATAL_ERROR("INFORMANTION_ELEMENT not realized.");
+			break;
+		default:
+			NS_FATAL_ERROR("Command frame type error: Unsupported type.");
+			break;
+		}
+	}else
+	{
+		NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
+	}
+}
+
+void LifiTrxHandler::Backoff()
+{
+	NS_ASSERT (m_curTransmission.IsAvailable());
+	if (m_curTransmission.m_backoff.IsReachMaxRetry())
+	{
+		EndTransmission(CHANNEL_ACCESS_FAILURE, 0);
+		return;
+	}
+	Time opticalPeriod = *m_impl->GetOpticalPeriod();
+	Time nextBackOffset =  NanoSeconds(m_superframeStruct.m_capEnd.GetDelayLeft().GetNanoSeconds()
+					% opticalPeriod.GetNanoSeconds());
+	Time backoff = m_curTransmission.m_backoff.GetBackoffTime();
+	m_curTransmission.m_backoff.m_backoffTimer.SetFunction
+						   (&LifiTrxHandler::onBackoffTimeout, this);
+	m_curTransmission.m_backoff.m_backoffTimer.Schedule(backoff + nextBackOffset);
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
+	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+}
+
+bool LifiTrxHandler::ClearChannelAccessment()
+{
+	return m_plmeProvider->PlmeCcaRequset();
+}
+
+void LifiTrxHandler::AcknowledgmentTimeout()
+{
+	NS_ASSERT (m_curTransmission.m_ackTimer.IsExpired()
+			&& m_curTransmission.m_info.m_option.ackTx);
+	m_curTransmission.IncrePacketRetry();
+	if (m_curTransmission.IsReachMaxRetry())
+	{
+		EndTransmission(NO_ACK, 0);
+	}else
+	{
+		if ((!m_curTransmission.m_info.m_force)
+		&& (!m_curTransmission.m_info.m_option.gtsTx))
+		{
+			m_curTransmission.m_backoff.IncreNumRetries();
+			Backoff();
+		}
+		if (!DoTransmitData())
+		{
+			EndTransmission(CHANNEL_ACCESS_FAILURE, 0);
+		}
+	}
+}
+
+bool LifiTrxHandler::RetransmitData()
+{
+	return DoTransmitData();
+}
+
+void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
+{
+	m_curTransmission.m_info.m_listener->TxResultNotification(status, ack);
+	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
+							m_curTransmission.m_info.m_listener,
+							status, ack);
+	if (m_opStatus != TRANCEIVER_TASK)
+	{
+		Simulator::ScheduleNow (&LifiTrxHandler::Fetch, this);
+	}
+	m_curTransmission.Reset();
+
+}
+
+bool LifiTrxHandler::DoTransmitData() {
+	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
+	NS_ASSERT (m_curTransmission.IsAvailable());
+
+	/*
+	 * If check whether there is enough time before the end of CAP.
+	 * */
+	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
+	double dataRateKbps = LifiPhy::GetRate(mcsid);
+	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
+								->GetSize()*8)/(dataRateKbps*1000)*10e9);
+	Time ackWaitTime;
+	if (m_curTransmission.m_info.m_option.ackTx)
+		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
+				*m_impl->m_opticalPeriod->GetNanoSeconds());
+	else
+		ackWaitTime = NanoSeconds(0);
+
+	bool enough = false;
+	if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
+	{
+		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
+		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+	}else
+	{
+		NS_FATAL_ERROR("Error transmit timing.");
+	}
+
+	if (!enough)
+	{
+		if ((!m_curTransmission.m_info.m_option.gtsTx)
+		&& (!m_curTransmission.m_info.m_force))
+		{
+			m_suspendedTransmission = m_curTransmission;
+		}
+		m_curTransmission.Reset();
+		return false;
+	}
+
+
+	m_pdProvider->DataRequest(m_curTransmission.m_info.m_packet->GetSize(),
+							  m_curTransmission.m_info.m_packet,
+							  m_curTransmission.m_info.m_band);
+	// Enable the external trigger to onTxConfirm.
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::TxConfirm);
+	return true;
+}
+void LifiTrxHandler::onTxConfirm(PhyOpStatus status)
+{
+	NS_LOG_FUNCTION (this << (uint32_t)status);
+//	NS_ASSERT (m_curTask.Available());
+	NS_ASSERT (status == PHY_SUCCESS);
+	if (m_curTransmission.m_info.m_option.ackTx)
+	{
+		m_curTransmission.m_ackTimer.SetFunction(&LifiTrxHandler::AcknowledgmentTimeout, this);
+		m_curTransmission.m_ackTimer.Schedule(NanoSeconds(m_attributes->macAckWaitDuration
+							*m_curTransmission.m_opticalPeriod->GetNanoSeconds()));
+		DisableAllTrigger();
+		EnableTrigger(LifiTrxHandler::ReceivePacket);
+		m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+	}
+	else{
+		EndTransmission(MAC_SUCCESS, 0);
+	}
+}
+
+void LifiTrxHandler::onReceiveAck(uint32_t timestamp, Ptr<Packet> ack)
+{
+	NS_LOG_FUNCTION (this << timestamp << ack);
+	LifiMacHeader header;
+	ack->PeekHeader(header);
+	NS_ASSERT (header.GetSequenceNumber() == m_curTransmission.m_sequenceNum);
+	// Report the acknowledgment to the upper handler.
+	EndTransmission(MAC_SUCCESS, ack);
+}
+
+
+
+
+
+void LifiTrxHandler::TransmissionInfo::IncrePacketRetry()
+{
+	if (this->m_packetRetry < *(this->maxPacketRetry))
+		this->m_packetRetry ++;
+}
+
+bool LifiTrxHandler::TransmissionInfo::IsReachMaxRetry()
+{
+	return this->m_packetRetry >= *(this->maxPacketRetry);
+}
+
+LifiTrxHandler::TransmissionInfo::TransmissionInfo(uint32_t* maxRt) : maxPacketRetry(maxRt)
+{
+}
+
+bool LifiTrxHandler::TransmissionInfo::IsAvailable()
+{
+	return (this->m_info.Available());
+}
+
+LifiTrxHandler::TransmissionInfo::TransmissionInfo()
+{
+}
+
+void LifiTrxHandler::TransmissionInfo::Reset()
+{
+	this->m_info.Reset();
+	this->m_packetRetry = 0;
+	this->m_sequenceNum = 0;;
+	if (!this->m_ackTimer.IsExpired())
+		this->m_ackTimer.Cancel();
+}
+
+void LifiTrxHandler::Send(PacketInfo& p)
+{
+	NS_LOG_FUNCTION (this);
+	if (p.m_option.gtsTx) m_gtsTasks.push(p);
+	else m_raTasks.push(p);
+
+	if (m_opStatus == LifiTrxHandler::IDLE)
+//		Simulator::ScheduleNow (&LifiTrxHandler::Fetch, this);
+		Fetch ();
+}
+
+void LifiTrxHandler::StartRandomAccess(PacketInfo& info)
+{
+	NS_ASSERT (m_opStatus == LifiTrxHandler::IDLE);
+	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
+	NS_ASSERT (m_curTransmission.m_info.Available());
+	NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+	Backoff();
+}
+
+void LifiTrxHandler::StartGtsTransmit(PacketInfo& task)
+{
+}
+
+void LifiTrxHandler::onBackoffTimeout()
+{
+	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
+	if (ClearChannelAccessment ())
+	{
+		DoTransmitData();
+	}else
+	{
+		m_curTransmission.m_backoff.IncreNumRetries();
+		Backoff ();
+	}
+}
+
+void LifiTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
+{
+	NS_LOG_FUNCTION (this);
+	LifiMacHeader header;
+	beacon->RemoveHeader(header);
+	LifiMacBeacon bcn = LifiMacBeacon::Construct(beacon);
+	uint8_t bcnOrder = bcn.GetBcnOrder();
+	uint8_t superframeOrder = bcn.GetSupframeOrder();
+	uint8_t capSlot = bcn.GetFinalCapSlot();
+
+	// Only support beacon-enable VPAN.
+	NS_ASSERT ((bcnOrder >=0) && (bcnOrder <= 14));
+	NS_ASSERT (bcnOrder >= superframeOrder);
+	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, (uint32_t)bcnOrder);
+	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, (uint32_t)superframeOrder);
+	uint32_t capDur = capSlot * LifiMac::aBaseSlotDuration * pow (2, (uint32_t)superframeOrder);
+
+	Time op = *m_opticalPeriod;
+	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds() -1);
+	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds());
+	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds());
+
+	NS_ASSERT ((bcnIntvalTime >= capEnd) && (bcnIntvalTime >= cfpEnd));
+	NS_ASSERT ((cfpEnd >= capEnd));
+	NS_ASSERT (capEnd > 0);
+
+	m_superframeStruct.m_contentionFreePeriod = (cfpEnd > capEnd);
+	m_superframeStruct.m_inactivePortion = (bcnIntvalTime > cfpEnd);
+
+	m_superframeStruct.m_capEnd.SetDelay(capEnd);
+	m_superframeStruct.m_cfpEnd.SetDelay(cfpEnd);
+	m_superframeStruct.m_supframeEnd.SetDelay(bcnIntvalTime);
+
+	m_superframeStruct.m_capEnd.SetFunction(&LifiTrxHandler::ContentionAccessPeriodEnd, this);
+	m_superframeStruct.m_cfpEnd.SetFunction(&LifiTrxHandler::ContentionFreePeriodEnd, this);
+	m_superframeStruct.m_supframeEnd.SetFunction(&LifiTrxHandler::SuperframeEnd, this);
+
+	m_superframeStruct.m_capEnd.Schedule();
+	if (m_superframeStruct.m_contentionFreePeriod)
+		m_superframeStruct.m_cfpEnd.Schedule();
+	m_superframeStruct.m_supframeEnd.Schedule();
+
+	Simulator::ScheduleNow (&LifiTrxHandler::SuperframeStart, this);
+}
+LifiTrxHandler::SuperframeStrcut::SuperframeStrcut()
+				: m_contentionFreePeriod (false),
+				  m_inactivePortion (false),
+				  m_state (DEFAULT)
+{
+}
+
+void LifiTrxHandler::SuperframeStart()
+{
+	NS_LOG_FUNCTION (this);
+	m_superframeStruct.m_state = SuperframeStrcut::CAP;
+	NS_ASSERT (!m_curTransmission.IsAvailable());
+	NS_ASSERT (!m_curTranceiverTask.Available());
+	if (m_suspendedTransmission.IsAvailable())
+	{
+		NS_ASSERT (!m_suspendedTransmission.m_info.m_option.gtsTx);
+		if (m_suspendedTransmission.m_backoff.m_backoffTimer.IsSuspended())
+		{
+			m_curTransmission = m_suspendedTransmission;
+			m_curTransmission.m_backoff.m_backoffTimer.Resume();
+			m_suspendedTransmission.Reset();
+			return;
+		}else if (m_suspendedTransmission.m_backoff.m_backoffTimer.IsExpired())
+		{
+			m_curTransmission = m_suspendedTransmission;
+			Backoff ();
+		}
+		return;
+	}
+	Fetch ();
+}
+
+void LifiTrxHandler::ContentionAccessPeriodEnd()
+{
+	NS_LOG_FUNCTION (this);
+	if (m_curTransmission.IsAvailable())
+	{
+		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+		NS_ASSERT (m_curTransmission.m_backoff.m_backoffTimer.IsRunning());
+		m_curTransmission.m_backoff.m_backoffTimer.Suspend();
+		m_suspendedTransmission = m_curTransmission;
+		m_curTransmission.Reset();
+	}
+	if (m_superframeStruct.m_contentionFreePeriod)
+	{
+		ContentionFreePeriodStart();
+		return;
+	}else if (m_superframeStruct.m_inactivePortion)
+	{
+		InactionPortionStart ();
+	}
+}
+
+void LifiTrxHandler::ContentionFreePeriodStart()
+{
+	NS_LOG_FUNCTION (this);
+	m_superframeStruct.m_state = SuperframeStrcut::CFP;
+	NS_ASSERT (!m_curTransmission.IsAvailable());
+}
+
+void LifiTrxHandler::ContentionFreePeriodEnd()
+{
+	NS_LOG_FUNCTION (this);
+	m_curTransmission.Reset();
+	m_curTranceiverTask.Clear();
+	if (m_superframeStruct.m_inactivePortion)
+	{
+		InactionPortionStart ();
+	}else
+	{
+		SuperframeEnd();
+	}
+}
+
+void LifiTrxHandler::InactionPortionStart()
+{
+	NS_LOG_FUNCTION (this);
+	m_superframeStruct.m_state = SuperframeStrcut::INACTIVE;
+}
+
+void LifiTrxHandler::SuperframeEnd()
+{
+	NS_LOG_FUNCTION (this);
+	NS_ASSERT (!m_curTransmission.IsAvailable());
+	NS_ASSERT (!m_curTranceiverTask.Available());
+//	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
+}
+
+} /* namespace ns3 */
+
+

@@ -18,8 +18,18 @@ namespace ns3 {
 
 class LifiMac;
 
+class LifiMacListener
+{
+	virtual ~LifiMacListener () {};
+	virtual void SuperframeStart (Time cap, Time cfp, Time idle) = 0;
+	virtual void CapEnd () = 0;
+	virtual void CfpEnd () = 0;
+	virtual void SuperframeEnd (Time duration) = 0;
+};
+
 class LifiMacImpl : public Object
 {
+	friend class LifiTrxHandler;
 
 public:
 	LifiMacImpl();
@@ -95,7 +105,7 @@ public:
 	 *
 	 *	\param pb Packet burst received from the physics layer.
 	 * */
-	virtual void Receive(Ptr<PacketBurst> pb);
+	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 
 	/*
 	 * 	Initialize all the parameter of the lifi-mac-impl.
@@ -163,103 +173,113 @@ public:
 
 	Ptr<LifiMac> GetLifiMac () const;
 
+	void SetOpticalPeriod (const Time* oc);
+
+	const Time* GetOpticalPeriod () const;
+
+	LifiMacPibAttribute& GetLifiMacPibAttribute ();
+
 protected:
 
-	/*
-	 * 	This method will call the correspond physics-layer primitive to activate the carrier sensing
-	 * 	procedure .
-	 * */
-	bool DoChannelClearAccessment();
 
-	/*
-	 * 	This method pass a packet-burst to physics layer.
-	 *
-	 * 	\param 	size	The size of the packet-burst.
-	 * 	\param	pb		Mpdu
-	 * 	\param	band	The band plan identifier of the channel on which the data being transmitted.
-	 * */
-	void DoTransmitData(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
-
-	/*
-	 * 	This method will be invoked while receiving an acknowledgment frame.
-	 * */
-	virtual void onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a coordinator receive an association
-	 * 	request command from a device.
-	 * */
-	virtual void onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device receive an association response
-	 * 	command from the coordinator.
-	 * */
-	virtual void onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	Not implemented.
-	 * */
-	virtual void onBandHopping(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device receive beacon from the coordinator.
-	 * */
-	virtual void onBeacon(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a coordinator receive an beacon request command
-	 * 	from a device.
-	 * */
-	virtual void onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 *	This method will be invoked when a device or coordinator receive a data frame.
-	 * */
-	virtual void onData(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked by physics layer through PD-DATA.confirm primitive to notify
-	 * 	the result of the transmission.
-	 * */
-	virtual void onDataConfirm(PhyOpStatus status);
-
-	/*
-	 * 	This method will be invoked when the coordinator receive a data reqeust command frome a
-	 * 	device.
-	 * */
-	virtual void onDataRequest(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when the device or coordinator receive a disassociation
-	 * 	notification command.
-	 * */
-	virtual void onDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device or coordinator receive a GTS request command.
-	 * */
-	virtual void onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device or coordinator receive a GTS response command.
-	 * */
-	virtual void onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device or coordinator receive an information element
-	 * 	appending to any mac command frame.
-	 * */
-	virtual void onInformationElement(uint32_t timestamp, Ptr<Packet> msdu);
-
-	/*
-	 * 	This method will be invoked when a device receive a multiple channel assignment from the
-	 * 	coordinator.
-	 * */
-	virtual void onMultipleChannelAssignment(uint32_t timestamp, Ptr<Packet> msdu);
+//	/*
+//	 * 	This method will call the correspond physics-layer primitive to activate the carrier sensing
+//	 * 	procedure .
+//	 * */
+//	bool DoChannelClearAccessment();
+//
+//	/*
+//	 * 	This method pass a packet-burst to physics layer.
+//	 *
+//	 * 	\param 	size	The size of the packet-burst.
+//	 * 	\param	pb		Mpdu
+//	 * 	\param	band	The band plan identifier of the channel on which the data being transmitted.
+//	 * */
+//	void DoTransmitData(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
+//
+//	/*
+//	 * 	This method will be invoked while receiving an acknowledgment frame.
+//	 * */
+//	virtual void onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a coordinator receive an association
+//	 * 	request command from a device.
+//	 * */
+//	virtual void onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device receive an association response
+//	 * 	command from the coordinator.
+//	 * */
+//	virtual void onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	Not implemented.
+//	 * */
+//	virtual void onBandHopping(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device receive beacon from the coordinator.
+//	 * */
+//	virtual void onBeacon(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a coordinator receive an beacon request command
+//	 * 	from a device.
+//	 * */
+//	virtual void onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 *	This method will be invoked when a device or coordinator receive a data frame.
+//	 * */
+//	virtual void onData(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked by physics layer through PD-DATA.confirm primitive to notify
+//	 * 	the result of the transmission.
+//	 * */
+//	virtual void onDataConfirm(PhyOpStatus status);
+//
+//	/*
+//	 * 	This method will be invoked when the coordinator receive a data reqeust command frome a
+//	 * 	device.
+//	 * */
+//	virtual void onDataRequest(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when the device or coordinator receive a disassociation
+//	 * 	notification command.
+//	 * */
+//	virtual void onDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device or coordinator receive a GTS request command.
+//	 * */
+//	virtual void onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device or coordinator receive a GTS response command.
+//	 * */
+//	virtual void onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device or coordinator receive an information element
+//	 * 	appending to any mac command frame.
+//	 * */
+//	virtual void onInformationElement(uint32_t timestamp, Ptr<Packet> msdu);
+//
+//	/*
+//	 * 	This method will be invoked when a device receive a multiple channel assignment from the
+//	 * 	coordinator.
+//	 * */
+//	virtual void onMultipleChannelAssignment(uint32_t timestamp, Ptr<Packet> msdu);
 
 	Ptr<LifiMac> m_mac;
-	LifiMacPibAttribute* m_attributes;
+
+	LifiMacPibAttribute m_attributes;
+
+	const Time* m_opticalPeriod;
 
 };
 

@@ -37,7 +37,7 @@ TypeId LifiMac::GetTypeId()
 Ptr<LifiMacPibAttribute> LifiMac::GetMacPibAttributes()
 {
 	NS_LOG_FUNCTION (this);
-	return &m_attributes;
+	return &m_lifiMacImpl->GetLifiMacPibAttribute();
 }
 
 void LifiMac::Reset()
@@ -51,10 +51,11 @@ void LifiMac::DoDataConfirm(PhyOpStatus status)
 	NS_LOG_FUNCTION (this << status);
 }
 
-void LifiMac::DoReceive(uint32_t size, Ptr<Packet> pb,
+void LifiMac::DoReceive(uint32_t size, Ptr<Packet> p,
 		uint8_t quality)
 {
-	NS_LOG_FUNCTION (this << size << pb << (uint32_t)quality);
+	NS_LOG_FUNCTION (this << size << p << (uint32_t)quality);
+//	m_lifiMacImpl->Receive();
 }
 
 void LifiMac::Send(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
@@ -195,6 +196,17 @@ Ptr<LifiNetDevice> LifiMac::GetDevice() const {
 	return m_device;
 }
 
+void LifiMac::SetOpticalClock(const double* oc)
+{
+//	m_lifiMacImpl->SetOpticalClock(oc);
 }
+
+const double* LifiMac::GetOpticalClock() const
+{
+//	return m_lifiMacImpl->GetOpticalClock();
+	return 0;
+}
+
+}// ns3 name space
 
 
