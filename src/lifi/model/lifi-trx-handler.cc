@@ -538,8 +538,8 @@ void LifiTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
 
 	Time op = *m_opticalPeriod;
 	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds() -1);
-	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds());
-	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds());
+	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds() -1);
+	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds() -1);
 
 	NS_ASSERT ((bcnIntvalTime >= capEnd) && (bcnIntvalTime >= cfpEnd));
 	NS_ASSERT ((cfpEnd >= capEnd));
