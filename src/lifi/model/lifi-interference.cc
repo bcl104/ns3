@@ -151,9 +151,26 @@ Ptr<SpectrumValue> LifiInterference::CalSinr(Ptr<SpectrumValue> rxSignal , Ptr<S
 //	NS_ASSERT(m_noise->GetSpectrumModel() == m_allSignal->GetSpectrumModel());
 	Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
 	Ptr<SpectrumValue> sinr = Create<SpectrumValue>(model);
+	Ptr<SpectrumValue> m_noise = Create<SpectrumValue>(model);//noise equal to 0
 	m_rxSignal = rxSignal->Copy();
 	*sinr = *m_rxSignal / (*AveAllSignal + *m_noise - *m_rxSignal);
 	return sinr;
+}
+
+double  LifiInterference::BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand){
+	NS_LOG_FUNCTION(this);
+	NS_ASSERT(band < 7);
+	Values::iterator ValueBeg = psd->ValuesBegin() + (7 - band) * SubBand;
+	Values::iterator ValueEnd = psd->ValuesBegin() + (8 - band) * SubBand;
+	std::vector<BandInfo>::const_iterator BandBeg = psd->ConstBandsBegin()+ (7 - band) * SubBand;
+	double Power = 0;
+	while(ValueBeg != ValueEnd){
+		Power = *ValueBeg * (BandBeg->fh - BandBeg->fl);
+		++ValueBeg;
+		++BandBeg;
+	}
+	Power = 10.0 * log10(Power*1000.0);
+	return Power;
 }
 
 void LifiInterference::DoSubtractSignal(Ptr<SpectrumValue> psd){

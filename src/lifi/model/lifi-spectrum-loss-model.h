@@ -30,8 +30,10 @@ public:
 	virtual ~LifiSpectrumPropagationLossModel();
 	void SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters);
 	Ptr<LifiAntennaParameters> GetLifiAntennaParameters();
-	double  BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
+//	double  BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
 	Ptr<SpectrumValue> GetBandPsd(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
+	double GetBandWidth(void);
+	void SetBandWidth(Ptr<SpectrumValue>psd , uint8_t band , uint8_t subBand);
 //  static TypeId GetTypeId ();
 //
 //
@@ -82,6 +84,7 @@ private:
 //  Ptr<SpectrumPropagationLossModel> m_next;
 	double DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 	Ptr<LifiAntennaParameters> m_antennaParameters;
+	double m_bandwith;
 };
 
 } // namespace ns3
