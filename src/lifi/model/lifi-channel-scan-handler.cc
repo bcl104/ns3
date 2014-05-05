@@ -165,7 +165,7 @@ void LifiChannelScanHandler::EndScannOnOneChannel() {
 void LifiChannelScanHandler::SendBeaconRequest() {
 	BeaconRequestComm comm;
 	Ptr<Packet> p = comm.GetPacket();
-	m_dataService->Send(p->GetSize(), p, (uint8_t)m_curChannel, true);
+//	m_dataService->TransmissionRequest(p->GetSize(), p, (uint8_t)m_curChannel, true);
 }
 
 void LifiChannelScanHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> msdu) {

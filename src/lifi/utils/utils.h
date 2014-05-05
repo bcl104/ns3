@@ -8,6 +8,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include "ns3/core-module.h"
+
 template <class T>
 void* mem_cast(T ptr)
 {
@@ -16,8 +18,6 @@ void* mem_cast(T ptr)
 	void* r = (void*) *reinterpret_cast<long*> (_pptr);
 	return r;
 }
-
-
 
 
 #endif /* UTILS_H_ */

@@ -162,13 +162,13 @@ void LifiDevAssocHandler::SendAssocRequest() {
 	AssocRqstComm comm;
 	Ptr<Packet> p = comm.GetPacket();
 	LifiMacHeader header;
-	header.SetFrameType(COMMAND);
+	header.SetFrameType(LIFI_COMMAND);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_coordAddr);
 	p->AddHeader(header);
 
-	m_dataService->Send(p->GetSize(), p, (uint8_t)m_curChannel, true);
+//	m_dataService->Transmission(p->GetSize(), p, (uint8_t)m_curChannel, true);
 	return;
 }
 
@@ -176,14 +176,14 @@ void LifiDevAssocHandler::SendDataRequest(){
 	DataRequestComm comm;
 	Ptr<Packet> p = comm.GetPacket();
 	LifiMacHeader header;
-	header.SetFrameType(COMMAND);
+	header.SetFrameType(LIFI_COMMAND);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_coordAddr);
 	p->AddHeader(header);
 
 //	sendPacket();
-	m_dataService->Send(p->GetSize(), p, (uint8_t)m_curChannel, true);
+//	m_dataService->TransmissionRequest(p->GetSize(), p, (uint8_t)m_curChannel, true);
 }
 
 void LifiDevAssocHandler::SendAck(){
@@ -191,12 +191,12 @@ void LifiDevAssocHandler::SendAck(){
 	LifiMacAck ack;
 	Ptr<Packet> p = ack.GetPacket();
 	LifiMacHeader header;
-	header.SetFrameType(ACK);
+	header.SetFrameType(LIFI_ACK);
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_coordAddr);
 	p->AddHeader(header);
 //	sendPacket();
-	m_dataService->Send(p->GetSize(), p, (uint8_t)m_curChannel, true);
+//	m_dataService->TransmissionRequest(p->GetSize(), p, (uint8_t)m_curChannel, true);
 }
 
 
@@ -307,7 +307,7 @@ void LifiDevAssocHandler::WaitForResponWithTrackBeaconNotificationCallback(
 	LifiMacHeader header;
 	msdu->RemoveHeader(header);
 	LifiMacBeacon beacon = LifiMacBeacon::Construct(msdu);
-	NS_ASSERT (header.GetFrameType() == BEACON);
+	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
 	if ((header.GetFramePending())
 	  && beacon.CheckPendingAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress()))
 	{
@@ -441,7 +441,7 @@ void LifiDevAssocHandler::OnAssocRspNotification(uint32_t unsignedInt,
 	m_timer.Cancel();
 	LifiMacHeader header;
 	msdu->RemoveHeader(header);
-	NS_ASSERT (header.GetFrameType() == COMMAND);
+	NS_ASSERT (header.GetFrameType() == LIFI_COMMAND);
 
 	AssocResponseComm response = AssocResponseComm::Construct(msdu);
 

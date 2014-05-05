@@ -10,12 +10,13 @@
 namespace ns3 {
 
 DataService::DataService() {
-	// TODO Auto-generated constructor stub
-
+	m_connected = false;
+	m_base = 0;
 }
 
 DataService::~DataService() {
-	// TODO Auto-generated destructor stub
+	if (m_base != 0)
+		free (m_base);
 }
 
 } /* namespace ns3 */

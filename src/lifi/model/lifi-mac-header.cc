@@ -18,7 +18,7 @@ NS_OBJECT_ENSURE_REGISTERED (LifiMacHeader);
 LifiMacHeader::LifiMacHeader() : m_version (0x00)
 {
 	m_sequenceNumber = 0x00;
-	m_type = RESERVED;
+	m_type = LIFI_RESERVED;
 	m_pending = 0x00;
 	m_ackRequest = 0x00;
 	m_dstVPANId = 0x0000;
