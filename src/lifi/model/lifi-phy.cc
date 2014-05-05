@@ -307,6 +307,11 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 			break;
 		}
+		case RX_BUSY:{
+			m_trxStatus = RX_BUSY;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			break;
+		}
 		default:{
 			NS_LOG_WARN("illegality TRxstate!");
 		}
@@ -329,6 +334,11 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 		}
 		case TX_ON:{
 			m_trxStatus = TX_ON;
+			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			break;
+		}
+		case TX_BUSY:{
+			m_trxStatus = TX_BUSY;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			break;
 		}
@@ -457,7 +467,7 @@ void LifiPhy::EndTx(PhyOpStatus trxStatus) {
 		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 		m_pdSapUser->PdDataConfirm (trxStatus);
 	}
-	else if(trxStatus == RX_ON || trxStatus == RX_ON)
+	else if(trxStatus == RX_ON || trxStatus == RX_BUSY)
 		m_pdSapUser->PdDataConfirm (RX_ON);
 	else if(trxStatus == TRX_OFF)
 		m_pdSapUser->PdDataConfirm (TRX_OFF);
@@ -628,18 +638,25 @@ Ptr<SpectrumValue> LifiPhy::CalculatetxPsd(double txPowerDbm,Bands band,uint8_t 
 //	GetbandsInfo(fb,fe,fc,bandid);
 	double powerTxW = std::pow (10., (txPowerDbm - 30) / 10);//turn the unit Dbm to w.
 //	double bandwith = (--(band.end()))->fh - band.begin()->fl;
-	double bandwith = (band.begin()+(8-bandid)*m_subBandsNum )->fl-(band.begin()+(7-bandid)*m_subBandsNum )->fl;
+	double bandwith = (band.begin()+(7-bandid)*m_subBandsNum )->fl-(band.begin()+(6-bandid)*m_subBandsNum )->fl;//MHZ
 //	double bandwith = 0.72059e8;
 	double txPowerDensity = powerTxW / bandwith;
+//	std::cout<<"txPower:"<<txPowerDensity<<std::endl;
 	//judge modulation way
 	NS_ASSERT(bandid < 7);
-	Values::iterator beg = txPsd->ValuesBegin()+(double)(7-bandid)*m_subBandsNum;
+	Values::iterator beg = txPsd->ValuesBegin()+(double)(6-bandid)*m_subBandsNum;
 //	Values::iterator end = txPsd->ValuesEnd();
 	Values::iterator end =beg + m_subBandsNum;
 	while(beg != end){
 		*beg = txPowerDensity;
 		beg++;
 	}
+//	Values::iterator testbeg = txPsd->ValuesBegin();
+//	Values::iterator testend = txPsd->ValuesEnd();
+//	while(testbeg!=testend){
+//		std::cout<<*testbeg<<std::endl;
+//		testbeg++;
+//	}
 	return txPsd;
 }
 

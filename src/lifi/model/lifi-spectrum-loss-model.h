@@ -34,6 +34,8 @@ public:
 	Ptr<SpectrumValue> GetBandPsd(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
 	double GetBandWidth(void);
 	void SetBandWidth(Ptr<SpectrumValue>psd , uint8_t band , uint8_t subBand);
+	void SetSubBand(uint8_t bsuband);
+	void SetBand(uint8_t band);
 //  static TypeId GetTypeId ();
 //
 //
@@ -84,7 +86,9 @@ private:
 //  Ptr<SpectrumPropagationLossModel> m_next;
 	double DoCalcRxPower(double txPowerDbm, Ptr<const MobilityModel> a, Ptr<const MobilityModel> b) const;
 	Ptr<LifiAntennaParameters> m_antennaParameters;
-	double m_bandwith;
+	double m_bandWith;
+	uint8_t m_band;
+	uint8_t m_subBand;
 };
 
 } // namespace ns3

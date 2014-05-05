@@ -118,6 +118,8 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 	Ptr<LifiPhy> lifi_phy = lifi_device->GetPhy();
 	uint8_t subBand = lifi_phy->GetSunBandsNum();
 	Ptr<LifiSpectrumPropagationLossModel> lifi_loss = DynamicCast<LifiSpectrumPropagationLossModel>(m_spectrumPropagationLoss);
+	lifi_loss->SetBand(bandid);
+	lifi_loss->SetSubBand(subBand);
 	lifi_loss->SetBandWidth(params->psd,bandid,subBand);
 	while(beg != end){
 //		double Pr = m_propagationLossModel->CalcRxPower(params->trxPower,params->txPhy->GetMobility(),beg->second->GetMobility());///the first param is not dbm
@@ -125,16 +127,19 @@ void LifiSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> param) {
 //		Ptr<SpectrumValue> tempPsd = lifipropagation->GetBandPsd(params->psd,params->band,)
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(params->psd,params->txPhy->GetMobility(),beg->second->GetMobility());
 		double Pr = Integral(*rxPsd);//transform Psd into power unit w.
-		double PrDbm = 10*log10(Pr);
+		double PrDbm = 10*log10(1000.0*Pr);
 		if(PrDbm > beg->second->GetmRxPowerTh()){
 //			rxPoint.push_back(beg->second);
-			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());
+//			Time delay = m_propagationDelay->GetDelay(params->txPhy->GetMobility(),beg->second->GetMobility());//too much to close the real situation
 			Ptr<LifiSpectrumSignalParameters> rxParams = Create<LifiSpectrumSignalParameters>(*params);//????
 //			Ptr<LifiSpectrumSignalParameters> rxParams = params;
 			uint32_t detNode = beg->second->GetDevice()->GetNode()->GetId();
 			rxParams->time = Simulator::Now();
 			rxParams->trxPower = Pr;
 			rxParams->psd = rxPsd->Copy();
+//			std::cout<<"the delay is "<<delay<<std::endl;
+//			std::cout<<"the duration is "<<params->duration<<std::endl;
+			Time delay=NanoSeconds(30);//10m/c
 			Simulator::ScheduleWithContext (detNode,delay, &LifiSpectrumChannel::StartRx, this, rxParams,beg->second);
 		}//by comparing the rxPower ,we can choose to compare the rxPsd;
 		++beg;
@@ -365,11 +370,22 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	PhyList::iterator it;
 	PhyList::iterator end ;
 //	uint8_t band = phy->GetSpectrumSignalParameters()->band;
-	uint8_t band = 7;
+
+	Ptr<NetDevice> device = phy->GetDevice();
+	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(device);
+	Ptr<LifiPhy> lifi_phy = DynamicCast<LifiPhy>(lifi_device->GetPhy());
+
+	uint8_t bandid = phy->GetSpectrumSignalParameters()->band;
+	uint8_t subBand = lifi_phy->GetSunBandsNum();
+	Ptr<LifiSpectrumPropagationLossModel> lifi_loss = DynamicCast<LifiSpectrumPropagationLossModel>(m_spectrumPropagationLoss);
+	lifi_loss->SetBand(bandid);
+	lifi_loss->SetSubBand(subBand);
+	lifi_loss->SetBandWidth(phy->GetSpectrumSignalParameters()->psd,bandid,subBand);
 	Ptr<SpectrumValue> txPsd = phy->GetSpectrumSignalParameters()->psd;
 	Time lifi_duration = phy->GetSpectrumSignalParameters()->duration;
 	std::pair<PhyList::iterator,PhyList::iterator> pos;
 //	std::make_pair(it,end) = SearchRxList(band);
+	uint8_t band = 7;
 	pos = SearchRxList(band);
 	it = pos.first;
 	end = pos.second;
