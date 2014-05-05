@@ -46,7 +46,6 @@ void LifiInterference::AddSignal(Ptr<const SpectrumValue> psd, const Time durati
 
 void LifiInterference::LifiAddSignal(Ptr<SpectrumValue> psd,Time duration){
 	NS_LOG_FUNCTION (this);
-
 	if(m_receiving == RX_BUSY){
 	Time rxTime = Simulator::Now();
 	DoLifiAddSignal (psd->Copy());
@@ -138,11 +137,13 @@ Ptr<SpectrumValue> LifiInterference::CalcuAveInterference(Time duration,Time sta
 	Ptr<SpectrumValue> average = Create<SpectrumValue>(model);
 	std::map<Time,Ptr<SpectrumValue> >::iterator beg =  m_allSignalPsd.lower_bound(startTime);
 	std::map<Time,Ptr<SpectrumValue> >::iterator end =  m_allSignalPsd.lower_bound(startTime+duration);
+	double last_duration = end->first.GetSeconds()-beg->first.GetSeconds();
 	while(beg != end){
 		std::map<Time,Ptr<SpectrumValue> >::iterator temp = beg++;
-		*average = ((beg->first.GetSeconds() - temp->first.GetSeconds()) / duration.GetSeconds()) *  (*(temp->second));
+		*average = ((beg->first.GetSeconds() - temp->first.GetSeconds()) / last_duration) *  (*(temp->second));
+		std::cout<<"interal:"<<(Integral(*(temp->second)))<<std::endl;
 	}
-return average;
+return average->Copy();
 }
 
 Ptr<SpectrumValue> LifiInterference::CalSinr(Ptr<SpectrumValue> rxSignal , Ptr<SpectrumValue> AveAllSignal ){
@@ -152,17 +153,23 @@ Ptr<SpectrumValue> LifiInterference::CalSinr(Ptr<SpectrumValue> rxSignal , Ptr<S
 	Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
 	Ptr<SpectrumValue> sinr = Create<SpectrumValue>(model);
 	Ptr<SpectrumValue> m_noise = Create<SpectrumValue>(model);//noise equal to 0
+	Values::iterator noiseBeg = m_noise->ValuesBegin();
+	Values::iterator noiseEnd = m_noise->ValuesEnd();
+	while(noiseBeg != noiseEnd){
+		*noiseBeg = 1.0e-3;//MHZ
+		noiseBeg++;
+	}
 	m_rxSignal = rxSignal->Copy();
 	*sinr = *m_rxSignal / (*AveAllSignal + *m_noise - *m_rxSignal);
-	return sinr;
+	return sinr->Copy();
 }
 
 double  LifiInterference::BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand){
 	NS_LOG_FUNCTION(this);
 	NS_ASSERT(band < 7);
-	Values::iterator ValueBeg = psd->ValuesBegin() + (7 - band) * SubBand;
-	Values::iterator ValueEnd = psd->ValuesBegin() + (8 - band) * SubBand;
-	std::vector<BandInfo>::const_iterator BandBeg = psd->ConstBandsBegin()+ (7 - band) * SubBand;
+	Values::iterator ValueBeg = psd->ValuesBegin() + (6 - band) * SubBand;
+	Values::iterator ValueEnd = psd->ValuesBegin() + (7 - band) * SubBand;
+	std::vector<BandInfo>::const_iterator BandBeg = psd->ConstBandsBegin()+ (6 - band) * SubBand;
 	double Power = 0;
 	while(ValueBeg != ValueEnd){
 		Power = *ValueBeg * (BandBeg->fh - BandBeg->fl);

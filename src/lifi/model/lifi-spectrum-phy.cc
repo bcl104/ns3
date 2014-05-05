@@ -178,13 +178,15 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 		}
 		Time startTime = Simulator::Now();
 		lifi_params->time = startTime;
+		Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
 		while(beg != end){
 			Ptr<SpectrumValue> txPsd = beg->second->GetSpectrumSignalParameters()->psd->Copy();
 			Ptr<SpectrumValue> rxPsd = propagationlossmodel->CalcRxPowerSpectralDensity(txPsd,beg->second->GetMobility(),m_mobility);
-			m_interference->LifiAddSignal(rxPsd,startTime);
+			m_interference->LifiAddSignal(rxPsd,lifi_params->duration);
 			++beg;
 		}
-		Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
+//		std::cout<<"the duration is "<<lifi_params->duration<<std::endl;//?????????????????????????????????
+//		Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
 	}
 	else{
 
@@ -221,6 +223,8 @@ double LifiSpectrumPhy::GetberTh(void){
 void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	NS_LOG_FUNCTION(this);
 	Ptr<SpectrumValue> averageAllSignal = m_interference->CalcuAveInterference(params->duration,params->time);
+//	double allsignal = Integral(*averageAllSignal);
+//	std::cout<<"aver signal:"<<allsignal<<std::endl;/////????????????????????????
 	Ptr<SpectrumValue> sinr = m_interference->CalSinr(params->psd,averageAllSignal);
 //	double TimeDomainSinr = Integral(*sinr);
 	uint8_t band = params->band;
@@ -229,7 +233,11 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	Ptr<LifiPhy> lifi_phy = lifi_device->GetPhy();
 	uint8_t subBand = lifi_phy->GetSunBandsNum();
 	double TimeDomainSinr = m_interference->BandIntegral(sinr,band,subBand);
+	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
+	TimeDomainSinr = Integral(*sinr);//??????????
+	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
 	double ber = CalculateBer(TimeDomainSinr);
+	std::cout<<"ber:"<<ber<<std::endl;
 	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
 	NS_ASSERT(m_rxNumCount > 0);
 	if(m_rxNumCount == 1){
@@ -242,6 +250,7 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 		m_rxNumCount--;
 	}
 	//add a threshold detection statement
+	ber = 1;//??????????????????????????????????????????????????
 	if(ber > m_berTh){
 	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);
 	Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();

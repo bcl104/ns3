@@ -24,7 +24,9 @@ LifiSpectrumPropagationLossModel::LifiSpectrumPropagationLossModel() {
 	m_antennaParameters->FOV = (double)30/180*M_PI;
 	m_antennaParameters->TransmitterDegree = (double)30/180*M_PI;
 	m_antennaParameters->ReceiverDegree = (double)30/180*M_PI;
-	m_bandwith = 100;
+	m_bandWith = 100;
+	m_band = 0;
+	m_subBand = 1;
 }
 
 ns3::LifiSpectrumPropagationLossModel::~LifiSpectrumPropagationLossModel() {
@@ -36,17 +38,18 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 	Ptr<const MobilityModel> b) const{
 	NS_LOG_FUNCTION(this);
 	Ptr<SpectrumValue> rxPsd = txPsd->Copy();
-	Values::iterator beg = rxPsd->ValuesBegin();
-	Values::iterator end = rxPsd->ValuesEnd();
+	Values::iterator beg = rxPsd->ValuesBegin()+(6-m_band) * m_subBand;
+	Values::iterator end = beg + m_subBand;
 	double temp = Integral(*rxPsd);//unit W
 	temp = 10.0*log10(1000.0*temp);//unit dbm
 	double rxPower = DoCalcRxPower(temp,a,b);
 	double rxPowerW = std::pow (10., (rxPower - 30) / 10);
-	double rxPowerDendity = rxPowerW/m_bandwith;
+	double rxPowerDendity = rxPowerW/m_bandWith;//MHZ
+//	std::cout<<"rxPower:"<<rxPowerDendity<<std::endl;
 	while(beg != end){
-		if(*beg != 0){
+
 		(*beg) = rxPowerDendity;
-		}
+
 		beg++;
 	}
 	return rxPsd->Copy();
@@ -111,15 +114,25 @@ double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<co
 
 void LifiSpectrumPropagationLossModel::SetBandWidth(Ptr<SpectrumValue>psd , uint8_t band , uint8_t subBand){
 	NS_LOG_FUNCTION(this);
-	Bands::const_iterator psdBeg = psd->ConstBandsBegin() + (7 - band) * subBand;
+	Bands::const_iterator psdBeg = psd->ConstBandsBegin() + (6 - band) * subBand;
 	Bands::const_iterator psdEnd = psdBeg + subBand;
 	double bandwidth = psdEnd->fl - psdBeg->fl;
-	m_bandwith = bandwidth;
+	m_bandWith = bandwidth;
 }
 
 double LifiSpectrumPropagationLossModel::GetBandWidth(){
 	NS_LOG_FUNCTION(this);
-	return m_bandwith;
+	return m_bandWith;
+}
+
+void LifiSpectrumPropagationLossModel::SetBand(uint8_t band){
+	NS_LOG_FUNCTION(this);
+	m_bandWith = band;
+}
+
+void LifiSpectrumPropagationLossModel::SetSubBand(uint8_t subband){
+	NS_LOG_FUNCTION(this);
+	m_subBand = subband;
 }
 
 void LifiSpectrumPropagationLossModel::SetLifiAntennaParameters(Ptr<LifiAntennaParameters> parameters){
