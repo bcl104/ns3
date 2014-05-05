@@ -53,7 +53,7 @@ void LifiMacImpl::PurgeTrancsion(uint8_t handle) {
 
 }
 
-void LifiMacImpl::Receive(Ptr<PacketBurst> pb) {
+void LifiMacImpl::Receive(uint32_t size, Ptr<Packet> p, uint8_t quality) {
 
 }
 
@@ -84,58 +84,58 @@ void LifiMacImpl::Synchronize(LogicChannelId channel, bool trackBeacon) {
 
 }
 
-bool LifiMacImpl::DoChannelClearAccessment() {
-	return false;
-}
-
-void LifiMacImpl::DoTransmitData(uint32_t size, Ptr<PacketBurst> pb,
-		uint8_t band) {
-}
-
-void LifiMacImpl::onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onBandHopping(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onBeacon(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onData(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onDataConfirm(PhyOpStatus status) {
-}
-
-void LifiMacImpl::onDataRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onDisassocNotification(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onInformationElement(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-}
-
-void LifiMacImpl::onMultipleChannelAssignment(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-}
+//bool LifiMacImpl::DoChannelClearAccessment() {
+//	return false;
+//}
+//
+//void LifiMacImpl::DoTransmitData(uint32_t size, Ptr<PacketBurst> pb,
+//		uint8_t band) {
+//}
+//
+//void LifiMacImpl::onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onBandHopping(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onBeacon(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onData(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onDataConfirm(PhyOpStatus status) {
+//}
+//
+//void LifiMacImpl::onDataRequest(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onDisassocNotification(uint32_t timestamp,
+//		Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onInformationElement(uint32_t timestamp,
+//		Ptr<Packet> msdu) {
+//}
+//
+//void LifiMacImpl::onMultipleChannelAssignment(uint32_t timestamp,
+//		Ptr<Packet> msdu) {
+//}
 
 void LifiMacImpl::SetLifiMac(Ptr<LifiMac> mac) {
 	m_mac = mac;
@@ -144,6 +144,22 @@ void LifiMacImpl::SetLifiMac(Ptr<LifiMac> mac) {
 Ptr<LifiMac> LifiMacImpl::GetLifiMac() const {
 	return m_mac;
 }
+
+void LifiMacImpl::SetOpticalPeriod(const Time* oc)
+{
+	m_opticalPeriod = oc;
+}
+
+const Time* LifiMacImpl::GetOpticalPeriod() const
+{
+	return m_opticalPeriod;
+}
+
+LifiMacPibAttribute& LifiMacImpl::GetLifiMacPibAttribute()
+{
+	return m_attributes;
+}
+
 } /* namespace ns3 */
 
 

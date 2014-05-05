@@ -231,7 +231,6 @@ struct GtsRequestComm : public LifiMacComm
 
 public:
 	GtsRequestComm ();
-
 	GtsRequestComm (GTSCharacteristics c);
 
 	virtual ~GtsRequestComm ();

@@ -18,12 +18,14 @@ namespace ns3 {
 
 class LifiMacImpl;
 
-class LifiGtsHandler : public OpStatusCallback
+class LifiGtsHandler : public Object, public OpStatusCallback
 {
 
 public:
 	LifiGtsHandler();
 	virtual ~LifiGtsHandler();
+
+	static TypeId GetTypeId ();
 
 	virtual void ReportTransmission(MacOpStatus status);
 

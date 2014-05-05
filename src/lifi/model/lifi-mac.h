@@ -31,7 +31,7 @@ public:
 
 	static const uint32_t aBaseSlotDuration = 60;
 	static const uint32_t aNumSuperframeSlots = 16;
-	static const uint32_t aBaseSpectrumDuration = aBaseSlotDuration * aNumSuperframeSlots;
+	static const uint32_t aBaseSuperframeDuration = aBaseSlotDuration * aNumSuperframeSlots;
 	static const uint32_t aGTSDescPersistenceTime = 4;
 	static const uint32_t aMaxBeaconOverhead = 75;
 	static const uint32_t aMinMpduOverhead = 9;
@@ -108,12 +108,15 @@ public:
 
 	Ptr<LifiNetDevice> GetDevice () const;
 
+	void SetOpticalClock (const double* oc);
+
+	const double* GetOpticalClock () const;
+
 protected:
 	void DoDataConfirm(PhyOpStatus status);
-	void DoReceive(uint32_t size, Ptr<Packet> pb, uint8_t quality);
+	void DoReceive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	void DoTransmit(uint32_t size, Ptr<Packet> pb, uint8_t band);
 
-	LifiMacPibAttribute m_attributes;
 	Ptr<LifiMacImpl> m_lifiMacImpl;
 	Ptr<LifiNetDevice> m_device;
 
@@ -125,6 +128,7 @@ protected:
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_plmeSapUser;
+
 };
 
 }

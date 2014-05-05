@@ -200,13 +200,23 @@ enum AddrMode
 };
 
 enum FrameType{
-	BEACON = 0x00,
-	DATA = 0x01,
-	ACK = 0x02,
-	COMMAND = 0x03,
-	CVD = 0x04,
-	RESERVED = 0x05,
+	LIFI_BEACON = 0x00,
+	LIFI_DATA = 0x01,
+	LIFI_ACK = 0x02,
+	LIFI_COMMAND = 0x03,
+	LIFI_CVD = 0x04,
+	LIFI_RESERVED = 0x05,
 };
+
+enum TranceiverTaskId
+{
+	TRX_BEACON,
+	TX_ACK,
+	TX_DATA,
+	TX_COMMAND,
+};
+
+uint16_t GetTrxTaskPriority (TranceiverTaskId task);
 
 struct SupframeSpec
 {
@@ -244,6 +254,12 @@ struct GTSCharacteristics
 {
 
 public:
+	GTSCharacteristics ()
+	{
+		charType = ALLOCATION;
+		gtsDirection = TX_ONLY;
+		gtsLength = 0;
+	}
 	GTSCharType charType;
 	GTSDirection gtsDirection;
 	uint8_t gtsLength;
@@ -350,6 +366,40 @@ struct PendAddrField{
 public:
 	PendAddrSpec pendAddr;
 	AddrList addrList;
+};
+
+struct LifiBackoff
+{
+	LifiBackoff ();
+	uint32_t* minBackoffExponential;
+	uint32_t* maxBackoffExponential;
+	uint32_t* maxBackoffRetry;
+	uint32_t m_backoffExponential;
+	uint32_t m_backoffRetries;
+	Timer m_backoffTimer;
+//	static Time LocateBackoffBoundary (Time capEnd);
+	void IncreBackoffExp ();
+	void IncreNumRetries ();
+	bool IsReachMaxRetry ();
+	Time GetBackoffTime ();
+	void Reset ();
+};
+
+class TrxHandlerListener;
+
+struct PacketInfo
+{
+	uint8_t m_handle;
+	uint8_t m_band;
+	TxOption m_option;
+	DataRateId m_rate;
+	uint32_t m_msduSize;
+	bool m_bust;
+	bool m_force;
+	Ptr<Packet> m_packet;
+	TrxHandlerListener* m_listener;
+	void Reset ();
+	bool Available ();
 };
 
 } /* namespace ns3 */
