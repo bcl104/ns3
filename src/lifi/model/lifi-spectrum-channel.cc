@@ -436,7 +436,7 @@ double LifiSpectrumChannel::CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,ui
 	it=m_txPhyList.find(bandId);
 	if(it==m_txPhyList.end())
 	{
-		NS_LOG_WARN("the bandId:"<<bandId<<"is not using");
+//		NS_LOG_WARN("the bandId:"<<bandId<<"is not using");
 		return 0;
 	}
 	uint16_t k=0;

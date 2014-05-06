@@ -9,7 +9,9 @@
 #include "ns3/lifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/propagation-delay-model.h"
-
+/*
+ * single transmit single receive single cca
+ */
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("PhyTest");
 int main ()
@@ -65,7 +67,9 @@ int main ()
 	Ptr<LifiSpectrumSignalParameters> lifiSpectrumSignalParametersRx=Create<LifiSpectrumSignalParameters>();
 	Ptr<LifiSpectrumSignalParameters> lifiSpectrumSignalParametersCca=Create<LifiSpectrumSignalParameters>();
 
-	Ptr<LifiInterference> lifiInterference=CreateObject<LifiInterference>();
+	Ptr<LifiInterference> lifiInterferenceTx=CreateObject<LifiInterference>();
+	Ptr<LifiInterference> lifiInterferenceRx=CreateObject<LifiInterference>();
+	Ptr<LifiInterference> lifiInterferenceCca=CreateObject<LifiInterference>();
 	Ptr<LifiSpectrumPropagationLossModel> lifiSpectrumPropagationLossModel=CreateObject<LifiSpectrumPropagationLossModel>();
 	Ptr<PropagationLossModel> lifiPropagationLossModel = CreateObject<LifiIndoorPropagationLossModel>();
 
@@ -96,9 +100,9 @@ int main ()
 	lifiSpectrumPhyRx->SetMobility(rxMobility);
 	lifiSpectrumPhyCca->SetMobility(ccaMobility);
 
-	lifiSpectrumPhyTx->SetInterference(lifiInterference);
-	lifiSpectrumPhyRx->SetInterference(lifiInterference);
-	lifiSpectrumPhyCca->SetInterference(lifiInterference);
+	lifiSpectrumPhyTx->SetInterference(lifiInterferenceTx);
+	lifiSpectrumPhyRx->SetInterference(lifiInterferenceRx);
+	lifiSpectrumPhyCca->SetInterference(lifiInterferenceCca);
 
 	lifiSpectrumPhyTx->SetSpectrumSignalParameters(lifiSpectrumSignalParametersTx);
 	lifiSpectrumPhyRx->SetSpectrumSignalParameters(lifiSpectrumSignalParametersRx);
@@ -135,7 +139,7 @@ int main ()
 	lifiSpectrumSignalParametersCca->txPhy=lifiSpectrumPhyCca;
 
 	Ptr<LifiSpectrumErrorModel> lifiSpectrumErrroModel=CreateObject<LifiSpectrumErrorModel>();
-	lifiInterference->SetErrorModel(lifiSpectrumErrroModel);
+//	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
 
 	lifiPhyTx->SetTRxState(TX_ON);
 	lifiPhyRx->SetTRxState(RX_ON);

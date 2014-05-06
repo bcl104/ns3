@@ -134,6 +134,7 @@ uint8_t LifiPhy::DoCca(uint8_t band) {
 	NS_ASSERT(band < 7);
 	NS_ASSERT(m_trxStatus != TX_BUSY);
 	bool ccaResult = m_spectrumPhy->CarrierSense(band,m_edTh);
+	std::cout<<"cca result:"<<ccaResult<<std::endl;
 	uint8_t result = 0;
 	if(ccaResult == true){
 		result = 1 << band;
@@ -241,11 +242,11 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	pb->RemoveHeader(header);
 	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
-//	uint8_t *buffer=new uint8_t;
+	uint8_t *buffer=new uint8_t;
 //////	*buffer=56;
 //	std::cout<<"size"<<size<<std::endl;
-//	pb->CopyData(buffer,size);
-//	std::cout<<"buffer:"<<(int)*buffer<<std::endl;
+	pb->CopyData(buffer,size);
+	std::cout<<"buffer:"<<(int)*buffer<<std::endl;
 //	std::ofstream oso("abcd.txt");
 //	pb->Print(oso);
 //	std::cout<<pb<<std::endl;
@@ -672,6 +673,7 @@ Ptr<SpectrumValue> LifiPhy::CalculatetxPsd(double txPowerDbm,Bands band,uint8_t 
 //		std::cout<<*testbeg<<std::endl;
 //		testbeg++;
 //	}
+//	std::cout<<"m_uid:"<<model->GetUid()<<std::endl;
 	return txPsd;
 }
 

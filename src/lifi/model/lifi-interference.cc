@@ -103,9 +103,24 @@ void LifiInterference::DoLifiAddSignal(Ptr<SpectrumValue> psd){
 	Time rxTime = Simulator::Now();
 	if(m_allSignal == 0){
 		Ptr<const SpectrumModel> model = psd->GetSpectrumModel();
+//		std::cout<<"m_uid:"<<model->GetUid()<<std::endl;
 		m_allSignal = Create<SpectrumValue>(model);
 //		m_allSignal = psd->Copy();
 	}
+	else{
+		Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
+		Ptr<SpectrumValue> temp = Create<SpectrumValue>(model);
+		Values::iterator tempbeg = temp->ValuesBegin();
+		Values::iterator tempend = temp->ValuesEnd();
+		Values::iterator allbeg = psd->ValuesBegin();
+		while(tempbeg != tempend){
+			*tempbeg = *allbeg;
+			tempbeg++;
+			allbeg++;
+		}
+		psd = temp->Copy();
+	}
+//	std::cout<<"m_uid:"<<m_allSignal->GetSpectrumModelUid()<<std::endl;
 	*m_allSignal += *psd;
 	std::pair<Time,Ptr<SpectrumValue> > insertElement;
 	insertElement.first = rxTime;
@@ -120,6 +135,17 @@ void LifiInterference::DoLifiSubtractSignal(Ptr<SpectrumValue> psd){
 	NS_LOG_FUNCTION (this);
 	NS_ASSERT(m_allSignal != 0);
 	Time rxTime = Simulator::Now();
+	Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
+	Ptr<SpectrumValue> temp = Create<SpectrumValue>(model);
+	Values::iterator tempbeg = temp->ValuesBegin();
+	Values::iterator tempend = temp->ValuesEnd();
+	Values::iterator allbeg = psd->ValuesBegin();
+	while(tempbeg != tempend){
+		*tempbeg = *allbeg;
+		tempbeg++;
+		allbeg++;
+	}
+	psd = temp->Copy();
 	*m_allSignal -=*psd;
 	std::pair<Time,Ptr<SpectrumValue> > insertElement;
 	insertElement.first = rxTime;
@@ -150,7 +176,18 @@ Ptr<SpectrumValue> LifiInterference::CalSinr(Ptr<SpectrumValue> rxSignal , Ptr<S
 	NS_LOG_FUNCTION (this);
 	NS_ASSERT(m_allSignal != 0);
 //	NS_ASSERT(m_noise->GetSpectrumModel() == m_allSignal->GetSpectrumModel());
-	Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
+	Ptr<const SpectrumModel> model = AveAllSignal->GetSpectrumModel();
+	Ptr<SpectrumValue> temp = Create<SpectrumValue>(model);
+	Values::iterator tempbeg = temp->ValuesBegin();
+	Values::iterator tempend = temp->ValuesEnd();
+	Values::iterator allbeg = rxSignal->ValuesBegin();
+	while(tempbeg != tempend){
+		*tempbeg = *allbeg;
+		tempbeg++;
+		allbeg++;
+	}
+	rxSignal = temp->Copy();
+//	Ptr<const SpectrumModel> model = m_allSignal->GetSpectrumModel();
 	Ptr<SpectrumValue> sinr = Create<SpectrumValue>(model);
 	Ptr<SpectrumValue> m_noise = Create<SpectrumValue>(model);//noise equal to 0
 	Values::iterator noiseBeg = m_noise->ValuesBegin();
