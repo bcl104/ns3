@@ -131,7 +131,14 @@ bool LifiPhy::DoCca() {
 
 uint8_t LifiPhy::DoCca(uint8_t band) {
 	NS_LOG_FUNCTION(this);
-	return m_spectrumPhy->CarrierSense(band,m_edTh);
+	NS_ASSERT(band < 7);
+	NS_ASSERT(m_trxStatus != TX_BUSY);
+	bool ccaResult = m_spectrumPhy->CarrierSense(band,m_edTh);
+	uint8_t result = 0;
+	if(ccaResult == true){
+		result = 1 << band;
+	}
+	return result;
 }
 
 //void LifiPhy::SetDeviceAttribute(PhyOpStatus status) {
