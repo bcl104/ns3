@@ -14,7 +14,7 @@ NS_OBJECT_ENSURE_REGISTERED (LifiSpectrumPhy);
 LifiSpectrumPhy::LifiSpectrumPhy() {
 	NS_LOG_FUNCTION(this);
 	m_rxPowerTh = 1;
-	m_berTh = 0;
+	m_berTh = 0.5;
 	m_rxNumCount = 0;
 
 }
@@ -35,7 +35,7 @@ LifiSpectrumPhy::LifiSpectrumPhy(Ptr<NetDevice> device) {
 //	LifiSpectrumPhy();//?????????????
 	m_device = device;
 	m_rxPowerTh = 1;
-	m_berTh = 0;
+	m_berTh = 0.5;
 	m_rxNumCount = 0;
 //	m_cellId = 0;
 //	m_band = 0;
@@ -206,7 +206,7 @@ double LifiSpectrumPhy::CalculateErf(double x,uint8_t n){
 	double resolution = x/n;
 	double result = 0;
 	for(uint8_t i = 0;i<n;i++){
-		result +=resolution * exp(resolution*i+resolution/2);
+		result +=resolution *exp(-pow((resolution*i+resolution/2),2));
 	}
 	result *= 2/sqrt(M_PI);
 	return result;
@@ -252,8 +252,8 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 		m_rxNumCount--;
 	}
 	//add a threshold detection statement
-	ber = 1;//??????????????????????????????????????????????????
-	if(ber > m_berTh){
+//	ber = 1;//??????????????????????????????????????????????????
+	if(ber < m_berTh){
 	Ptr<LifiNetDevice> lifi_device = DynamicCast<LifiNetDevice>(m_device);
 	Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
 	uint8_t wqi = CalculateWqi(TimeDomainSinr);
@@ -316,7 +316,12 @@ void LifiSpectrumPhy::SetErrorModel(Ptr<LifiSpectrumErrorModel> e){
 double LifiSpectrumPhy::CalculateBer(double sinr){
 	NS_LOG_FUNCTION(this);
 	double ber = 0;
+	if(sinr > 1){
+		ber = 1.0/4.0*exp(-sinr/4);
+	}
+	else{
 	ber = 1.0/2.0*(1.0-CalculateErf(sqrt(sinr/4.0),100));
+	}
 	return ber;
 }
 

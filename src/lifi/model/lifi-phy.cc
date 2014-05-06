@@ -234,6 +234,14 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	pb->RemoveHeader(header);
 	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
+//	uint8_t *buffer=new uint8_t;
+//////	*buffer=56;
+//	std::cout<<"size"<<size<<std::endl;
+//	pb->CopyData(buffer,size);
+//	std::cout<<"buffer:"<<(int)*buffer<<std::endl;
+//	std::ofstream oso("abcd.txt");
+//	pb->Print(oso);
+//	std::cout<<pb<<std::endl;
 	m_trxStatus = RX_ON;
 	m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 
