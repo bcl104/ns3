@@ -89,7 +89,7 @@ int main ()
 	Ptr<ConstantPositionMobilityModel> ccaMobility=CreateObject<ConstantPositionMobilityModel> ();
 
 	Vector3D txPosition(0,0,0);
-	Vector3D rxPosition(2,2,2);
+	Vector3D rxPosition(1,1,1);
 	Vector3D ccaPosition(3,3,3);
 
 	txMobility->SetPosition(txPosition);
