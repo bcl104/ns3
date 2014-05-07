@@ -152,8 +152,8 @@ int main ()
 	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
 	uint8_t *buffers = new uint8_t;
 	packet->CopyData(buffers,100);
-	std::cout<<"buffers:"<<(int)*buffers<<std::endl;
-	std::cout<<packet->GetSize()<<std::endl;
+	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
+	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
 //	std::ofstream oso("abc.txt");
 //	packet->Print(oso);
 	lifiPhyTx->Transmit(packet->GetSize(),packet,3);

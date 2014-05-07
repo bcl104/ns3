@@ -246,11 +246,11 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	uint8_t subBand = lifi_phy->GetSunBandsNum();
 //	double TimeDomainSinr = m_interference->BandIntegral(sinr,band,subBand);
 	double TimeDomainSinr = m_interference->GetSinr(sinr,band,subBand);
-	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
+//	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
 //	TimeDomainSinr = Integral(*sinr);//??????????
 //	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
 	double ber = CalculateBer(TimeDomainSinr);
-	std::cout<<"ber:"<<ber<<std::endl;
+//	std::cout<<"ber:"<<ber<<std::endl;
 	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
 	NS_ASSERT(m_rxNumCount > 0);
 	if(m_rxNumCount == 1){

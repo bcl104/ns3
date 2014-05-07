@@ -259,13 +259,13 @@ Ptr<SpectrumValue> LifiInterference::CalcuAveInterference(Time duration,Time sta
 //		std::cout<<"startTime:"<< startTime.GetSeconds()<<std::endl;
 //		std::cout<<"duration+startTime:"<< (duration+startTime).GetSeconds()<<std::endl;
 	}
-	std::map<Time,Ptr<SpectrumValue> >::iterator testbeg =  m_allSignalPsd.begin();
-	std::map<Time,Ptr<SpectrumValue> >::iterator testend =  m_allSignalPsd.end();
-	while(testbeg!=testend){
-		std::cout<<"testbeg interal:"<<(Integral(*(testbeg->second)))<<std::endl;
-		std::cout<<"testbeg time:"<< testbeg->first.GetSeconds()<<std::endl;
-		testbeg++;
-	}
+//	std::map<Time,Ptr<SpectrumValue> >::iterator testbeg =  m_allSignalPsd.begin();
+//	std::map<Time,Ptr<SpectrumValue> >::iterator testend =  m_allSignalPsd.end();
+//	while(testbeg!=testend){
+//		std::cout<<"testbeg interal:"<<(Integral(*(testbeg->second)))<<std::endl;
+//		std::cout<<"testbeg time:"<< testbeg->first.GetSeconds()<<std::endl;
+//		testbeg++;
+//	}
 
 return average->Copy();
 }
