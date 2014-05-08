@@ -165,77 +165,7 @@ int main ()
 	Simulator::Destroy();
 	return 0;
 }
-	lifiSpectrumPhyTx->SetMobility(txMobility);
-	lifiSpectrumPhyRx->SetMobility(rxMobility);
-	lifiSpectrumPhyCca->SetMobility(ccaMobility);
 
-	lifiSpectrumPhyTx->SetInterference(lifiInterferenceTx);
-	lifiSpectrumPhyRx->SetInterference(lifiInterferenceRx);
-	lifiSpectrumPhyCca->SetInterference(lifiInterferenceCca);
-
-	lifiSpectrumPhyTx->SetSpectrumSignalParameters(lifiSpectrumSignalParametersTx);
-	lifiSpectrumPhyRx->SetSpectrumSignalParameters(lifiSpectrumSignalParametersRx);
-	lifiSpectrumPhyCca->SetSpectrumSignalParameters(lifiSpectrumSignalParametersCca);
-
-	lifiSpectrumPhyTx->SetChannel(lifiSpectrumChannel);
-	lifiSpectrumPhyRx->SetChannel(lifiSpectrumChannel);
-	lifiSpectrumPhyCca->SetChannel(lifiSpectrumChannel);
-
-	lifiSpectrumChannel->SetPropagationDelayModel(randomPropagationDelayModel);
-	lifiSpectrumChannel->AddSpectrumPropagationLossModel(lifiSpectrumPropagationLossModel);
-	lifiSpectrumChannel->AddPropagationLossModel(lifiPropagationLossModel);
-
-	lifiNetDeviceTx->SetPhy(lifiPhyTx);
-	lifiNetDeviceRx->SetPhy(lifiPhyRx);
-	lifiNetDeviceCca->SetPhy(lifiPhyCca);
-
-	lifiNetDeviceTx->SetMac(lifiMacTx);
-	lifiNetDeviceRx->SetMac(lifiMacRx);
-	lifiNetDeviceCca->SetMac(lifiMacCca);
-
-	lifiNetDeviceTx->SetNode(nodeTx);
-	lifiNetDeviceRx->SetNode(nodeRx);
-	lifiNetDeviceCca->SetNode(nodeCca);
-
-	nodeTx->AddDevice(lifiNetDeviceTx);
-	nodeRx->AddDevice(lifiNetDeviceRx);
-	nodeCca->AddDevice(lifiNetDeviceCca);
-
-//	lifiSpectrumSignalParametersTx->psd=spectrumValueTx;
-//	lifiSpectrumSignalParametersRx->psd=spectrumValueRx;
-	lifiSpectrumSignalParametersTx->txPhy=lifiSpectrumPhyTx;
-	lifiSpectrumSignalParametersRx->txPhy=lifiSpectrumPhyRx;
-	lifiSpectrumSignalParametersCca->txPhy=lifiSpectrumPhyCca;
-
-	Ptr<LifiSpectrumErrorModel> lifiSpectrumErrroModel=CreateObject<LifiSpectrumErrorModel>();
-//	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
-
-	lifiPhyTx->SetTRxState(TX_ON);
-	lifiPhyRx->SetTRxState(RX_ON);
-	lifiPhyTx->SetTxPower(30);
-	lifiPhyTx->SetMcsId(1);
-//	randomPropagationDelayModel->SetSpeed(1);
-	uint8_t *buffer=new uint8_t;
-//	uint8_t *buffer[]={0X86,0X12,0X32};
-	*buffer = 0x18;
-	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
-	uint8_t *buffers = new uint8_t;
-	packet->CopyData(buffers,100);
-	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
-	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
-//	std::ofstream oso("abc.txt");
-//	packet->Print(oso);
-	lifiPhyTx->Transmit(packet->GetSize(),packet,3);
-	lifiPhyCca->DoCca(3);
-
-
-
-
-	Simulator::Run ();
-	Simulator::Stop(Seconds(50));
-	Simulator::Destroy();
-	return 0;
-}
 
 
 
