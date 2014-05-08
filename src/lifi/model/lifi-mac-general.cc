@@ -43,17 +43,27 @@ bool LifiBackoff::IsReachMaxRetry()
 	return this->m_backoffRetries >= *(this->maxBackoffRetry);
 }
 
-Time LifiBackoff::GetBackoffTime()
+int64_t LifiBackoff::GetBackoffTime()
 {
-	return Time();
+	UniformVariable v;
+	return v.GetInteger(0, pow(2, this->m_backoffExponential));
 }
 
-LifiBackoff::LifiBackoff() : m_backoffTimer (Timer::CANCEL_ON_DESTROY)
+LifiBackoff::LifiBackoff() : m_backoffTimer (new Timer (Timer::CANCEL_ON_DESTROY))
 {
+	m_backoffRetries = 0;
+}
+
+LifiBackoff::~LifiBackoff()
+{
+	delete m_backoffTimer;
 }
 
 void LifiBackoff::Reset()
 {
+	this->m_backoffExponential = *minBackoffExponential;
+	this->m_backoffRetries = 0;
+	m_
 }
 
 void PacketInfo::Reset()

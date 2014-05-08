@@ -22,7 +22,7 @@ namespace ns3 {
 class TrxHandlerListener
 {
 public:
-	virtual ~TrxHandlerListener () {};
+	virtual ~TrxHandlerListener () { std::cout << "~TrxHandlerListener" << std::endl;};
 	virtual void AllocNotification (Ptr<DataService> service) = 0;
 	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack) = 0;
 	virtual void ResumeNotification (Ptr<DataService> service) {};
@@ -47,7 +47,7 @@ struct TranceiverTask
 	TrxHandlerListener *listener;
 };
 
-typedef std::map<uint16_t, TrxHandlerListener&> TrxHandlerListeners;
+typedef std::map<uint16_t, TrxHandlerListener*> TrxHandlerListeners;
 typedef std::priority_queue<TranceiverTask> TrxTasks;
 
 bool operator< (TranceiverTask t1, TranceiverTask t2) { return (t1.priority > t2.priority); }
@@ -64,9 +64,9 @@ public:
 
 	virtual ~LifiTrxHandler();
 
-	void AddListener (TypeId id, TrxHandlerListener &listener);
+	void AddListener (TypeId id, TrxHandlerListener* listener);
 
-	void RemoveListener (TypeId id, TrxHandlerListener &listener);
+	void RemoveListener (TypeId id, TrxHandlerListener* listener);
 
 	void ServiceRequest (TranceiverTask task);
 
@@ -94,8 +94,28 @@ public:
 	void TxConfirm(PhyOpStatus status);
 	void ReceivePacket (uint32_t timestamp, Ptr<Packet> p);
 
-
-
+	void SetMaxBackoffE (uint32_t* a)
+	{
+		m_curTransmission.m_backoff.maxBackoffExponential = a;
+		m_suspendedTransmission.m_backoff.maxBackoffExponential = a;
+	}
+	void SetMaxPacketRetry (uint32_t* b)
+	{
+		m_curTransmission.maxPacketRetry = b;
+		m_suspendedTransmission.maxPacketRetry = b;
+	}
+	void SetMinBackoffE (uint32_t* c)
+	{
+		m_curTransmission.m_backoff.minBackoffExponential = c;
+		m_curTransmission.m_backoff.m_backoffExponential = *c;
+		m_suspendedTransmission.m_backoff.minBackoffExponential = c;
+		m_suspendedTransmission.m_backoff.m_backoffExponential = *c;
+	}
+	void SetMaxBackoffRetry (uint32_t* d)
+	{
+		m_curTransmission.m_backoff.maxBackoffRetry = d;
+		m_suspendedTransmission.m_backoff.maxBackoffRetry = d;
+	}
 protected:
 	// Interface for upper layer handler.
 	bool Transmit(PacketInfo& info);
@@ -112,7 +132,7 @@ protected:
 		TrxHandlerListeners::iterator it = m_listens.begin();
 		while (it != m_listens.end())
 		{
-			(it->second.*function)(timestamp, p);
+			(it->second->*function)(timestamp, p);
 			it++;
 		}
 	}
@@ -150,13 +170,14 @@ protected:
 	{
 		TransmissionInfo ();
 		TransmissionInfo(uint32_t* maxRt);
+		virtual ~TransmissionInfo ();
 		uint32_t *maxPacketRetry;
 		PacketInfo m_info;
 		uint8_t m_sequenceNum;
 		uint32_t m_packetRetry;
 		LifiBackoff m_backoff;
 		Time* m_opticalPeriod;
-		Timer m_ackTimer;
+		Timer* m_ackTimer;
 		void IncrePacketRetry ();
 		bool IsReachMaxRetry ();
 		bool IsAvailable ();
@@ -166,6 +187,7 @@ protected:
 	struct SuperframeStrcut
 	{
 		SuperframeStrcut ();
+		bool m_synchronized;
 		bool m_contentionFreePeriod;
 		bool m_inactivePortion;
 		Timer m_capEnd;
@@ -180,7 +202,7 @@ protected:
 		IDLE,
 		TRANCEIVER_TASK,
 		GTS_TRANSMISSION,
-		NORMAL_DATA,
+		BACKOFF,
 	} m_opStatus;
 
 	TrxHandlerListeners m_listens;

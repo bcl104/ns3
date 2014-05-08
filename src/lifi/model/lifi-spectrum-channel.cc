@@ -390,9 +390,10 @@ void LifiSpectrumChannel::AddRxInterference(Ptr<LifiSpectrumPhy> phy){
 	pos = SearchRxList(band);
 	it = pos.first;
 	end = pos.second;
+	Time rxTime = Simulator::Now();
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
-		it->second->GetInterference()->LifiAddSignal(rxPsd,lifi_duration );//transform now() into duration 10:34 04.28
+		it->second->GetInterference()->LifiAddSignal(rxPsd,lifi_duration ,rxTime);//transform now() into duration 10:34 04.28
 		++it;
 	}
 }
@@ -409,9 +410,10 @@ void LifiSpectrumChannel::SubtraRxInterference(Ptr<LifiSpectrumPhy> phy){
 //	std::make_pair(it,end) = SearchRxList(band);
 	it = pos.first;
 	end = pos.second;
+	Time rxTime = Simulator::Now();
 	while(it != end){
 		Ptr<SpectrumValue> rxPsd = m_spectrumPropagationLoss->CalcRxPowerSpectralDensity(txPsd,phy->GetMobility(),it->second->GetMobility());
-		it->second->GetInterference()->LifiSubtractSignal(rxPsd);
+		it->second->GetInterference()->LifiSubtractSignal(rxPsd,rxTime);
 		++it;
 	}
 }
@@ -436,7 +438,7 @@ double LifiSpectrumChannel::CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,ui
 	it=m_txPhyList.find(bandId);
 	if(it==m_txPhyList.end())
 	{
-		NS_LOG_WARN("the bandId:"<<bandId<<"is not using");
+//		NS_LOG_WARN("the bandId:"<<bandId<<"is not using");
 		return 0;
 	}
 	uint16_t k=0;

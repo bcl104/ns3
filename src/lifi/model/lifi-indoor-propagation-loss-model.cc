@@ -16,7 +16,7 @@ LifiIndoorPropagationLossModel::LifiIndoorPropagationLossModel() {
 	m_antennaParameters->FilterGain = 1.0;
 	m_antennaParameters->ConcentratorGain = 1.0;
 	m_antennaParameters->HalfPowerDegree = (double)15/180*M_PI;
-	m_antennaParameters->FOV = (double)120/180*M_PI;
+	m_antennaParameters->FOV = (double)30/180*M_PI;
 	m_antennaParameters->TransmitterDegree = (double)30/180*M_PI;
 	m_antennaParameters->ReceiverDegree = (double)30/180*M_PI;
 
@@ -65,11 +65,11 @@ double LifiIndoorPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<Mobi
 	double m_temp2 = log(cosl(m_antennaParameters->HalfPowerDegree));
 	double m = -m_temp1/m_temp2;
 	double R0 = ((m+1)/(2*M_PI))*pow(cosl(m_antennaParameters->TransmitterDegree),m);
-			if(m_antennaParameters->ReceiverDegree > m_antennaParameters->FOV)
+			if(!(m_antennaParameters->ReceiverDegree < m_antennaParameters->FOV))
 			{
 				double A_D_temp = m_antennaParameters->DetectorArea/pow(distance,2);
 				double H = A_D_temp*R0*m_antennaParameters->FilterGain*m_antennaParameters->ConcentratorGain*cosl(m_antennaParameters->ReceiverDegree);
-				double rx = 10*log(H*1000);
+				double rx = 10*log10(H*1000);
 				return rx+txPowerDbm;
 			}
 			else
