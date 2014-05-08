@@ -12,12 +12,13 @@
 
 using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("PhyTest");
+
 int main ()
 {
-	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
+	LogComponentEnable ("LifiPhy", LOG_LEVEL_FUNCTION);
+	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_FUNCTION);
+	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_FUNCTION);
+	LogComponentEnable ("LifiInterference",LOG_LEVEL_FUNCTION);
 
 	Ptr<Node> nodeTx=CreateObject<Node>();
 	Ptr<Node> nodeRx=CreateObject<Node>();
@@ -40,21 +41,11 @@ int main ()
 	Ptr<PdSapUser> pdSapUserTx=Create<PdSpecificSapUser<LifiMac> >(PlifiMacTx);
 	Ptr<PdSapUser> pdSapUserRx=Create<PdSpecificSapUser<LifiMac> >(PlifiMacRx);
 
-//
-//	double centerFreq[]={500,1000,1500,2000,2500};
-//	int count=sizeof(centerFreq)/sizeof(double);
-//	std::vector<double> centerFreqs(centerFreq,centerFreq+count);
-//	Ptr<SpectrumModel> spectrumModel=Create<SpectrumModel> (centerFreqs);
-//	Ptr<SpectrumValue> spectrumValueTx=Create<SpectrumValue> (spectrumModel);
-//	Ptr<SpectrumValue> spectrumValueRx=Create<SpectrumValue> (spectrumModel);
-
 	Ptr<LifiSpectrumSignalParameters> lifiSpectrumSignalParametersTx=Create<LifiSpectrumSignalParameters>();
 	Ptr<LifiSpectrumSignalParameters> lifiSpectrumSignalParametersRx=Create<LifiSpectrumSignalParameters>();
 	Ptr<LifiInterference> lifiInterference=CreateObject<LifiInterference>();
 	Ptr<LifiSpectrumPropagationLossModel> lifiSpectrumPropagationLossModel=CreateObject<LifiSpectrumPropagationLossModel>();
 
-//	lifiPhyTx->SetSpectrumValue(spectrumValueTx);
-//	lifiPhyRx->SetSpectrumValue(spectrumValueRx);
 	lifiPhyTx->SetPlmeSapUser(plmeSapUserTx);
 	lifiPhyRx->SetPlmeSapUser(plmeSapUserRx);
 	lifiPhyTx->SetPdSapUser(pdSapUserTx);
@@ -104,7 +95,6 @@ int main ()
 //	randomPropagationDelayModel->SetSpeed(1);
 	Ptr<Packet> packet=Create<Packet>(100);
 	lifiPhyTx->Transmit(100,packet,3);
-
 
 
 
