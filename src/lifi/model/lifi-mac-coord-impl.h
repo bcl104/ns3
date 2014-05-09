@@ -9,6 +9,8 @@
 #define LIFI_MAC_COORD_IMPL_H_
 #include "lifi-mac-impl.h"
 #include "lifi-gts-handler.h"
+#include "lifi-coord-assoc-handler.h"
+#include "lifi-coord-trx-handler.h"
 
 namespace ns3 {
 
@@ -43,23 +45,16 @@ public:
 	virtual void StartVPAN(uint16_t vpanId, LogicChannelId channel, uint32_t startTime,
 						uint32_t beaconOrder, uint32_t supframeOrder, bool vpanCoord);
 
-protected:
-	bool DoChannelClearAccessment();
-	void DoTransmitData(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
-	virtual void onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onData(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onDataConfirm(MacOpStatus status);
-	virtual void onDataRequest(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onImformationElement(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onMultipleChannelAssignment(uint32_t timestamp, Ptr<Packet> msdu);
+	Ptr<Packet> ConstructBeacon () const;
 
-	LifiTxHandler* m_txHandler;
-	LifiAssocHandler* m_assocHandler;
-	LifiChannelScanHandler* m_channelScanHandler;
+	virtual void SetLifiMac (Ptr<LifiMac> mac);
+
+	virtual void SetOpticalPeriod (const Time* oc);
+
+protected:
+
+	LifiCoordTrxHandler* m_trxHandler;
+	LifiCoordAssocHandler* m_assocHandler;
 	LifiDisassocHandler* m_disassocHandler;
 	LifiBeaconHandler* m_beaconHandler;
 	LifiGtsHandler* m_gtsHandler;

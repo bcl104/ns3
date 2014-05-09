@@ -62,7 +62,8 @@ Timer::~Timer ()
     {
       Simulator::Remove (m_event);
     }
-  delete m_impl;
+//  delete m_impl;
+  m_impl = 0;
 }
 
 void

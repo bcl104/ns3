@@ -19,23 +19,6 @@
 namespace ns3 {
 
 //class LifiMacImpl;
-class TrxHandlerListener
-{
-public:
-	virtual ~TrxHandlerListener () { std::cout << "~TrxHandlerListener" << std::endl;};
-	virtual void AllocNotification (Ptr<DataService> service) = 0;
-	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack) = 0;
-	virtual void ResumeNotification (Ptr<DataService> service) {};
-	virtual void ReceiveAssocRequest (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveBeaconRequest (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveData (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveDataRequest (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveDisassocNotification (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveGtsRequest (uint32_t timestamp, Ptr<Packet> p) {};
-	virtual void ReceiveGtsResponse (uint32_t timestamp, Ptr<Packet> p) {};
-};
 
 struct TranceiverTask
 {
@@ -47,12 +30,12 @@ struct TranceiverTask
 	TrxHandlerListener *listener;
 };
 
+bool operator< (TranceiverTask t1, TranceiverTask t2);
+
 typedef std::map<uint16_t, TrxHandlerListener*> TrxHandlerListeners;
 typedef std::priority_queue<TranceiverTask> TrxTasks;
 
-bool operator< (TranceiverTask t1, TranceiverTask t2) { return (t1.priority > t2.priority); }
-
-class LifiTrxHandler : public LifiMacHandler
+class LifiTrxHandler : public LifiMacHandler, public TrxHandlerListener
 {
 	friend class DataServiceImpl<LifiTrxHandler>;
 
@@ -158,7 +141,6 @@ protected:
 	bool DoTransmitData();
 
 	// Method for superframe structure.
-	void BuildSuperframeStruct (Ptr<Packet> beacon);
 	virtual void SuperframeStart ();
 	virtual void ContentionAccessPeriodEnd ();
 	virtual void ContentionFreePeriodStart ();
@@ -177,7 +159,7 @@ protected:
 		uint32_t m_packetRetry;
 		LifiBackoff m_backoff;
 		Time* m_opticalPeriod;
-		Timer* m_ackTimer;
+		Timer m_ackTimer;
 		void IncrePacketRetry ();
 		bool IsReachMaxRetry ();
 		bool IsAvailable ();
@@ -194,7 +176,7 @@ protected:
 		Timer m_cfpEnd;
 		Timer m_supframeEnd;
 		enum {
-			CAP, CFP, INACTIVE, DEFAULT
+			BEACON, CAP, CFP, INACTIVE, DEFAULT
 		} m_state;
 	} m_superframeStruct;
 
@@ -208,7 +190,7 @@ protected:
 	TrxHandlerListeners m_listens;
 	TrxTasks m_tranceiverTasks;
 	DataBuffer m_raTasks;
-	DataBuffer m_gtsTasks;
+//	DataBuffer m_gtsTasks;
 
 	TranceiverTask m_curTranceiverTask;
 

@@ -377,7 +377,7 @@ struct LifiBackoff
 	uint32_t* maxBackoffRetry;
 	uint32_t m_backoffExponential;
 	uint32_t m_backoffRetries;
-	Timer* m_backoffTimer;
+	Timer m_backoffTimer;
 //	static Time LocateBackoffBoundary (Time capEnd);
 	void IncreBackoffExp ();
 	void IncreNumRetries ();

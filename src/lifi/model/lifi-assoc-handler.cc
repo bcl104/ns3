@@ -27,7 +27,11 @@ TypeId LifiAssocHandler::GetTypeId()
 	return tid;
 }
 
-void LifiAssocHandler::TxResultNotification(MacOpStatus status)
+void LifiAssocHandler::AllocNotification(Ptr<DataService> service)
+{
+}
+
+void LifiAssocHandler::TxResultNotification(MacOpStatus status, Ptr<Packet> ack)
 {
 }
 

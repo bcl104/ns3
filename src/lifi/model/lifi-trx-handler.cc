@@ -19,6 +19,11 @@ NS_LOG_COMPONENT_DEFINE("LifiTrxHandler");
 
 namespace ns3 {
 
+bool operator< (TranceiverTask t1, TranceiverTask t2)
+{
+	return (t1.priority > t2.priority);
+}
+
 LifiTrxHandler::LifiTrxHandler()
 {
 	NS_LOG_FUNCTION (this);
@@ -80,12 +85,18 @@ bool LifiTrxHandler::Transmit(PacketInfo& info)
 	NS_LOG_FUNCTION (this);
 	PhyOpStatus phyStatus = m_plmeProvider->PlmeSetTRXStateRequest(DEFAULT);
 	NS_ASSERT (phyStatus == ns3::IDLE);
-	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
+//	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
 	m_curTransmission.Reset();
 	m_curTransmission.m_info = info;
-	NS_ASSERT (!info.m_option.gtsTx);
+//	NS_ASSERT (!info.m_option.gtsTx);
 
-	if (info.m_force)
+	if (!info.m_option.gtsTx)
+		NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
+
+	if (info.m_option.gtsTx)
+		NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CFP);
+
+	if (info.m_force || info.m_option.gtsTx)
 		return DoTransmitData();
 	else
 		StartRandomAccess(info);
@@ -147,11 +158,7 @@ void LifiTrxHandler::Fetch()
 		m_raTasks.pop();
 		break;
 	case SuperframeStrcut::CFP:
-		if (m_gtsTasks.empty()) return;
-		m_curTransmission.Reset();
-		m_curTransmission.m_info = m_gtsTasks.front();
-		StartGtsTransmit(m_gtsTasks.front());
-		m_gtsTasks.pop();
+		// In the CFP, GtsHandler will occupy all the resource of TrxHandler.
 		break;
 	default:
 		return;
@@ -250,7 +257,7 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 	p->PeekHeader(header);
 	if (header.GetFrameType() == LIFI_BEACON)
 	{
-		BuildSuperframeStruct(p);
+//		BuildSuperframeStruct(p);
 		Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
 	}else if (header.GetFrameType() == LIFI_DATA)
 	{
@@ -400,7 +407,11 @@ bool LifiTrxHandler::DoTransmitData() {
 		ackWaitTime = NanoSeconds(0);
 
 	bool enough = false;
-	if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
+
+	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
 	{
 		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
 		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
@@ -479,7 +490,7 @@ bool LifiTrxHandler::TransmissionInfo::IsReachMaxRetry()
 
 LifiTrxHandler::TransmissionInfo::TransmissionInfo(uint32_t* maxRt)
 									: maxPacketRetry(maxRt),
-									  m_ackTimer (new Timer (Timer::CANCEL_ON_DESTROY))
+									  m_ackTimer (Timer::CANCEL_ON_DESTROY)
 {
 }
 
@@ -489,13 +500,12 @@ bool LifiTrxHandler::TransmissionInfo::IsAvailable()
 }
 
 LifiTrxHandler::TransmissionInfo::TransmissionInfo()
-				: m_ackTimer (new Timer (Timer::CANCEL_ON_DESTROY))
+				: m_ackTimer (Timer::CANCEL_ON_DESTROY)
 {
 }
 
 LifiTrxHandler::TransmissionInfo::~TransmissionInfo()
 {
-	delete m_ackTimer;
 }
 
 void LifiTrxHandler::TransmissionInfo::Reset()
@@ -511,8 +521,8 @@ void LifiTrxHandler::TransmissionInfo::Reset()
 void LifiTrxHandler::Send(PacketInfo& p)
 {
 	NS_LOG_FUNCTION (this);
-	if (p.m_option.gtsTx) m_gtsTasks.push(p);
-	else m_raTasks.push(p);
+//	if (p.m_option.gtsTx) m_gtsTasks.push(p);
+//	else m_raTasks.push(p);
 
 	if ((m_opStatus == LifiTrxHandler::IDLE)
 	  && m_superframeStruct.m_synchronized
@@ -550,51 +560,6 @@ void LifiTrxHandler::onBackoffTimeout()
 	}
 }
 
-void LifiTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
-{
-	NS_LOG_FUNCTION (this);
-	LifiMacHeader header;
-	beacon->RemoveHeader(header);
-	LifiMacBeacon bcn = LifiMacBeacon::Construct(beacon);
-	uint8_t bcnOrder = bcn.GetBcnOrder();
-	uint8_t superframeOrder = bcn.GetSupframeOrder();
-	uint8_t capSlot = bcn.GetFinalCapSlot();
-
-	// Only support beacon-enable VPAN.
-	NS_ASSERT ((bcnOrder >=0) && (bcnOrder <= 14));
-	NS_ASSERT (bcnOrder >= superframeOrder);
-	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, (uint32_t)bcnOrder);
-	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, (uint32_t)superframeOrder);
-	uint32_t capDur = (capSlot + 1) * LifiMac::aBaseSlotDuration * pow (2, (uint32_t)superframeOrder);
-
-	Time op = *m_opticalPeriod;
-	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds() -1);
-	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds() -1);
-	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds() -1);
-
-	NS_ASSERT ((bcnIntvalTime >= capEnd) && (bcnIntvalTime >= cfpEnd));
-	NS_ASSERT ((cfpEnd >= capEnd));
-	NS_ASSERT (capEnd > 0);
-
-	m_superframeStruct.m_contentionFreePeriod = (cfpEnd > capEnd);
-	m_superframeStruct.m_inactivePortion = (bcnIntvalTime > cfpEnd);
-
-	m_superframeStruct.m_capEnd.SetDelay(capEnd);
-	m_superframeStruct.m_cfpEnd.SetDelay(cfpEnd);
-	m_superframeStruct.m_supframeEnd.SetDelay(bcnIntvalTime);
-
-	m_superframeStruct.m_capEnd.SetFunction(&LifiTrxHandler::ContentionAccessPeriodEnd, this);
-	m_superframeStruct.m_cfpEnd.SetFunction(&LifiTrxHandler::ContentionFreePeriodEnd, this);
-	m_superframeStruct.m_supframeEnd.SetFunction(&LifiTrxHandler::SuperframeEnd, this);
-
-	m_superframeStruct.m_capEnd.Schedule();
-	if (m_superframeStruct.m_contentionFreePeriod)
-		m_superframeStruct.m_cfpEnd.Schedule();
-	m_superframeStruct.m_supframeEnd.Schedule();
-
-	m_superframeStruct.m_synchronized = true;
-	Simulator::ScheduleNow (&LifiTrxHandler::SuperframeStart, this);
-}
 LifiTrxHandler::SuperframeStrcut::SuperframeStrcut()
 				: m_synchronized (false),
 				  m_contentionFreePeriod (false),
@@ -658,6 +623,9 @@ void LifiTrxHandler::ContentionFreePeriodStart()
 	NS_LOG_FUNCTION (this);
 	m_superframeStruct.m_state = SuperframeStrcut::CFP;
 	NS_ASSERT (!m_curTransmission.IsAvailable());
+	TrxHandlerListeners::iterator it = m_listens.find(LifiGtsHandler::GetTypeId().GetUid());
+	if (it != m_listens.end())
+		it->second->AllocNotification(DataService::Create(this));
 }
 
 void LifiTrxHandler::ContentionFreePeriodEnd()
@@ -686,6 +654,7 @@ void LifiTrxHandler::SuperframeEnd()
 	DisableAllTrigger();
 	EnableTrigger(LifiTrxHandler::ReceivePacket);
 	m_superframeStruct.m_synchronized = false;
+	m_superframeStruct.m_state = SuperframeStrcut::DEFAULT;
 }
 
 } /* namespace ns3 */

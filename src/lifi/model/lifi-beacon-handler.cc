@@ -27,7 +27,17 @@ TypeId LifiBeaconHandler::GetTypeId() {
 	return tid;
 }
 
-void LifiBeaconHandler::TxResultNotification(MacOpStatus status) {
+void LifiBeaconHandler::AllocNotification(Ptr<DataService> service)
+{
+}
+
+void LifiBeaconHandler::TxResultNotification(MacOpStatus status,
+		Ptr<Packet> ack)
+{
+}
+
+void LifiBeaconHandler::ReceiveBeaconRequest(uint32_t timestamp, Ptr<Packet> p)
+{
 }
 
 } /* namespace ns3 */

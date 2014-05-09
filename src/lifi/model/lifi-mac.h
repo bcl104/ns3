@@ -26,6 +26,9 @@ class LifiMac : public Object
 	friend class PlmeSpecificSapUser<LifiMac>;
 	friend class MlmeSpecificSapProvider<LifiMac>;
 	friend class McpsSpecificSapProvider<LifiMac>;
+	friend class LifiMacImpl;
+	friend class LifiMacCoordImpl;
+	friend class LifiMacDevImpl;
 
 public:
 

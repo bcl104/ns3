@@ -8,6 +8,10 @@
 #ifndef LIFI_TRANSACTION_HANDLER_H_
 #define LIFI_TRANSACTION_HANDLER_H_
 
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "lifi-mac-general.h"
+#include "lifi-mac-handler.h"
 #include <map>
 
 namespace ns3
@@ -26,7 +30,7 @@ struct Transaction
 
 typedef std::map<uint8_t, Transaction> Transactions;
 
-class LifiTransactionHandler : public LifiMacHandler, public OpStatusCallback
+class LifiTransactionHandler : public LifiMacHandler
 {
 public:
 	LifiTransactionHandler();
@@ -35,9 +39,10 @@ public:
 
 	uint8_t AddTransaction (Ptr<Packet> p);
 
+
 	void DelTransaction (uint8_t handle);
 
-	std::list<Address> GetTransactions ();
+	std::vector<Address> GetPendingAddress () const;
 
 	void ReceiveDataReuqest (uint32_t timestamp, Ptr<Packet> msdu);
 

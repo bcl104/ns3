@@ -27,7 +27,7 @@
 
 namespace ns3 {
 
-class TimerImpl
+class TimerImpl : public SimpleRefCount<TimerImpl>
 {
 public:
   virtual ~TimerImpl ()
