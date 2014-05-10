@@ -18,7 +18,9 @@ namespace ns3 {
 
 class LifiMacImpl;
 
-class LifiGtsHandler : public Object, public OpStatusCallback
+typedef std::vector<GtsDescriptor> GtsDescriptors;
+
+class LifiGtsHandler : public Object
 {
 
 public:
@@ -27,11 +29,24 @@ public:
 
 	static TypeId GetTypeId ();
 
+	bool GetGtsPermission ();
+
+	uint8_t GetGtsCount ();
+
+	uint8_t GetGtsDirMask ();
+
+	GtsDescriptors GetGtsDescritors () const;
+
+
+
 	virtual void ReportTransmission(MacOpStatus status);
 
 protected:
 	DataService* m_dataService;
 	LifiMacImpl* m_impl;
+
+private:
+	GtsDescriptors m_descriptors;
 
 };
 } /* namespace ns3 */

@@ -371,6 +371,7 @@ public:
 struct LifiBackoff
 {
 	LifiBackoff ();
+	virtual ~LifiBackoff ();
 	uint32_t* minBackoffExponential;
 	uint32_t* maxBackoffExponential;
 	uint32_t* maxBackoffRetry;
@@ -381,7 +382,7 @@ struct LifiBackoff
 	void IncreBackoffExp ();
 	void IncreNumRetries ();
 	bool IsReachMaxRetry ();
-	Time GetBackoffTime ();
+	int64_t GetBackoffTime ();
 	void Reset ();
 };
 

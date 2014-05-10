@@ -9,7 +9,8 @@
 #define LIFI_ASSOC_HANDLER_H_
 
 #include "lifi-mac-handler.h"
-#include "op-status-callback.h"
+#include "lifi-mac-general.h"
+#include "data-service.h"
 
 namespace ns3
 {
@@ -20,7 +21,7 @@ class PlmeSapProvider;
 class LifiMacPibAttribute;
 class MlmeSapUser;
 
-class LifiAssocHandler: public LifiMacHandler, public OpStatusCallback
+class LifiAssocHandler: public LifiMacHandler, public TrxHandlerListener
 {
 public:
 	LifiAssocHandler();
@@ -29,7 +30,9 @@ public:
 
 	static TypeId GetTypeId ();
 
-	virtual void TxResultNotification(MacOpStatus status);
+	virtual void AllocNotification (Ptr<DataService> service);
+
+	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack);
 
 protected:
 	DataService* m_dataService;

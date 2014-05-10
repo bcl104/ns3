@@ -43,17 +43,25 @@ bool LifiBackoff::IsReachMaxRetry()
 	return this->m_backoffRetries >= *(this->maxBackoffRetry);
 }
 
-Time LifiBackoff::GetBackoffTime()
+int64_t LifiBackoff::GetBackoffTime()
 {
-	return Time();
+	UniformVariable v;
+	return v.GetInteger(0, pow(2, this->m_backoffExponential));
 }
 
 LifiBackoff::LifiBackoff() : m_backoffTimer (Timer::CANCEL_ON_DESTROY)
+{
+	m_backoffRetries = 0;
+}
+
+LifiBackoff::~LifiBackoff()
 {
 }
 
 void LifiBackoff::Reset()
 {
+	this->m_backoffExponential = *minBackoffExponential;
+	this->m_backoffRetries = 0;
 }
 
 void PacketInfo::Reset()
@@ -67,8 +75,8 @@ void PacketInfo::Reset()
 
 bool PacketInfo::Available()
 {
-	return (this->m_band !=0) && (this->m_handle != 0) && (this->m_listener !=0) &&
-	(this->m_msduSize != 0) && (this->m_packet != 0);
+	return (this->m_band !=0) && (this->m_handle != 0) &&
+		   (this->m_msduSize != 0) && (this->m_packet != 0);
 }
 } /* namespace ns3 */
 

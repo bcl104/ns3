@@ -29,4 +29,11 @@ TypeId LifiMacHandler::GetTypeId()
 	return tid;
 }
 
+void LifiMacHandler::SetMacPibAttributes(LifiMacPibAttribute* attrubutes)
+{
+	m_attributes = attrubutes;
+}
+
 } /* namespace ns3 */
+
+

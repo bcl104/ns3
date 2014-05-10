@@ -10,15 +10,41 @@
 namespace ns3 {
 
 LifiGtsHandler::LifiGtsHandler() {
-	// TODO Auto-generated constructor stub
-
 }
 
 LifiGtsHandler::~LifiGtsHandler() {
-	// TODO Auto-generated destructor stub
 }
 
-void LifiGtsHandler::ReportTransmission(MacOpStatus status) {
+TypeId LifiGtsHandler::GetTypeId()
+{
+	TypeId tid = TypeId ("ns3::LifiGtsHandler")
+			.SetParent<Object> ()
+			.AddConstructor<LifiGtsHandler> ();
+	return tid;
+}
+
+bool LifiGtsHandler::GetGtsPermission()
+{
+	return false;
+}
+
+uint8_t LifiGtsHandler::GetGtsCount()
+{
+	return 0;
+}
+
+uint8_t LifiGtsHandler::GetGtsDirMask()
+{
+	return 0x00;
+}
+
+GtsDescriptors LifiGtsHandler::GetGtsDescritors() const
+{
+	return m_descriptors;
+}
+
+void LifiGtsHandler::ReportTransmission(MacOpStatus status)
+{
 }
 
 } /* namespace ns3 */

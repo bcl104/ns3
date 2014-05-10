@@ -238,7 +238,7 @@ private:
   int m_flags;
   Time m_delay;
   EventId m_event;
-  TimerImpl *m_impl;
+  Ptr<TimerImpl> m_impl;
   Time m_delayLeft;
 };
 
@@ -253,14 +253,16 @@ template <typename FN>
 void
 Timer::SetFunction (FN fn)
 {
-  delete m_impl;
+//  delete m_impl;
+  m_impl = 0;
   m_impl = MakeTimerImpl (fn);
 }
 template <typename MEM_PTR, typename OBJ_PTR>
 void
 Timer::SetFunction (MEM_PTR memPtr, OBJ_PTR objPtr)
 {
-  delete m_impl;
+//  delete m_impl;
+	m_impl = 0;
   m_impl = MakeTimerImpl (memPtr, objPtr);
 }
 
