@@ -10,8 +10,9 @@
 
 namespace ns3 {
 
-LifiMacImpl::LifiMacImpl() {
-
+LifiMacImpl::LifiMacImpl()
+			: m_attributes (LifiMacPibAttribute())
+{
 }
 
 LifiMacImpl::~LifiMacImpl() {
