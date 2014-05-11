@@ -19,6 +19,8 @@ LifiMac::LifiMac()
 	m_mlmeSapProvider = Create<MlmeSpecificSapProvider<LifiMac> > (this);
 	m_pdSapUser = Create<PdSpecificSapUser<LifiMac> > (this);
 	m_plmeSapUser = Create<PlmeSpecificSapUser<LifiMac> > (this);
+	m_lifiMacImpl = CreateObject<LifiMacDevImpl> ();
+	m_lifiMacImpl->SetLifiMac(this);
 }
 
 LifiMac::~LifiMac()
@@ -122,8 +124,11 @@ void LifiMac::StartVPAN(uint8_t vpanId, LogicChannelId channel, uint32_t startTi
 						uint32_t supframeOrder, bool vpanCoord) {
 	NS_LOG_FUNCTION (this << (uint32_t)vpanId << (uint32_t) channel << startTime << bcnOrder
 					<< supframeOrder << vpanCoord);
-
-	m_lifiMacImpl->StartVPAN (vpanId, channel, startTime, bcnOrder, supframeOrder, vpanCoord);
+	const Time* op = m_lifiMacImpl->GetOpticalPeriod();
+	NS_ASSERT (op != 0);
+	m_lifiMacImpl = CreateObject<LifiMacCoordImpl> ();
+	m_lifiMacImpl->SetOpticalPeriod(op);
+	m_lifiMacImpl->SetLifiMac(this);
 }
 
 void LifiMac::Synchronize(LogicChannelId channel, bool trackBeacon) {

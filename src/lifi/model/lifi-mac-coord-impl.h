@@ -11,16 +11,16 @@
 #include "lifi-gts-handler.h"
 #include "lifi-coord-assoc-handler.h"
 #include "lifi-coord-trx-handler.h"
+#include "lifi-data-handler.h"
+#include "lifi-beacon-handler.h"
+#include "lifi-disassoc-handler.h"
 
 namespace ns3 {
 
 class LifiTxHandler;
 class LifiAssocHandler;
 class LifiChannelScanHandler;
-class LifiDisassocHandler;
-class LifiBeaconHandler;
 class LifiGtsHandler;
-class LifiDataHandler;
 
 class LifiMacCoordImpl : public LifiMacImpl
 {
@@ -51,14 +51,22 @@ public:
 
 	virtual void SetOpticalPeriod (const Time* oc);
 
+	virtual void SetPdSapProvider (Ptr<PdSapProvider> p);
+
+	virtual void SetPlmeSapProvider (Ptr<PlmeSapProvider> p);
+
+	virtual void SetMlmeSapUser (Ptr<MlmeSapUser> u);
+
+	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
+
 protected:
 
-	LifiCoordTrxHandler* m_trxHandler;
-	LifiCoordAssocHandler* m_assocHandler;
-	LifiDisassocHandler* m_disassocHandler;
-	LifiBeaconHandler* m_beaconHandler;
-	LifiGtsHandler* m_gtsHandler;
-	LifiDataHandler* m_dataHandler;
+	Ptr<LifiCoordTrxHandler> m_trxHandler;
+	Ptr<LifiCoordAssocHandler> m_assocHandler;
+	Ptr<LifiDisassocHandler> m_disassocHandler;
+	Ptr<LifiBeaconHandler> m_beaconHandler;
+	Ptr<LifiGtsHandler> m_gtsHandler;
+	Ptr<LifiDataHandler> m_dataHandler;
 
 };
 
