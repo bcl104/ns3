@@ -11,16 +11,23 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "lifi-mac-impl.h"
+#include "lifi-trx-handler.h"
+#include "lifi-disassoc-handler.h"
+#include "lifi-beacon-handler.h"
+#include "lifi-gts-handler.h"
+#include "lifi-data-handler.h"
+#include "lifi-assoc-handler.h"
+#include "lifi-channel-scan-handler.h"
 
 namespace ns3 {
 
-class LifiTxHandler;
+//class LifiTxHandler;
 class LifiAssocHandler;
 class LifiChannelScanHandler;
-class LifiDisassocHandler;
-class LifiBeaconHandler;
-class LifiGtsHandler;
-class LifiDataHandler;
+//class LifiDisassocHandler;
+//class LifiBeaconHandler;
+//class LifiGtsHandler;
+//class LifiDataHandler;
 
 class LifiMacDevImpl : public LifiMacImpl
 {
@@ -48,27 +55,23 @@ public:
 							uint8_t msduHanle, TxOption option, bool rate);
 	virtual void Synchronize(LogicChannelId channel, bool trackBeacon);
 
-protected:
-	bool DoChannelClearAccessment();
-	void DoTransmitData(uint32_t size, Ptr<PacketBurst> pb, uint8_t band);
-	virtual void onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onBandHopping(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onBeacon(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onData(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onDataConfirm(PhyOpStatus status);
-	virtual void onDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onImformationElement(uint32_t timestamp, Ptr<Packet> msdu);
-	virtual void onMultipleChannelAssignment(uint32_t timestamp, Ptr<Packet> msdu);
+	virtual void SetPdSapProvider (Ptr<PdSapProvider> p);
 
-	LifiTxHandler* m_txHandler;
-	LifiAssocHandler* m_assocHandler;
-	LifiChannelScanHandler* m_channelScanHandler;
-	LifiDisassocHandler* m_disassocHandler;
-	LifiBeaconHandler* m_beaconHandler;
-	LifiGtsHandler* m_gtsHandler;
-	LifiDataHandler* m_dataHandler;
+	virtual void SetPlmeSapProvider (Ptr<PlmeSapProvider> p);
+
+	virtual void SetMlmeSapUser (Ptr<MlmeSapUser> u);
+
+	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
+
+protected:
+
+	Ptr<LifiTrxHandler> m_trxHandler;
+	Ptr<LifiAssocHandler> m_assocHandler;
+	Ptr<LifiChannelScanHandler> m_channelScanHandler;
+	Ptr<LifiDisassocHandler> m_disassocHandler;
+	Ptr<LifiBeaconHandler> m_beaconHandler;
+	Ptr<LifiGtsHandler> m_gtsHandler;
+	Ptr<LifiDataHandler> m_dataHandler;
 };
 
 } /* namespace ns3 */
