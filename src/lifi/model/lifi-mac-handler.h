@@ -33,7 +33,7 @@ public:
 
 	static TypeId GetTypeId ();
 
-	void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
+	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
 
 
 protected:

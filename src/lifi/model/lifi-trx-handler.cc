@@ -645,6 +645,20 @@ void LifiTrxHandler::InactionPortionStart()
 	m_superframeStruct.m_state = SuperframeStrcut::INACTIVE;
 }
 
+void LifiTrxHandler::SetMacPibAttributes(LifiMacPibAttribute* attrubutes)
+{
+	m_attributes = attrubutes;
+	m_curTransmission.m_backoff.maxBackoffExponential = &attrubutes->macMaxBE;
+	m_curTransmission.m_backoff.minBackoffExponential = &attrubutes->macMinBE;
+	m_curTransmission.m_backoff.maxBackoffRetry = &attrubutes->macMaxCSMABackoffs;
+	m_curTransmission.maxPacketRetry = &attrubutes->macMaxFrameRetries;
+
+	m_suspendedTransmission.m_backoff.maxBackoffExponential = &attrubutes->macMaxBE;
+	m_suspendedTransmission.m_backoff.minBackoffExponential = &attrubutes->macMinBE;
+	m_suspendedTransmission.m_backoff.maxBackoffRetry = &attrubutes->macMaxCSMABackoffs;
+	m_suspendedTransmission.maxPacketRetry = &attrubutes->macMaxFrameRetries;
+}
+
 void LifiTrxHandler::SuperframeEnd()
 {
 	NS_LOG_FUNCTION (this);
