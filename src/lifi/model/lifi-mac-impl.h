@@ -181,6 +181,14 @@ public:
 
 	LifiMacPibAttribute& GetLifiMacPibAttribute ();
 
+	virtual void SetPdSapProvider (Ptr<PdSapProvider> p);
+
+	virtual void SetPlmeSapProvider (Ptr<PlmeSapProvider> p);
+
+	virtual void SetMlmeSapUser (Ptr<MlmeSapUser> u);
+
+	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
+
 protected:
 
 	Ptr<LifiMac> m_mac;

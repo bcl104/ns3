@@ -14,7 +14,9 @@ namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED(LifiMacDevImpl);
 
-LifiMacDevImpl::LifiMacDevImpl() {
+LifiMacDevImpl::LifiMacDevImpl()
+				: m_trxHandler (new LifiTrxHandler)
+{
 	NS_LOG_FUNCTION (this);
 }
 
@@ -83,58 +85,24 @@ void LifiMacDevImpl::Synchronize(LogicChannelId channel,
 	NS_LOG_FUNCTION (this);
 }
 
-bool LifiMacDevImpl::DoChannelClearAccessment() {
-	NS_LOG_FUNCTION (this);
-	return 0;
+void LifiMacDevImpl::SetPdSapProvider(Ptr<PdSapProvider> p)
+{
+	m_trxHandler->SetPdSapProvider(p);
 }
 
-void LifiMacDevImpl::DoTransmitData(uint32_t size, Ptr<PacketBurst> pb,
-		uint8_t band) {
-	NS_LOG_FUNCTION (this);
+void LifiMacDevImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
+{
+	m_trxHandler->SetPlmeSapProvider(p);
 }
 
-void LifiMacDevImpl::onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
+void LifiMacDevImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
+{
 }
 
-void LifiMacDevImpl::onAssocResponse(uint32_t timestamp,
-		Ptr<Packet> msdu) {
+void LifiMacDevImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
+{
 }
 
-void LifiMacDevImpl::onBandHopping(uint32_t timestamp, Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onBeacon(uint32_t timestamp, Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onData(uint32_t timestamp, Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onDataConfirm(PhyOpStatus status) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onDisassocNotification(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onImformationElement(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
-
-void LifiMacDevImpl::onMultipleChannelAssignment(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-	NS_LOG_FUNCTION (this);
-}
 } /* namespace ns3 */
 
 

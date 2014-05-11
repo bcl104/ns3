@@ -62,6 +62,9 @@ void LifiMacCoordImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
 void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		uint32_t startTime, uint32_t beaconOrder, uint32_t supframeOrder,
 		bool vpanCoord) {
+	NS_LOG_FUNCTION (this);
+	NS_ASSERT (vpanCoord);
+	m_trxHandler->Start();
 }
 
 void LifiMacCoordImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
@@ -85,6 +88,24 @@ void LifiMacCoordImpl::SetOpticalPeriod(const Time* oc)
 {
 	m_opticalPeriod = oc;
 	m_trxHandler->SetOpticalPeriod(m_opticalPeriod);
+}
+
+void LifiMacCoordImpl::SetPdSapProvider(Ptr<PdSapProvider> p)
+{
+	m_trxHandler->SetPdSapProvider(p);
+}
+
+void LifiMacCoordImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
+{
+	m_trxHandler->SetPlmeSapProvider(p);
+}
+
+void LifiMacCoordImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
+{
+}
+
+void LifiMacCoordImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
+{
 }
 
 } /* namespace ns3 */

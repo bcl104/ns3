@@ -111,9 +111,9 @@ public:
 
 	Ptr<LifiNetDevice> GetDevice () const;
 
-	void SetOpticalClock (const double* oc);
+	void SetOpticalPeriod (const Time* oc);
 
-	const double* GetOpticalClock () const;
+	const Time* GetOpticalPeriod () const;
 
 protected:
 	void DoDataConfirm(PhyOpStatus status);
@@ -131,6 +131,8 @@ protected:
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_plmeSapUser;
+
+	const Time* m_opticalPeriod;
 
 };
 

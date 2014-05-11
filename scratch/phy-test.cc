@@ -12,6 +12,8 @@
 /*
  * single transmit single receive single cca
  */
+using namespace ns3;
+NS_LOG_COMPONENT_DEFINE ("PhyTest");
 int main ()
 {
 	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
@@ -163,7 +165,5 @@ int main ()
 	Simulator::Destroy();
 	return 0;
 }
-
-
 
 

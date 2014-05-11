@@ -174,31 +174,31 @@ void LifiTrxHandler::SetLifiMacImpl(LifiMacImpl* impl)
 //			&(impl->m_attributes.macMaxBE), &(impl->m_attributes.macMaxCSMABackoffs));
 }
 
-LifiMacImpl* LifiTrxHandler::GetLifiMacImpl() const
+Ptr<LifiMacImpl> LifiTrxHandler::GetLifiMacImpl() const
 {
 	NS_LOG_FUNCTION (this);
 	return m_impl;
 }
 
-void LifiTrxHandler::SetPlmeSapProvider(PlmeSapProvider* provider)
+void LifiTrxHandler::SetPlmeSapProvider(Ptr<PlmeSapProvider> provider)
 {
 	NS_LOG_FUNCTION (this << provider);
 	m_plmeProvider = provider;
 }
 
-PlmeSapProvider* LifiTrxHandler::GetPlmeSapProvider() const
+Ptr<PlmeSapProvider> LifiTrxHandler::GetPlmeSapProvider() const
 {
 	NS_LOG_FUNCTION (this);
 	return m_plmeProvider;
 }
 
-void LifiTrxHandler::SetPdSapProvider(PdSapProvider* provider)
+void LifiTrxHandler::SetPdSapProvider(Ptr<PdSapProvider> provider)
 {
 	NS_LOG_FUNCTION (this << provider);
 	m_pdProvider = provider;
 }
 
-PdSapProvider* LifiTrxHandler::GetPdSapProvider() const
+Ptr<PdSapProvider> LifiTrxHandler::GetPdSapProvider() const
 {
 	NS_LOG_FUNCTION (this);
 	return m_pdProvider;
