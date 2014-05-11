@@ -9,14 +9,17 @@
 #define LIFI_MAC_HANDLER_H_
 #include "ns3/object.h"
 #include "src/lifi/utils/utils.h"
+#include "lifi-mac-impl.h"
+#include "plme-sap-provider.h"
+#include "pd-sap-provider.h"
 
 #include <map>
 
 namespace ns3 {
 
-class LifiMacImpl;
-class PlmeSapProvider;
-class PdSapProvider;
+//class LifiMacImpl;
+//class PlmeSapProvider;
+//class PdSapProvider;
 class LifiMacPibAttribute;
 
 typedef std::map<void*, bool> TrigMap;
@@ -30,7 +33,7 @@ public:
 
 	static TypeId GetTypeId ();
 
-	void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
+	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
 
 
 protected:
@@ -108,9 +111,9 @@ protected:
 
 	TrigMap m_trigger;
 
-	LifiMacImpl* m_impl;
-	PlmeSapProvider* m_plmeProvider;
-	PdSapProvider* m_pdProvider;
+	Ptr<LifiMacImpl> m_impl;
+	Ptr<PlmeSapProvider> m_plmeProvider;
+	Ptr<PdSapProvider> m_pdProvider;
 	LifiMacPibAttribute* m_attributes;
 	const Time* m_opticalPeriod;
 };

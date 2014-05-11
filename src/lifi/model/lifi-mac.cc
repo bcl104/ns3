@@ -19,6 +19,8 @@ LifiMac::LifiMac()
 	m_mlmeSapProvider = Create<MlmeSpecificSapProvider<LifiMac> > (this);
 	m_pdSapUser = Create<PdSpecificSapUser<LifiMac> > (this);
 	m_plmeSapUser = Create<PlmeSpecificSapUser<LifiMac> > (this);
+	m_lifiMacImpl = CreateObject<LifiMacDevImpl> ();
+	m_lifiMacImpl->SetLifiMac(this);
 }
 
 LifiMac::~LifiMac()
@@ -122,8 +124,19 @@ void LifiMac::StartVPAN(uint8_t vpanId, LogicChannelId channel, uint32_t startTi
 						uint32_t supframeOrder, bool vpanCoord) {
 	NS_LOG_FUNCTION (this << (uint32_t)vpanId << (uint32_t) channel << startTime << bcnOrder
 					<< supframeOrder << vpanCoord);
-
-	m_lifiMacImpl->StartVPAN (vpanId, channel, startTime, bcnOrder, supframeOrder, vpanCoord);
+	const Time* op = m_lifiMacImpl->GetOpticalPeriod();
+	NS_ASSERT (op != 0);
+	m_lifiMacImpl = CreateObject<LifiMacCoordImpl> ();
+	m_lifiMacImpl->SetOpticalPeriod(op);
+	m_lifiMacImpl->SetLifiMac(this);
+	NS_ASSERT (m_mlmeSapUser != 0);
+	NS_ASSERT (m_mcpsSapUser != 0);
+	NS_ASSERT (m_pdSapProvider != 0);
+	NS_ASSERT (m_plmeSapProvider != 0);
+	m_lifiMacImpl->SetPdSapProvider(m_pdSapProvider);
+	m_lifiMacImpl->SetPlmeSapProvider(m_plmeSapProvider);
+	m_lifiMacImpl->SetMlmeSapUser(m_mlmeSapUser);
+	m_lifiMacImpl->SetMcpsSapUser(m_mcpsSapUser);
 }
 
 void LifiMac::Synchronize(LogicChannelId channel, bool trackBeacon) {
@@ -148,6 +161,7 @@ void LifiMac::SetLifiMacImpl(const Ptr<LifiMacImpl>& impl) {
 
 void LifiMac::SetPdSapProvider(const Ptr<PdSapProvider>& provider) {
 	m_pdSapProvider = provider;
+	m_lifiMacImpl->SetPdSapProvider(provider);
 }
 
 const Ptr<PdSapUser>& LifiMac::GetPdSapUser() const {
@@ -156,6 +170,7 @@ const Ptr<PdSapUser>& LifiMac::GetPdSapUser() const {
 
 void LifiMac::SetPlmeSapProvider(const Ptr<PlmeSapProvider>& provider) {
 	m_plmeSapProvider = provider;
+	m_lifiMacImpl->SetPlmeSapProvider(provider);
 }
 
 const Ptr<PlmeSapUser>& LifiMac::GetPlmeSapUser() {
@@ -176,6 +191,7 @@ const Ptr<McpsSapProvider>& LifiMac::GetMcpsSapProvider() const {
 void LifiMac::SetMcpsSapUser(const Ptr<McpsSapUser>& mcpsSapUser) {
 	NS_LOG_FUNCTION (this);
 	m_mcpsSapUser = mcpsSapUser;
+	m_lifiMacImpl->SetMcpsSapUser(mcpsSapUser);
 }
 
 const Ptr<MlmeSapProvider>& LifiMac::GetMlmeSapProvider() const {
@@ -186,6 +202,7 @@ const Ptr<MlmeSapProvider>& LifiMac::GetMlmeSapProvider() const {
 void LifiMac::SetMlmeSapUser(const Ptr<MlmeSapUser>& mlmeSapUser) {
 	NS_LOG_FUNCTION (this);
 	m_mlmeSapUser = mlmeSapUser;
+	m_lifiMacImpl->SetMlmeSapUser(mlmeSapUser);
 }
 
 void LifiMac::SetDevice(Ptr<LifiNetDevice> device) {
@@ -196,15 +213,15 @@ Ptr<LifiNetDevice> LifiMac::GetDevice() const {
 	return m_device;
 }
 
-void LifiMac::SetOpticalClock(const double* oc)
+void LifiMac::SetOpticalPeriod(const Time* oc)
 {
-//	m_lifiMacImpl->SetOpticalClock(oc);
+	m_opticalPeriod = oc;
+	m_lifiMacImpl->SetOpticalPeriod(oc);
 }
 
-const double* LifiMac::GetOpticalClock() const
+const Time* LifiMac::GetOpticalPeriod() const
 {
-//	return m_lifiMacImpl->GetOpticalClock();
-	return 0;
+	return m_opticalPeriod;
 }
 
 }// ns3 name space

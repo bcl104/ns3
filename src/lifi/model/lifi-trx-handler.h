@@ -57,21 +57,23 @@ public:
 
 	void SetLifiMacImpl (LifiMacImpl* impl);
 
-	LifiMacImpl* GetLifiMacImpl () const;
+	Ptr<LifiMacImpl> GetLifiMacImpl () const;
 
-	void SetPlmeSapProvider (PlmeSapProvider* provider);
+	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
 
-	PlmeSapProvider* GetPlmeSapProvider () const;
+	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
 
-	void SetPdSapProvider (PdSapProvider* provider);
+	void SetPdSapProvider (Ptr<PdSapProvider> provider);
 
-	PdSapProvider* GetPdSapProvider () const;
+	Ptr<PdSapProvider> GetPdSapProvider () const;
 
 	void SetOpticalPeriod (const Time* oc);
 
 	const Time* GetOpticalPeriod () const;
 
 	void Reset();
+
+	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
 
 	// External trigger.
 	void TxConfirm(PhyOpStatus status);

@@ -10,8 +10,9 @@
 
 namespace ns3 {
 
-LifiMacImpl::LifiMacImpl() {
-
+LifiMacImpl::LifiMacImpl()
+			: m_attributes (LifiMacPibAttribute())
+{
 }
 
 LifiMacImpl::~LifiMacImpl() {
@@ -158,6 +159,22 @@ const Time* LifiMacImpl::GetOpticalPeriod() const
 LifiMacPibAttribute& LifiMacImpl::GetLifiMacPibAttribute()
 {
 	return m_attributes;
+}
+
+void LifiMacImpl::SetPdSapProvider(Ptr<PdSapProvider> p)
+{
+}
+
+void LifiMacImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
+{
+}
+
+void LifiMacImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
+{
+}
+
+void LifiMacImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
+{
 }
 
 } /* namespace ns3 */
