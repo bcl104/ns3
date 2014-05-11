@@ -41,6 +41,8 @@ LifiPhy::LifiPhy() {
 	m_subBandsNum = 1;
 	m_opticClock = NanoSeconds(0);
 	m_opticClockHz = 0;
+	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
+	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 }
 
 LifiPhy::~LifiPhy() {
