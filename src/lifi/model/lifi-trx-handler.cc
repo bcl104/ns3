@@ -374,7 +374,7 @@ void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 //	m_curTransmission.m_info.m_listener->TxResultNotification(status, ack);
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
 							m_curTransmission.m_info.m_listener,
-							status, ack);
+							status, m_curTransmission.m_info, ack);
 
 	if (m_opStatus == BACKOFF)
 	{
