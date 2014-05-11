@@ -56,9 +56,11 @@ public:
 	uint8_t GetGtsDirMask () const;
 	void SetGtsDirMask ( uint8_t mask);
 
+	void AddGts (std::vector<GtsDescriptor>& descriptors);
 	bool AddGts (GtsDescriptor gts);
 	bool RemoveGts (GtsDescriptor gts);
 
+	void AddPendingAddress (AddrList address);
 	bool AddPendingAddress (Address address);
 	bool RemovePendingAddress (Address address);
 

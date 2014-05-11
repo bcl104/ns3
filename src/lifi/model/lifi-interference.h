@@ -25,8 +25,10 @@ public:
 	static TypeId GetTypeId (void);
 	void AddSignal(Ptr<const SpectrumValue> psd, const Time duration);
 //	void AddSignalDbm(double rxPower , const Time duration);//using Dbm to calculate the interference
-	void LifiAddSignal(Ptr<SpectrumValue> psd,Time duration);
-	void LifiSubtractSignal(Ptr<SpectrumValue> psd);
+//	void LifiAddSignal(Ptr<SpectrumValue> psd,Time duration);
+	void LifiAddSignal(Ptr<SpectrumValue> psd,Time duration,Time rxTime);
+//	void LifiSubtractSignal(Ptr<SpectrumValue> psd);
+	void LifiSubtractSignal(Ptr<SpectrumValue> psd,Time subTime);
 	void StartRx(Ptr<const Packet> p , Ptr<const SpectrumValue> rxPsd);
 	bool EndRx();
 	void SetNoisePowerSpectralDensity(Ptr<const SpectrumValue> noisePsd);
@@ -42,6 +44,7 @@ public:
 	Ptr<SpectrumValue> CalSinr(Ptr<SpectrumValue> rxSignal,Ptr<SpectrumValue> AveAllSignal );
 	void CancelEvent(void);//cancel unfinished event when finish receiving
 	double  BandIntegral(Ptr<SpectrumValue> psd , uint8_t band , uint8_t SubBand);
+	double GetSinr(Ptr<SpectrumValue> sinr,uint8_t  band,uint8_t subBand);
 private:
 	PhyOpStatus m_receiving;
 	Time m_lastChangeTime;
@@ -54,8 +57,10 @@ private:
 //	double m_allSignalDbm;
 //	double m_rxSignalDbm;
 
-	void DoLifiAddSignal(Ptr<SpectrumValue> psd);
-	void DoLifiSubtractSignal(Ptr<SpectrumValue> psd);
+//	void DoLifiAddSignal(Ptr<SpectrumValue> psd );
+//	void DoLifiSubtractSignal(Ptr<SpectrumValue> psd);
+	void DoLifiAddSignal(Ptr<SpectrumValue> psd , Time rxTime);
+	void DoLifiSubtractSignal(Ptr<SpectrumValue> psd,Time rxTime);
 	void DoSubtractSignal(Ptr<SpectrumValue> psd);
 //	void DoAddSignalDbm(double rxPower,Time duration);
 //	void DoSubtractSignalDbm(double rxPower);

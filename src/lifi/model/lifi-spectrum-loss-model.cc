@@ -37,8 +37,10 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 	Ptr<const SpectrumValue> txPsd, Ptr<const MobilityModel> a,
 	Ptr<const MobilityModel> b) const{
 	NS_LOG_FUNCTION(this);
+//	Ptr<const SpectrumModel> model = txPsd->GetSpectrumModel();
+//	Ptr<SpectrumValue> rxPsd = Create<SpectrumValue>(model);
 	Ptr<SpectrumValue> rxPsd = txPsd->Copy();
-	Values::iterator beg = rxPsd->ValuesBegin()+(6-m_band) * m_subBand;
+	Values::iterator beg = (rxPsd->ValuesBegin()+(double)(6-m_band) * m_subBand);
 	Values::iterator end = beg + m_subBand;
 	double temp = Integral(*rxPsd);//unit W
 	temp = 10.0*log10(1000.0*temp);//unit dbm
@@ -52,6 +54,13 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 
 		beg++;
 	}
+//	std::cout<<"rxPower:"<<Integral(*rxPsd)<<std::endl;
+//	Values::iterator testbeg = rxPsd->ValuesBegin();
+//	Values::iterator testend = rxPsd->ValuesEnd();
+//	while(testbeg!=testend){
+//		std::cout<<"testbeg:"<<*testbeg<<std::endl;
+//		testbeg++;
+//	}
 	return rxPsd->Copy();
 }
 
@@ -127,7 +136,7 @@ double LifiSpectrumPropagationLossModel::GetBandWidth(){
 
 void LifiSpectrumPropagationLossModel::SetBand(uint8_t band){
 	NS_LOG_FUNCTION(this);
-	m_bandWith = band;
+	m_band = band;
 }
 
 void LifiSpectrumPropagationLossModel::SetSubBand(uint8_t subband){

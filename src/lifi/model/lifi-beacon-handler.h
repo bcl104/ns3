@@ -9,21 +9,28 @@
 #define LIFI_BEACON_HANDLER_H_
 #include "ns3/object.h"
 #include "lifi-mac-general.h"
-#include "op-status-callback.h"
 #include "data-service.h"
 #include "lifi-mac-impl.h"
 
 namespace ns3 {
 
-class LifiBeaconHandler : public Object, public OpStatusCallback
+class LifiBeaconHandler : public Object, public TrxHandlerListener
 {
 
 public:
 	LifiBeaconHandler();
+
 	virtual ~LifiBeaconHandler();
+
 	static TypeId GetTypeId ();
 
-	virtual void TxResultNotification(MacOpStatus status);
+	virtual void AllocNotification (Ptr<DataService> service);
+
+	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack);
+
+	virtual void ReceiveBeaconRequest (uint32_t timestamp, Ptr<Packet> p);
+
+	Ptr<Packet> GetBeacon ();
 
 protected:
 	DataService* m_dataService;

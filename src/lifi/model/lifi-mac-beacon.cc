@@ -137,6 +137,12 @@ void LifiMacBeacon::SetGtsDirMask(uint8_t mask) {
 	m_gtsDirMask = mask;
 }
 
+void LifiMacBeacon::AddGts(std::vector<GtsDescriptor>& descriptors)
+{
+	NS_ASSERT (m_gts.empty());
+	m_gts = descriptors;
+}
+
 bool LifiMacBeacon::AddGts(GtsDescriptor gts) {
 	NS_ASSERT ((gts.deviceShortAddr != 0xff) && (gts.deviceShortAddr != 0xfe));
 	GtsList::iterator it = std::find_if(m_gts.begin(), m_gts.end(), gts);
@@ -152,6 +158,16 @@ bool LifiMacBeacon::RemoveGts(GtsDescriptor gts) {
 	m_gts.erase(it);
 	NS_ASSERT(m_gts.size() >= 0);
 	return true;
+}
+
+void LifiMacBeacon::AddPendingAddress(AddrList address)
+{
+	AddrList::iterator it = address.begin();
+	while (it != address.end())
+	{
+		AddPendingAddress (*it);
+		it ++;
+	}
 }
 
 bool LifiMacBeacon::AddPendingAddress(Address address) {

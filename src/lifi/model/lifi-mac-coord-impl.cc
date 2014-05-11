@@ -14,8 +14,11 @@ namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED (LifiMacCoordImpl);
 
-LifiMacCoordImpl::LifiMacCoordImpl() {
-
+LifiMacCoordImpl::LifiMacCoordImpl()
+				: m_trxHandler (new LifiCoordTrxHandler)
+{
+	m_trxHandler->SetLifiMacImpl(this);
+	m_trxHandler->SetMacPibAttributes(&m_attributes);
 }
 
 LifiMacCoordImpl::~LifiMacCoordImpl() {
@@ -61,49 +64,27 @@ void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		bool vpanCoord) {
 }
 
-bool LifiMacCoordImpl::DoChannelClearAccessment() {
-	return false;
-}
-
-void LifiMacCoordImpl::DoTransmitData(uint32_t size, Ptr<PacketBurst> pb,
-		uint8_t band) {
-}
-
-void LifiMacCoordImpl::onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onData(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onDataConfirm(MacOpStatus status) {
-}
-
-void LifiMacCoordImpl::onDataRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onDisassocNotification(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-}
-
-void LifiMacCoordImpl::onImformationElement(uint32_t timestamp,
-		Ptr<Packet> msdu) {
-}
-
 void LifiMacCoordImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
 		Address devAddr, DisassocReason reason, bool txIndirect) {
 }
 
-void LifiMacCoordImpl::onMultipleChannelAssignment(uint32_t timestamp,
-		Ptr<Packet> msdu) {
+Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
+{
+	return 0;
+}
+
+
+void LifiMacCoordImpl::SetLifiMac(Ptr<LifiMac> mac)
+{
+	m_mac = mac;
+	m_trxHandler->SetPdSapProvider(GetPointer (mac->m_pdSapProvider));
+	m_trxHandler->SetPlmeSapProvider(GetPointer (mac->m_plmeSapProvider));
+}
+
+void LifiMacCoordImpl::SetOpticalPeriod(const Time* oc)
+{
+	m_opticalPeriod = oc;
+	m_trxHandler->SetOpticalPeriod(m_opticalPeriod);
 }
 
 } /* namespace ns3 */

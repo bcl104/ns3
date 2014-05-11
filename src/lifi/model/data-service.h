@@ -132,6 +132,22 @@ private:
 	T *m_impl;
 };
 
+class TrxHandlerListener
+{
+public:
+	virtual void AllocNotification (Ptr<DataService> service) {};
+	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack) {};
+	virtual void ResumeNotification (Ptr<DataService> service) {};
+	virtual void ReceiveAssocRequest (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveBeaconRequest (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveData (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveDataRequest (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveDisassocNotification (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveGtsRequest (uint32_t timestamp, Ptr<Packet> p) {};
+	virtual void ReceiveGtsResponse (uint32_t timestamp, Ptr<Packet> p) {};
+};
 
 
 } /* namespace ns3 */

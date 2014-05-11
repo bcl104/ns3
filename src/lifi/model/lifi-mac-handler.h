@@ -30,6 +30,9 @@ public:
 
 	static TypeId GetTypeId ();
 
+	void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
+
+
 protected:
 
 	template <class T> void AddTrigger (T trigger, bool enable)
