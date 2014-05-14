@@ -46,7 +46,7 @@ public:
 	virtual void GtsRequest(GTSCharacteristics characteristic);
 	virtual void Polling(TypeId coordAddrMode, uint16_t coordVPANId, Address coordAddr);
 	virtual void PurgeTrancsion(uint8_t handle);
-	virtual void Receive(Ptr<PacketBurst> pb);
+	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, uint8_t channel, uint32_t scanDuration);

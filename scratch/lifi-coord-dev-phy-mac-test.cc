@@ -139,10 +139,6 @@ private:
 	LifiMac *m_PlifiMacCca;
 };
 SinglePhyTest::SinglePhyTest(){
-	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
 	m_nodeTx=CreateObject<Node>();
 	m_nodeRx=CreateObject<Node>();
@@ -284,14 +280,17 @@ SinglePhyTest::SinglePhyTest(){
 
 	m_lifiMacTx->SetPdSapProvider(m_lifiPhyTx->GetPdSapProvider());
 	m_lifiMacTx->SetPlmeSapProvider(m_lifiPhyTx->GetPlmeSapProvider());
+	m_lifiMacTx->SetDevice(m_lifiNetDeviceTx);
 	m_lifiMacRx->SetPdSapProvider(m_lifiPhyRx->GetPdSapProvider());
 	m_lifiMacRx->SetPlmeSapProvider(m_lifiPhyRx->GetPlmeSapProvider());
+	m_lifiMacRx->SetDevice(m_lifiNetDeviceRx);
 	m_lifiPhyTx->SetPdSapUser(m_lifiMacTx->GetPdSapUser());
 	m_lifiPhyTx->SetPlmeSapUser(m_lifiMacTx->GetPlmeSapUser());
 	m_lifiPhyRx->SetPdSapUser(m_lifiMacRx->GetPdSapUser());
 	m_lifiPhyRx->SetPlmeSapUser(m_lifiMacRx->GetPlmeSapUser());
 	m_lifiMacTx->SetOpticalPeriod(m_lifiPhyTx->GetOpticClock());
 	m_lifiMacRx->SetOpticalPeriod(m_lifiPhyRx->GetOpticClock());
+
 
 	m_lifiPhyTx->SetTRxState(TX_ON);
 	m_lifiPhyRx->SetTRxState(RX_ON);
@@ -396,18 +395,21 @@ SinglePhyTest::SinglePhyTest(){
 
 int main(){
 	SinglePhyTest _test;
-	uint8_t *buffer=new uint8_t;
-	*buffer = 0x18;
-	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
-	uint8_t *buffers = new uint8_t;
-	packet->CopyData(buffers,100);
-	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
-	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
-	_test.GetPdSapProviderTx()->DataRequest(packet->GetSize(),packet,3);
-	_test.GetPlmeSapProviderCca()->PlmeCcaRequset(3);
+	LogComponentEnable("LifiMac", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacCoordImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacDevImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiCoordTrxHandler", LOG_LEVEL_FUNCTION);
 
-	Simulator::Run ();
+//	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
+
+	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 1, 1, true);
+
 	Simulator::Stop(Seconds(50));
+	Simulator::Run ();
 	Simulator::Destroy();
 
 	return 0;

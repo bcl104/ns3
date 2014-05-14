@@ -117,7 +117,7 @@ protected:
 		TrxHandlerListeners::iterator it = m_listens.begin();
 		while (it != m_listens.end())
 		{
-			(it->second->*function)(timestamp, p);
+			((it->second)->*function)(timestamp, p);
 			it++;
 		}
 	}

@@ -97,9 +97,13 @@ public:
 
 	void SetPdSapProvider(const Ptr<PdSapProvider>& provider);
 
+	Ptr<PdSapProvider> GetPdSapProvider () const;
+
 	const Ptr<PdSapUser>& GetPdSapUser() const;
 
 	void SetPlmeSapProvider(const Ptr<PlmeSapProvider>& provider);
+
+	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
 
 	const Ptr<PlmeSapUser>& GetPlmeSapUser();
 

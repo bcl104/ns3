@@ -6,6 +6,7 @@
  */
 
 #include "lifi-mac-dev-impl.h"
+#include "lifi-dev-trx-handler.h"
 #include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE("LifiMacDevImpl");
@@ -15,9 +16,10 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED(LifiMacDevImpl);
 
 LifiMacDevImpl::LifiMacDevImpl()
-				: m_trxHandler (new LifiTrxHandler)
+				: m_trxHandler (new LifiDevTrxHandler)
 {
 	NS_LOG_FUNCTION (this);
+	m_trxHandler->SetLifiMacImpl(this);
 }
 
 LifiMacDevImpl::~LifiMacDevImpl() {
@@ -56,8 +58,9 @@ void LifiMacDevImpl::PurgeTrancsion(uint8_t handle) {
 	NS_LOG_FUNCTION (this);
 }
 
-void LifiMacDevImpl::Receive(Ptr<PacketBurst> pb) {
+void LifiMacDevImpl::Receive(uint32_t size, Ptr<Packet> p, uint8_t quality) {
 	NS_LOG_FUNCTION (this);
+	m_trxHandler->ReceivePacket (0, p);
 }
 
 void LifiMacDevImpl::Reset() {

@@ -39,7 +39,7 @@ LifiPhy::LifiPhy() {
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_subBandsNum = 1;
-	m_opticClock = NanoSeconds(0);
+	m_opticClock = NanoSeconds(5000);
 	m_opticClockHz = 0;
 	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);

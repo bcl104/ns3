@@ -19,8 +19,8 @@ NS_OBJECT_ENSURE_REGISTERED(LifiDevTrxHandler);
 
 LifiDevTrxHandler::LifiDevTrxHandler()
 {
-	// TODO Auto-generated constructor stub
-
+	NS_LOG_FUNCTION (this);
+	AddListener(LifiDevTrxHandler::GetTypeId(), this);
 }
 
 LifiDevTrxHandler::~LifiDevTrxHandler()
@@ -56,9 +56,9 @@ void LifiDevTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
 	}
 	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, (uint32_t)bcnOrder);
 	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, (uint32_t)superframeOrder);
-	uint32_t capDur = (capSlot + 1) * LifiMac::aBaseSlotDuration * pow (2, (uint32_t)superframeOrder);
+	uint32_t capDur = ((uint32_t)capSlot + 1) * LifiMac::aBaseSlotDuration * pow (2, (uint32_t)superframeOrder);
 
-	Time op = *m_opticalPeriod;
+	Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds() -1);
 	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds() -1);
 	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds() -1);

@@ -24,6 +24,7 @@ class LifiGtsHandler;
 
 class LifiMacCoordImpl : public LifiMacImpl
 {
+	friend class LifiCoordTrxHandler;
 
 public:
 	LifiMacCoordImpl();
@@ -35,7 +36,7 @@ public:
 	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
 	virtual void PurgeTrancsion(uint8_t handle);
-	virtual void Receive(Ptr<PacketBurst> p);
+	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, LogicChannelId channel, uint32_t scanDuration);
@@ -44,6 +45,8 @@ public:
 							uint8_t msduHanle, TxOption option, bool rate);
 	virtual void StartVPAN(uint16_t vpanId, LogicChannelId channel, uint32_t startTime,
 						uint32_t beaconOrder, uint32_t supframeOrder, bool vpanCoord);
+
+	virtual void DataConfirm (PhyOpStatus status);
 
 	Ptr<Packet> ConstructBeacon () const;
 
@@ -59,7 +62,9 @@ public:
 
 	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
 
-protected:
+private:
+
+	uint32_t m_gtsSlotCount;
 
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
 	Ptr<LifiCoordAssocHandler> m_assocHandler;
