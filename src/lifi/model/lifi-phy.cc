@@ -69,6 +69,7 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_PsduSize = 0;
 	m_Time = Simulator::Now();
 	m_subBandsNum = 1;
+	m_opticClock = NanoSeconds(5000);
 }
 
 LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) {

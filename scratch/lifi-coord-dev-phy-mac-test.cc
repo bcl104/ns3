@@ -295,7 +295,7 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiPhyTx->SetTRxState(TX_ON);
 	m_lifiPhyRx->SetTRxState(RX_ON);
 	m_lifiPhyTx->SetTxPower(30);
-	m_lifiPhyTx->SetMcsId(1);
+//	m_lifiPhyTx->SetMcsId(1);
 
 
 //	uint8_t *buffer=new uint8_t;

@@ -75,7 +75,7 @@ void LifiCoordTrxHandler::BeaconStart()
 	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, m_attributes->macSuperframeOrder);
 	uint32_t capDur = (16 - coordImpl->m_gtsSlotCount) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 
-	Time op = *m_opticalPeriod;
+	Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds());
 	Time capEnd = NanoSeconds(capDur * op.GetNanoSeconds());
 	Time cfpEnd = NanoSeconds(superframDur * op.GetNanoSeconds());
