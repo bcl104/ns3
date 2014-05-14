@@ -57,7 +57,7 @@ void LifiMac::DoReceive(uint32_t size, Ptr<Packet> p,
 		uint8_t quality)
 {
 	NS_LOG_FUNCTION (this << size << p << (uint32_t)quality);
-//	m_lifiMacImpl->Receive();
+	m_lifiMacImpl->Receive(size, p, quality);
 }
 
 void LifiMac::Send(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,

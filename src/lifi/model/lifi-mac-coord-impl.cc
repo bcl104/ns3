@@ -42,7 +42,9 @@ void LifiMacCoordImpl::AssociateResponse(Mac64Address devAddr,
 void LifiMacCoordImpl::PurgeTrancsion(uint8_t handle) {
 }
 
-void LifiMacCoordImpl::Receive(Ptr<PacketBurst> pb) {
+void LifiMacCoordImpl::Receive(Ptr<PacketBurst> p) {
+	NS_LOG_FUNCTION (p);
+	m_trxHandler->ReceivePacket(0, p);
 }
 
 void LifiMacCoordImpl::Reset() {

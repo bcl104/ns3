@@ -35,7 +35,7 @@ public:
 	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
 	virtual void PurgeTrancsion(uint8_t handle);
-	virtual void Receive(Ptr<PacketBurst> pb);
+	virtual void Receive(Ptr<PacketBurst> p);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, LogicChannelId channel, uint32_t scanDuration);
