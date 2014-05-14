@@ -411,6 +411,7 @@ bool LifiTrxHandler::DoTransmitData() {
 	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
 	{
 		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
+		enough = true;
 	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
 	{
 		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);

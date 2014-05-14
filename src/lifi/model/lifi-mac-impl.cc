@@ -79,6 +79,7 @@ void LifiMacImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		uint32_t startTime, uint32_t beaconOrder, uint32_t supframeOrder,
 		bool vpanCoord) {
 	NS_FATAL_ERROR("LifiMacImpl::Associate can not be invoked.");
+
 }
 
 void LifiMacImpl::Synchronize(LogicChannelId channel, bool trackBeacon) {

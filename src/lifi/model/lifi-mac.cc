@@ -137,6 +137,7 @@ void LifiMac::StartVPAN(uint8_t vpanId, LogicChannelId channel, uint32_t startTi
 	m_lifiMacImpl->SetPlmeSapProvider(m_plmeSapProvider);
 	m_lifiMacImpl->SetMlmeSapUser(m_mlmeSapUser);
 	m_lifiMacImpl->SetMcpsSapUser(m_mcpsSapUser);
+	m_lifiMacImpl->StartVPAN(vpanId, channel, startTime, bcnOrder, supframeOrder, vpanCoord);
 }
 
 void LifiMac::Synchronize(LogicChannelId channel, bool trackBeacon) {

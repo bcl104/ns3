@@ -12,13 +12,20 @@ NS_LOG_COMPONENT_DEFINE("LifiNetDevice");
 
 namespace ns3 {
 
-LifiNetDevice::LifiNetDevice() {
-	// TODO Auto-generated constructor stub
-
+LifiNetDevice::LifiNetDevice() : m_address (Mac64Address::Allocate())
+{
 }
 
-LifiNetDevice::~LifiNetDevice() {
-	// TODO Auto-generated destructor stub
+LifiNetDevice::~LifiNetDevice()
+{
+}
+
+TypeId LifiNetDevice::GetTypeId()
+{
+	static TypeId tid = TypeId ("ns3::LifiNetDevice")
+						.SetParent<NetDevice> ()
+						.AddConstructor<LifiNetDevice> ();
+	return tid;
 }
 
 void LifiNetDevice::SetMac(Ptr<LifiMac> pmac) {
@@ -62,7 +69,7 @@ void LifiNetDevice::SetAddress(Address address) {
 
 Address LifiNetDevice::GetAddress() const {
 	NS_LOG_FUNCTION(this);
-	return Address ();
+	return Address (m_address);
 }
 
 bool LifiNetDevice::SetMtu(const uint16_t mtu) {
@@ -176,3 +183,4 @@ void LifiNetDevice::LinkUp() {
 }
 
 } /* namespace ns3 */
+

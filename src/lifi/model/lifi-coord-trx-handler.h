@@ -29,7 +29,7 @@ public:
 protected:
 	virtual void BeaconStart ();
 	virtual void SuperframeEnd ();
-	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack);
+	virtual void TxResultNotification (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 
 private:
 	void TransmitBeacon ();

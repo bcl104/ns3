@@ -52,7 +52,7 @@ void LifiCoordTrxHandler::Start()
 	BeaconStart();
 }
 
-void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status,
+void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo info,
 		Ptr<Packet> ack)
 {
 	NS_LOG_FUNCTION (this << status << ack);

@@ -27,6 +27,8 @@ public:
 	LifiNetDevice();
 	virtual ~LifiNetDevice();
 
+	static TypeId GetTypeId ();
+
 //	void SetTxPower(double tx_power);
 //	void SetCSmode1Th(unsigned int th);
 //	void SetCSmode2Th(unsigned int th);
@@ -81,6 +83,7 @@ private:
 	NetDevice::PromiscReceiveCallback m_promiscRx;
 	bool m_linkUp;
 	uint16_t m_mtu;
+	Mac64Address m_address;
 
 	void LinkDown();
 	void LinkUp();

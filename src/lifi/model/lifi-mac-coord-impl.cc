@@ -6,6 +6,8 @@
  */
 
 #include "lifi-mac-coord-impl.h"
+#include "lifi-mac-beacon.h"
+#include "lifi-mac-header.h"
 #include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE ("LifiMacCoordImpl");
@@ -73,7 +75,27 @@ void LifiMacCoordImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
 
 Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 {
-	return 0;
+	LifiMacBeacon beacon;
+	beacon.SetAssocPermit(true);
+	beacon.SetBcnOrder((uint8_t)m_attributes.macBeaconOrder);
+	beacon.SetCellSearchEn(true);
+	beacon.SetCellSearchLenth(0);
+	beacon.SetFinalCapSlot(15);
+	beacon.SetGtsDescripCount(0);
+	beacon.SetGtsPermit(false);
+	beacon.SetSupframeOrder((uint8_t)m_attributes.macSuperframeOrder);
+	beacon.SetVpanCoord(true);
+	LifiMacHeader header;
+	header.SetAckRequest(false);
+	header.SetDstAddress(Address(Mac16Address("ff:ff")));
+	header.SetDstVPANId(m_attributes.macVPANId);
+	header.SetFrameType(LIFI_BEACON);
+	header.SetSequenceNumber(m_attributes.macDSN);
+	header.SetSrcAddress(m_mac->GetDevice()->GetAddress());
+	header.SetSrcVPANId(m_attributes.macVPANId);
+	Ptr<Packet> p = beacon.GetPacket();
+	p->AddHeader(header);
+	return p;
 }
 
 
