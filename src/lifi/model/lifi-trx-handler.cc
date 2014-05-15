@@ -169,9 +169,7 @@ void LifiTrxHandler::SetLifiMacImpl(LifiMacImpl* impl)
 {
 	NS_LOG_FUNCTION (this << impl);
 	m_impl = impl;
-//	m_curTransmission = TransmissionInfo (&(impl->m_attributes.macMaxFrameRetries));
-//	m_curTransmission.m_info.m_backoff = LifiBackoff (&(impl->m_attributes.macMinBE),
-//			&(impl->m_attributes.macMaxBE), &(impl->m_attributes.macMaxCSMABackoffs));
+	Initialize(&(impl->m_attributes));
 }
 
 Ptr<LifiMacImpl> LifiTrxHandler::GetLifiMacImpl() const
@@ -257,16 +255,19 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 	p->PeekHeader(header);
 	if (header.GetFrameType() == LIFI_BEACON)
 	{
+		NS_LOG_INFO(this << " receive beacon frame.");
 //		BuildSuperframeStruct(p);
 		Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
 	}else if (header.GetFrameType() == LIFI_DATA)
 	{
+		NS_LOG_INFO(this << " receive data frame.");
 		Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
 	}else if (header.GetFrameType() == LIFI_ACK)
 	{
 		onReceiveAck(timestamp, p);
 	}else if (header.GetFrameType() == LIFI_COMMAND)
 	{
+		NS_LOG_INFO(this << " receive command frame.");
 		LifiMacHeader temp;
 		p->RemoveHeader(temp);
 		CommId commId = (CommId)0;
@@ -317,11 +318,11 @@ void LifiTrxHandler::Backoff()
 		EndTransmission(CHANNEL_ACCESS_FAILURE, 0);
 		return;
 	}
-	Time opticalPeriod = *m_opticalPeriod;
+	Time opticalPeriod = *(m_impl->m_mac->GetOpticalPeriod());
 	Time nextBackOffset =  NanoSeconds(m_superframeStruct.m_capEnd.GetDelayLeft().GetNanoSeconds()
 					% opticalPeriod.GetNanoSeconds());
 	Time backoff = NanoSeconds(m_curTransmission.m_backoff.GetBackoffTime()
-							* m_opticalPeriod->GetNanoSeconds());
+							* LifiMac::aUnitBackoffPeriod * opticalPeriod.GetNanoSeconds());
 	NS_LOG_INFO ("Backoff: " << backoff);
 	m_curTransmission.m_backoff.m_backoffTimer.SetFunction
 						   (&LifiTrxHandler::onBackoffTimeout, this);
@@ -522,8 +523,8 @@ void LifiTrxHandler::TransmissionInfo::Reset()
 void LifiTrxHandler::Send(PacketInfo& p)
 {
 	NS_LOG_FUNCTION (this);
-//	if (p.m_option.gtsTx) m_gtsTasks.push(p);
-//	else m_raTasks.push(p);
+	NS_ASSERT (!p.m_option.gtsTx);
+	m_raTasks.push(p);
 
 	if ((m_opStatus == LifiTrxHandler::IDLE)
 	  && m_superframeStruct.m_synchronized
@@ -646,7 +647,7 @@ void LifiTrxHandler::InactionPortionStart()
 	m_superframeStruct.m_state = SuperframeStrcut::INACTIVE;
 }
 
-void LifiTrxHandler::SetMacPibAttributes(LifiMacPibAttribute* attrubutes)
+void LifiTrxHandler::Initialize(LifiMacPibAttribute* attrubutes)
 {
 	m_attributes = attrubutes;
 	m_curTransmission.m_backoff.maxBackoffExponential = &attrubutes->macMaxBE;

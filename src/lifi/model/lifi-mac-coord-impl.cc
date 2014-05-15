@@ -62,7 +62,7 @@ void LifiMacCoordImpl::Scan(ScanType scanType, LogicChannelId channel,
 
 void LifiMacCoordImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t msduLength,
-		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, bool rate) {
+		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate) {
 }
 
 void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,

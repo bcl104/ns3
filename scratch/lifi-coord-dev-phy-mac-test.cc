@@ -407,8 +407,22 @@ int main(){
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
 	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 1, 1, true);
+	TxOption op;
+	op.ackTx = false;
+	op.indirectTx = false;
+	op.gtsTx = false;
+	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
+							   LifiMac::GetTypeId(),
+							   0x01,
+							   Address(Mac16Address("ff:ff")),
+							   1,
+							   Create<Packet> (100),
+							   2,
+							   op,
+							   PHY_III_24_00_MBPS,
+							   false);
 
-	Simulator::Stop(Seconds(50));
+	Simulator::Stop(Seconds(1));
 	Simulator::Run ();
 	Simulator::Destroy();
 

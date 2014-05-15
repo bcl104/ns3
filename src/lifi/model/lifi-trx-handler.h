@@ -73,7 +73,7 @@ public:
 
 	void Reset();
 
-	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
+	virtual void Initialize (LifiMacPibAttribute* attrubutes);
 
 	// External trigger.
 	void TxConfirm(PhyOpStatus status);

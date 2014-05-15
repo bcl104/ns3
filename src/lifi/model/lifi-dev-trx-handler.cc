@@ -51,8 +51,8 @@ void LifiDevTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
 	NS_ASSERT (bcnOrder >= superframeOrder);
 	if (m_attributes != 0)
 	{
-		m_attributes->macBeaconOrder = (uint32_t)bcnOrder;
-		m_attributes->macSuperframeOrder = (uint32_t)superframeOrder;
+		m_impl->m_attributes.macBeaconOrder = (uint32_t)bcnOrder;
+		m_impl->m_attributes.macSuperframeOrder = (uint32_t)superframeOrder;
 	}
 	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, (uint32_t)bcnOrder);
 	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, (uint32_t)superframeOrder);

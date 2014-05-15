@@ -9,7 +9,7 @@
 #define LIFI_MAC_COORD_IMPL_H_
 #include "lifi-mac-impl.h"
 #include "lifi-gts-handler.h"
-#include "lifi-coord-assoc-handler.h"
+//#include "lifi-coord-assoc-handler.h"
 #include "lifi-coord-trx-handler.h"
 #include "lifi-data-handler.h"
 #include "lifi-beacon-handler.h"
@@ -42,7 +42,7 @@ public:
 	virtual void Scan(ScanType scanType, LogicChannelId channel, uint32_t scanDuration);
 	virtual void SendData(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
 							Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu,
-							uint8_t msduHanle, TxOption option, bool rate);
+							uint8_t msduHanle, TxOption option, DataRateId rate);
 	virtual void StartVPAN(uint16_t vpanId, LogicChannelId channel, uint32_t startTime,
 						uint32_t beaconOrder, uint32_t supframeOrder, bool vpanCoord);
 
@@ -67,7 +67,7 @@ private:
 	uint32_t m_gtsSlotCount;
 
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
-	Ptr<LifiCoordAssocHandler> m_assocHandler;
+//	Ptr<LifiCoordAssocHandler> m_assocHandler;
 	Ptr<LifiDisassocHandler> m_disassocHandler;
 	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;

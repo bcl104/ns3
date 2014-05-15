@@ -7,6 +7,8 @@
 
 #include "lifi-mac-dev-impl.h"
 #include "lifi-dev-trx-handler.h"
+#include "lifi-mac-header.h"
+#include "lifi-mac-beacon.h"
 #include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE("LifiMacDevImpl");
@@ -79,8 +81,24 @@ void LifiMacDevImpl::Scan(ScanType scanType, uint8_t channel,
 
 void LifiMacDevImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t msduLength,
-		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, bool rate) {
+		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate) {
 	NS_LOG_FUNCTION (this);
+	static TrxHandlerListener listener;
+	LifiMacHeader header;
+	header.SetFrameType(LIFI_DATA);
+	header.SetSrcAddress(Address(Mac16Address("00:00")));
+	header.SetDstAddress(dstAddr);
+	msdu->AddHeader(header);
+	PacketInfo info;
+	info.m_band = 0x01;
+	info.m_bust = false;
+	info.m_force = false;
+	info.m_handle = 2;
+	info.m_listener = &listener;
+	info.m_msduSize = msdu->GetSize();
+	info.m_option = option;
+	info.m_packet = msdu;
+	m_trxHandler->Send(info);
 }
 
 void LifiMacDevImpl::Synchronize(LogicChannelId channel,
