@@ -64,6 +64,8 @@ void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo in
 		m_superframeStruct.m_cfpEnd.Schedule();
 	m_superframeStruct.m_supframeEnd.Schedule();
 	Simulator::ScheduleNow(&LifiCoordTrxHandler::SuperframeStart, this);
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
 }
 
 void LifiCoordTrxHandler::BeaconStart()
