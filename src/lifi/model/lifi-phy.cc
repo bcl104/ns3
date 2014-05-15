@@ -129,7 +129,7 @@ Ptr<LifiPhyPibAttribute> LifiPhy::GetPhyPibAttributes() {
 
 bool LifiPhy::DoCca() {
 	NS_LOG_FUNCTION(this);
-	return false;
+	return true;
 }
 
 uint8_t LifiPhy::DoCca(uint8_t band) {
