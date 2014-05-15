@@ -50,11 +50,13 @@ public:
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, uint8_t channel, uint32_t scanDuration);
-;
+
 	virtual void SendData(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId, Address dstAddr,
 								uint32_t size, Ptr<Packet> msdu, uint8_t handle, TxOption option,
 								DataRateId rate);
 	virtual void Synchronize(LogicChannelId channel, bool trackBeacon);
+
+	virtual void DataConfirm (PhyOpStatus status);
 
 	virtual void SetPdSapProvider (Ptr<PdSapProvider> p);
 

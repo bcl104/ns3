@@ -106,6 +106,12 @@ void LifiMacDevImpl::Synchronize(LogicChannelId channel,
 	NS_LOG_FUNCTION (this);
 }
 
+void LifiMacDevImpl::DataConfirm(PhyOpStatus status)
+{
+	NS_LOG_FUNCTION (this << status);
+	m_trxHandler->TxConfirm(status);
+}
+
 void LifiMacDevImpl::SetPdSapProvider(Ptr<PdSapProvider> p)
 {
 	m_trxHandler->SetPdSapProvider(p);

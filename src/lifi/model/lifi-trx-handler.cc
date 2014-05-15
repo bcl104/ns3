@@ -399,7 +399,7 @@ bool LifiTrxHandler::DoTransmitData() {
 	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
 	double dataRateKbps = LifiPhy::GetRate(mcsid);
 	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
-								->GetSize()*8)/(dataRateKbps*1000)*10e9);
+								->GetSize()*8)/(dataRateKbps*1000)*1e9);
 	Time ackWaitTime;
 	if (m_curTransmission.m_info.m_option.ackTx)
 		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
@@ -576,6 +576,7 @@ LifiTrxHandler::SuperframeStrcut::SuperframeStrcut()
 void LifiTrxHandler::SuperframeStart()
 {
 	NS_LOG_FUNCTION (this);
+	m_impl->GetLifiMac()->GetPlmeSapProvider()->PlmeSetTRXStateRequest(RX_ON);
 	m_superframeStruct.m_state = SuperframeStrcut::CAP;
 	NS_ASSERT (!m_curTransmission.IsAvailable());
 	NS_ASSERT (!m_curTranceiverTask.Available());

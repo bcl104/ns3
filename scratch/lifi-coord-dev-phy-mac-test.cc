@@ -292,9 +292,10 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiMacRx->SetOpticalPeriod(m_lifiPhyRx->GetOpticClock());
 
 
-	m_lifiPhyTx->SetTRxState(TX_ON);
-	m_lifiPhyRx->SetTRxState(RX_ON);
+//	m_lifiPhyTx->SetTRxState(TX_ON);
+//	m_lifiPhyRx->SetTRxState(RX_ON);
 	m_lifiPhyTx->SetTxPower(30);
+	m_lifiPhyRx->SetTxPower(30);
 //	m_lifiPhyTx->SetMcsId(1);
 
 
@@ -401,12 +402,12 @@ int main(){
 	LogComponentEnable("LifiTrxHandler", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiCoordTrxHandler", LOG_LEVEL_FUNCTION);
 
-//	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
-//	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
-//	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
-//	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
+	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
+	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
+	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
+	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
-	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 1, 1, true);
+	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 2, 2, true);
 	TxOption op;
 	op.ackTx = false;
 	op.indirectTx = false;
@@ -416,7 +417,7 @@ int main(){
 							   0x01,
 							   Address(Mac16Address("ff:ff")),
 							   1,
-							   Create<Packet> (100),
+							   Create<Packet> (1),
 							   2,
 							   op,
 							   PHY_III_24_00_MBPS,
