@@ -58,6 +58,11 @@ void LifiMacImpl::Receive(uint32_t size, Ptr<Packet> p, uint8_t quality) {
 
 }
 
+void LifiMacImpl::DataConfirm(PhyOpStatus status)
+{
+}
+
+
 void LifiMacImpl::Reset() {
 
 }
@@ -79,64 +84,12 @@ void LifiMacImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		uint32_t startTime, uint32_t beaconOrder, uint32_t supframeOrder,
 		bool vpanCoord) {
 	NS_FATAL_ERROR("LifiMacImpl::Associate can not be invoked.");
+
 }
 
 void LifiMacImpl::Synchronize(LogicChannelId channel, bool trackBeacon) {
 
 }
-
-//bool LifiMacImpl::DoChannelClearAccessment() {
-//	return false;
-//}
-//
-//void LifiMacImpl::DoTransmitData(uint32_t size, Ptr<PacketBurst> pb,
-//		uint8_t band) {
-//}
-//
-//void LifiMacImpl::onAcknowledge(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onAssocRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onAssocResponse(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onBandHopping(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onBeacon(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onBeaconRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onData(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onDataConfirm(PhyOpStatus status) {
-//}
-//
-//void LifiMacImpl::onDataRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onDisassocNotification(uint32_t timestamp,
-//		Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onGTSRequest(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onGTSResponse(uint32_t timestamp, Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onInformationElement(uint32_t timestamp,
-//		Ptr<Packet> msdu) {
-//}
-//
-//void LifiMacImpl::onMultipleChannelAssignment(uint32_t timestamp,
-//		Ptr<Packet> msdu) {
-//}
 
 void LifiMacImpl::SetLifiMac(Ptr<LifiMac> mac) {
 	m_mac = mac;
@@ -178,5 +131,3 @@ void LifiMacImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 }
 
 } /* namespace ns3 */
-
-

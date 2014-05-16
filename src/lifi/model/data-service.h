@@ -136,7 +136,7 @@ class TrxHandlerListener
 {
 public:
 	virtual void AllocNotification (Ptr<DataService> service) {};
-	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack) {};
+	virtual void TxResultNotification (MacOpStatus status, PacketInfo info, Ptr<Packet> ack) {};
 	virtual void ResumeNotification (Ptr<DataService> service) {};
 	virtual void ReceiveAssocRequest (uint32_t timestamp, Ptr<Packet> p) {};
 	virtual void ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> p) {};

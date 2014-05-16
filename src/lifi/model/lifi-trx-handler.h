@@ -73,7 +73,7 @@ public:
 
 	void Reset();
 
-	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
+	virtual void Initialize (LifiMacPibAttribute* attrubutes);
 
 	// External trigger.
 	void TxConfirm(PhyOpStatus status);
@@ -117,7 +117,7 @@ protected:
 		TrxHandlerListeners::iterator it = m_listens.begin();
 		while (it != m_listens.end())
 		{
-			(it->second->*function)(timestamp, p);
+			((it->second)->*function)(timestamp, p);
 			it++;
 		}
 	}

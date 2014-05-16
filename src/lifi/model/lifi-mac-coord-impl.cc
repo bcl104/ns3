@@ -6,6 +6,8 @@
  */
 
 #include "lifi-mac-coord-impl.h"
+#include "lifi-mac-beacon.h"
+#include "lifi-mac-header.h"
 #include "ns3/log.h"
 
 NS_LOG_COMPONENT_DEFINE ("LifiMacCoordImpl");
@@ -15,7 +17,9 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (LifiMacCoordImpl);
 
 LifiMacCoordImpl::LifiMacCoordImpl()
-				: m_trxHandler (new LifiCoordTrxHandler)
+				: m_gtsSlotCount (0),
+				  m_trxHandler (new LifiCoordTrxHandler)
+
 {
 	m_trxHandler->SetLifiMacImpl(this);
 	m_trxHandler->SetMacPibAttributes(&m_attributes);
@@ -40,7 +44,9 @@ void LifiMacCoordImpl::AssociateResponse(Mac64Address devAddr,
 void LifiMacCoordImpl::PurgeTrancsion(uint8_t handle) {
 }
 
-void LifiMacCoordImpl::Receive(Ptr<PacketBurst> pb) {
+void LifiMacCoordImpl::Receive(uint32_t size, Ptr<Packet> p, uint8_t quality) {
+	NS_LOG_FUNCTION (p);
+	m_trxHandler->ReceivePacket(0, p);
 }
 
 void LifiMacCoordImpl::Reset() {
@@ -56,7 +62,7 @@ void LifiMacCoordImpl::Scan(ScanType scanType, LogicChannelId channel,
 
 void LifiMacCoordImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t msduLength,
-		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, bool rate) {
+		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate) {
 }
 
 void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
@@ -64,6 +70,10 @@ void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		bool vpanCoord) {
 	NS_LOG_FUNCTION (this);
 	NS_ASSERT (vpanCoord);
+	m_attributes.macVPANId = vpanId;
+	m_attributes.macBeaconOrder = beaconOrder;
+	m_attributes.macSuperframeOrder = supframeOrder;
+	m_mac->GetPlmeSapProvider()->PlmeSetRequest(PHY_CURRENT_CHANNEL, channel);
 	m_trxHandler->Start();
 }
 
@@ -73,7 +83,27 @@ void LifiMacCoordImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
 
 Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 {
-	return 0;
+	LifiMacBeacon beacon;
+	beacon.SetAssocPermit(true);
+	beacon.SetBcnOrder((uint8_t)m_attributes.macBeaconOrder);
+	beacon.SetCellSearchEn(true);
+	beacon.SetCellSearchLenth(0);
+	beacon.SetFinalCapSlot(15 - m_gtsSlotCount);
+	beacon.SetGtsDescripCount(0);
+	beacon.SetGtsPermit(false);
+	beacon.SetSupframeOrder((uint8_t)m_attributes.macSuperframeOrder);
+	beacon.SetVpanCoord(true);
+	LifiMacHeader header;
+	header.SetAckRequest(false);
+	header.SetDstAddress(Address(Mac16Address("ff:ff")));
+	header.SetDstVPANId(m_attributes.macVPANId);
+	header.SetFrameType(LIFI_BEACON);
+	header.SetSequenceNumber(m_attributes.macDSN);
+	header.SetSrcAddress(m_mac->GetDevice()->GetAddress());
+	header.SetSrcVPANId(m_attributes.macVPANId);
+	Ptr<Packet> p = beacon.GetPacket();
+	p->AddHeader(header);
+	return p;
 }
 
 
@@ -102,6 +132,12 @@ void LifiMacCoordImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
 
 void LifiMacCoordImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
 {
+}
+
+void LifiMacCoordImpl::DataConfirm(PhyOpStatus status)
+{
+	NS_LOG_FUNCTION (this << status);
+	m_trxHandler->TxConfirm (status);
 }
 
 void LifiMacCoordImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)

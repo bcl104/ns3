@@ -46,7 +46,7 @@ bool LifiBackoff::IsReachMaxRetry()
 int64_t LifiBackoff::GetBackoffTime()
 {
 	UniformVariable v;
-	return v.GetInteger(0, pow(2, this->m_backoffExponential));
+	return v.GetInteger(0, pow(2, this->m_backoffExponential) - 1);
 }
 
 LifiBackoff::LifiBackoff() : m_backoffTimer (Timer::CANCEL_ON_DESTROY)

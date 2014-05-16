@@ -171,6 +171,8 @@ public:
 	 * */
 	virtual void Synchronize(LogicChannelId channel, bool trackBeacon);
 
+	virtual void DataConfirm (PhyOpStatus status);
+
 	virtual void SetLifiMac (Ptr<LifiMac> mac);
 
 	Ptr<LifiMac> GetLifiMac () const;

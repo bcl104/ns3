@@ -1,7 +1,8 @@
 /*
- * single-phy-test.cc
+ * lifi-coord-dev-phy-mac-test.cc
+
  *
- *  Created on: 2014年5月9日
+ *  Created on: 2014年5月12日
  *      Author: st125475466
  */
 #include "ns3/core-module.h"
@@ -9,10 +10,9 @@
 #include "ns3/lifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/propagation-delay-model.h"
+NS_LOG_COMPONENT_DEFINE("LifiCoordDevPhyMacTest");
 using namespace ns3;
-NS_LOG_COMPONENT_DEFINE ("SinglePhyTest");
 class SinglePhyTest {
-
 public:
 	SinglePhyTest();
 	~SinglePhyTest(){
@@ -73,10 +73,6 @@ public:
 	void SetTxPosition(double x , double y , double z);
 	void SetRxPosition(double x , double y , double z);
 	void SetCcaPosition(double x , double y , double z);
-
-	void SetLifiMacTx(Ptr<LifiMac> lifimac);
-	void SetLifiMacRx(Ptr<LifiMac> lifimac);
-	void SetLifiMacCca(Ptr<LifiMac> lifimac);
 	/*
 	 * initialization:TxState:TX_ON
 	 * 				  RxState:RX_ON
@@ -91,18 +87,6 @@ public:
 	 * initialization: SettMcsId 1
 	*/
 	void SettMcsId(uint8_t mcsid);
-
-	void SetPdSapUserTx(Ptr<PdSapUser> user);
-
-	void SetPdSapUserRx(Ptr<PdSapUser> user);
-
-	void SetPdSapUserCca(Ptr<PdSapUser> user);
-
-	void SetPlmeSapUserTx(Ptr<PlmeSapUser> user);
-
-	void SetPlmeSapUserRx(Ptr<PlmeSapUser> user);
-
-	void SetPlmeSapUserCca(Ptr<PlmeSapUser> user);
 
 
 private:
@@ -153,13 +137,8 @@ private:
 	LifiMac *m_PlifiMacTx;
 	LifiMac *m_PlifiMacRx;
 	LifiMac *m_PlifiMacCca;
-
 };
 SinglePhyTest::SinglePhyTest(){
-	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
-	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
 	m_nodeTx=CreateObject<Node>();
 	m_nodeRx=CreateObject<Node>();
@@ -179,18 +158,18 @@ SinglePhyTest::SinglePhyTest(){
 
 	m_lifiSpectrumChannel=CreateObject<LifiSpectrumChannel>();
 
-//	m_lifiMacTx=CreateObject<LifiMac>();
+	m_lifiMacTx=CreateObject<LifiMac>();
 	m_PlifiMacTx=GetPointer(m_lifiMacTx);
-//	m_lifiMacRx=CreateObject<LifiMac>();
+	m_lifiMacRx=CreateObject<LifiMac>();
 	m_PlifiMacRx=GetPointer(m_lifiMacRx);
-//	m_lifiMacCca=CreateObject<LifiMac>();
+	m_lifiMacCca=CreateObject<LifiMac>();
 	m_PlifiMacCca=GetPointer(m_lifiMacCca);
 
 	m_randomPropagationDelayModel=CreateObject<RandomPropagationDelayModel>();
 
-//	m_plmeSapUserTx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacTx);
-//	m_plmeSapUserRx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacRx);
-//	m_plmeSapUserCca=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacCca);
+	m_plmeSapUserTx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacTx);
+	m_plmeSapUserRx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacRx);
+	m_plmeSapUserCca=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacCca);
 	LifiPhy *m_PlifiPhyTx=GetPointer(m_lifiPhyTx);
 	LifiPhy *m_PlifiPhyRx=GetPointer(m_lifiPhyRx);
 	LifiPhy *m_PlifiPhyCca=GetPointer(m_lifiPhyCca);
@@ -198,9 +177,9 @@ SinglePhyTest::SinglePhyTest(){
 	m_plmeSapProviderRx=Create<PlmeSpecificSapProvider<LifiPhy> >(m_PlifiPhyRx);
 	m_plmeSapProviderCca=Create<PlmeSpecificSapProvider<LifiPhy> >(m_PlifiPhyCca);
 
-//	m_pdSapUserTx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacTx);
-//	m_pdSapUserRx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacRx);
-//	m_pdSapUserCca=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacCca);
+	m_pdSapUserTx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacTx);
+	m_pdSapUserRx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacRx);
+	m_pdSapUserCca=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacCca);
 
 	m_pdSapProviderTx=Create<PdSpecificSapProvider<LifiPhy> >(m_PlifiPhyTx);
 	m_pdSapProviderRx=Create<PdSpecificSapProvider<LifiPhy> >(m_PlifiPhyRx);
@@ -224,14 +203,16 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiSpectrumPropagationLossModel=CreateObject<LifiSpectrumPropagationLossModel>();
 	m_lifiPropagationLossModel = CreateObject<LifiIndoorPropagationLossModel>();
 
+//	m_lifiPhyTx->SetSpectrumValue(spectrumValueTx);
+//	m_lifiPhyRx->SetSpectrumValue(spectrumValueRx);
 	m_lifiPhyTx->SetPlmeSapUser(m_plmeSapUserTx);
 	m_lifiPhyRx->SetPlmeSapUser(m_plmeSapUserRx);
 	m_lifiPhyCca->SetPlmeSapUser(m_plmeSapUserCca);
 
 
-//	m_lifiPhyTx->SetPdSapUser(m_pdSapUserTx);
-//	m_lifiPhyRx->SetPdSapUser(m_pdSapUserRx);
-//	m_lifiPhyCca->SetPdSapUser(m_pdSapUserCca);
+	m_lifiPhyTx->SetPdSapUser(m_pdSapUserTx);
+	m_lifiPhyRx->SetPdSapUser(m_pdSapUserRx);
+	m_lifiPhyCca->SetPdSapUser(m_pdSapUserCca);
 
 	//ConstantPositionMobilityModel
 	m_txMobility=CreateObject<ConstantPositionMobilityModel> ();
@@ -297,10 +278,25 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiSpectrumErrroModel=CreateObject<LifiSpectrumErrorModel>();
 //	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
 
-//	m_lifiPhyTx->SetTRxState(TX_ON);
-//	m_lifiPhyRx->SetTRxState(RX_ON);
+	m_lifiMacTx->SetPdSapProvider(m_lifiPhyTx->GetPdSapProvider());
+	m_lifiMacTx->SetPlmeSapProvider(m_lifiPhyTx->GetPlmeSapProvider());
+	m_lifiMacTx->SetDevice(m_lifiNetDeviceTx);
+	m_lifiMacRx->SetPdSapProvider(m_lifiPhyRx->GetPdSapProvider());
+	m_lifiMacRx->SetPlmeSapProvider(m_lifiPhyRx->GetPlmeSapProvider());
+	m_lifiMacRx->SetDevice(m_lifiNetDeviceRx);
+	m_lifiPhyTx->SetPdSapUser(m_lifiMacTx->GetPdSapUser());
+	m_lifiPhyTx->SetPlmeSapUser(m_lifiMacTx->GetPlmeSapUser());
+	m_lifiPhyRx->SetPdSapUser(m_lifiMacRx->GetPdSapUser());
+	m_lifiPhyRx->SetPlmeSapUser(m_lifiMacRx->GetPlmeSapUser());
+	m_lifiMacTx->SetOpticalPeriod(m_lifiPhyTx->GetOpticClock());
+	m_lifiMacRx->SetOpticalPeriod(m_lifiPhyRx->GetOpticClock());
+
+
+	m_lifiPhyTx->SetTRxState(TX_ON);
+	m_lifiPhyRx->SetTRxState(RX_ON);
 	m_lifiPhyTx->SetTxPower(30);
-	m_lifiPhyTx->SetMcsId(1);
+	m_lifiPhyRx->SetTxPower(30);
+//	m_lifiPhyTx->SetMcsId(1);
 
 
 //	uint8_t *buffer=new uint8_t;
@@ -317,7 +313,7 @@ SinglePhyTest::SinglePhyTest(){
 //	Simulator::Destroy();
 }
 	void SinglePhyTest::SetTxPosition(double x , double y , double z){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_txPosition.x=x;
 		m_txPosition.y=y;
 		m_txPosition.z=z;
@@ -325,7 +321,7 @@ SinglePhyTest::SinglePhyTest(){
 	}
 
 	void SinglePhyTest::SetRxPosition(double x , double y , double z){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_txPosition.x=x;
 		m_txPosition.y=y;
 		m_txPosition.z=z;
@@ -333,7 +329,7 @@ SinglePhyTest::SinglePhyTest(){
 	}
 
 	void SinglePhyTest::SetCcaPosition(double x , double y , double z){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_txPosition.x=x;
 		m_txPosition.y=y;
 		m_txPosition.z=z;
@@ -341,162 +337,94 @@ SinglePhyTest::SinglePhyTest(){
 	}
 
 	void SinglePhyTest::SetTxState(PhyOpStatus state){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_lifiPhyTx->SetTRxState(state);
 	}
 
 	void SinglePhyTest::SetRxState(PhyOpStatus state){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_lifiPhyRx->SetTRxState(state);
 	}
 
 	void SinglePhyTest::SetTxPower(double txPower){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_lifiPhyTx->SetTxPower(30);
 	}
 
 	void SinglePhyTest::SettMcsId(uint8_t mcsid){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		m_lifiPhyTx->SetMcsId(mcsid);
 	}
 	Ptr<PlmeSapProvider> SinglePhyTest::GetPlmeSapProviderTx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_plmeSapProviderTx;
 	}
 	Ptr<PlmeSapProvider> SinglePhyTest::GetPlmeSapProviderRx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_plmeSapProviderRx;
 	}
 
 	Ptr<PlmeSapProvider> SinglePhyTest::GetPlmeSapProviderCca(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_plmeSapProviderCca;
 	}
 	Ptr<PdSapProvider> SinglePhyTest::GetPdSapProviderTx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_pdSapProviderTx;
 	}
 	Ptr<PdSapProvider> SinglePhyTest::GetPdSapProviderRx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_pdSapProviderRx;
 	}
 	Ptr<PdSapProvider> SinglePhyTest::GetPdSapProviderCca(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_pdSapProviderCca;
 	}
 
 	Ptr<LifiMac> SinglePhyTest::GetLifiMacTx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_lifiMacTx;
 	}
 	Ptr<LifiMac> SinglePhyTest::GetLifiMacRx(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_lifiMacRx;
 	}
 	Ptr<LifiMac> SinglePhyTest::GetLifiMacCca(){
-//		NS_LOG_FUNCTION(this);
+		NS_LOG_FUNCTION(this);
 		return m_lifiMacCca;
 	}
-	void SinglePhyTest::SetLifiMacTx(Ptr<LifiMac> lifimac){
-		m_lifiMacTx = lifimac;
-	}
-	void SinglePhyTest::SetLifiMacRx(Ptr<LifiMac> lifimac){
-		m_lifiMacRx = lifimac;
-	}
-	void SinglePhyTest::SetLifiMacCca(Ptr<LifiMac> lifimac){
-		m_lifiMacCca = lifimac;
-	}
-
-	void SinglePhyTest::SetPdSapUserTx(Ptr<PdSapUser> user){
-		m_pdSapUserTx = user;
-		m_lifiPhyTx->SetPdSapUser(m_pdSapUserTx);
-
-	}
-
-	void SinglePhyTest::SetPdSapUserRx(Ptr<PdSapUser> user){
-		m_pdSapUserRx = user;
-		m_lifiPhyRx->SetPdSapUser(m_pdSapUserRx);
-	}
-
-	void SinglePhyTest::SetPdSapUserCca(Ptr<PdSapUser> user){
-		m_pdSapUserCca = user;
-		m_lifiPhyCca->SetPdSapUser(m_pdSapUserCca);
-	}
-
-
-	void SinglePhyTest::SetPlmeSapUserTx(Ptr<PlmeSapUser> user){
-		m_plmeSapUserTx = user;
-		m_lifiPhyTx->SetPlmeSapUser(m_plmeSapUserTx);
-	}
-
-	void SinglePhyTest::SetPlmeSapUserRx(Ptr<PlmeSapUser> user){
-		m_plmeSapUserRx = user;
-		m_lifiPhyRx->SetPlmeSapUser(m_plmeSapUserRx);
-	}
-
-	void SinglePhyTest::SetPlmeSapUserCca(Ptr<PlmeSapUser> user){
-		m_plmeSapUserCca = user;
-		m_lifiPhyCca->SetPlmeSapUser(m_plmeSapUserCca);
-	}
-
 
 int main(){
-	SinglePhyTest _singlePhyTest;
-	Ptr<LifiMac> lifiMacTx=CreateObject<LifiMac>();
-	Ptr<LifiMac> lifiMacRx=CreateObject<LifiMac>();
-	Ptr<LifiMac> lifiMacCca=CreateObject<LifiMac>();
+	SinglePhyTest _test;
+	LogComponentEnable("LifiMac", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacCoordImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacDevImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiCoordTrxHandler", LOG_LEVEL_FUNCTION);
 
-	_singlePhyTest.SetLifiMacTx(lifiMacTx);
-	_singlePhyTest.SetLifiMacTx(lifiMacRx);
-	_singlePhyTest.SetLifiMacTx(lifiMacCca);
+//	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
+//	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
-	LifiMac *PlifiMacTx=GetPointer(lifiMacTx);
-	LifiMac *PlifiMacRx=GetPointer(lifiMacRx);
-	LifiMac *PlifiMacCca=GetPointer(lifiMacCca);
-	/*
-	 *user instantiation
-	 *
-	*/
-	Ptr<PdSapUser> PdSapUserTx = Create<PdSpecificSapUser<LifiMac> >(PlifiMacTx);
-	Ptr<PdSapUser> PdSapUserRx = Create<PdSpecificSapUser<LifiMac> >(PlifiMacRx);
-	Ptr<PdSapUser> PdSapUserCca = Create<PdSpecificSapUser<LifiMac> >(PlifiMacCca);
+	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 2, 2, true);
+	TxOption op;
+	op.ackTx = false;
+	op.indirectTx = false;
+	op.gtsTx = false;
+	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
+							   LifiMac::GetTypeId(),
+							   0x01,
+							   Address(Mac16Address("ff:ff")),
+							   1,
+							   Create<Packet> (1),
+							   2,
+							   op,
+							   PHY_III_24_00_MBPS,
+							   false);
 
-	Ptr<PlmeSapUser> PlmeSapUserTx = Create<PlmeSpecificSapUser<LifiMac> >(PlifiMacTx);
-	Ptr<PlmeSapUser> PlmeSapUserRx = Create<PlmeSpecificSapUser<LifiMac> >(PlifiMacRx);
-	Ptr<PlmeSapUser> PlmeSapUserCca = Create<PlmeSpecificSapUser<LifiMac> >(PlifiMacCca);
-
-	_singlePhyTest.SetPdSapUserTx(PdSapUserTx);
-	_singlePhyTest.SetPdSapUserRx(PdSapUserRx);
-	_singlePhyTest.SetPdSapUserCca(PdSapUserCca);
-
-	_singlePhyTest.SetPlmeSapUserTx(PlmeSapUserTx);
-	_singlePhyTest.SetPlmeSapUserRx(PlmeSapUserRx);
-	_singlePhyTest.SetPlmeSapUserCca(PlmeSapUserCca);
-	/*
-	 * open Tx transmitter
-	 * and Rx receiver
-	*/
-	_singlePhyTest.SetTxState(TX_ON);
-	_singlePhyTest.SetRxState(RX_ON);
-	/*
-	 * initialize packet
-	 */
-
-	uint8_t *buffer=new uint8_t;
-	*buffer = 0x18;
-	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
-	uint8_t *buffers = new uint8_t;
-
-	packet->CopyData(buffers,packet->GetSize());
-	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
-	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
-	/*
-	 * transmit packet
-	 */
-	_singlePhyTest.GetPdSapProviderTx()->DataRequest(packet->GetSize(),packet,3);
-	_singlePhyTest.GetPlmeSapProviderCca()->PlmeCcaRequset(3);
+	Simulator::Stop(Seconds(1));
 	Simulator::Run ();
-	Simulator::Stop(Seconds(50));
 	Simulator::Destroy();
 
 	return 0;

@@ -1,3 +1,4 @@
+
 /*
  * packet-test.cc
  *
@@ -140,20 +141,22 @@ int main ()
 
 	Ptr<LifiSpectrumErrorModel> lifiSpectrumErrroModel=CreateObject<LifiSpectrumErrorModel>();
 //	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
-//	Ptr<LifiPhy> lifiphytest = lifiPhyTx;
+
 	lifiPhyTx->SetTRxState(TX_ON);
 	lifiPhyRx->SetTRxState(RX_ON);
 	lifiPhyTx->SetTxPower(30);
 	lifiPhyTx->SetMcsId(1);
 //	randomPropagationDelayModel->SetSpeed(1);
-//	std::cout<<lifiphytest->GetTxPower()<<std::endl;
 	uint8_t *buffer=new uint8_t;
+//	uint8_t *buffer[]={0X86,0X12,0X32};
 	*buffer = 0x18;
 	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
 	uint8_t *buffers = new uint8_t;
 	packet->CopyData(buffers,100);
 	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
 	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
+//	std::ofstream oso("abc.txt");
+//	packet->Print(oso);
 	lifiPhyTx->Transmit(packet->GetSize(),packet,3);
 	lifiPhyCca->DoCca(3);
 

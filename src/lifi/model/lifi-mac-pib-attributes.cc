@@ -6,11 +6,12 @@
  */
 
 #include "lifi-mac-pib-attributes.h"
+#include "lifi-phy-pib-attributes.h"
 
 namespace ns3 {
 
 LifiMacPibAttribute::LifiMacPibAttribute() {
-	LOAD_PIB_ATTRIBUTE (MAC_ACK_WAIT_DURATION,macAckWaitDuration,0);
+	LOAD_PIB_ATTRIBUTE (MAC_ACK_WAIT_DURATION, macAckWaitDuration, 100);
 //	LOAD_PIB_ATTRIBUTE (MAC_ASSOC_VPAN_COORD,macAssociatedVPANCoord);
 	LOAD_PIB_ATTRIBUTE (MAC_ASSOC_PERMIT,macAssociationPermit,false);
 	LOAD_PIB_ATTRIBUTE (MAC_AUTO_REQEST,macAutoRequest, true);
@@ -25,10 +26,10 @@ LifiMacPibAttribute::LifiMacPibAttribute() {
 //	LOAD_PIB_ATTRIBUTE (MAC_GTS_PERMIT,macGTSPermit);
 //	LOAD_PIB_ATTRIBUTE (MAC_LINK_TIME_OUT,macLinkTimeOut);
 //	LOAD_PIB_ATTRIBUTE (MAC_MAX_BE,macMaxBE);
-//	LOAD_PIB_ATTRIBUTE (MAC_MAX_CSMA_BACKOFFS,macMaxCSMABackoffs);
-//	LOAD_PIB_ATTRIBUTE (MAC_MAX_FRAME_RETRIES,macMaxFrameRetries);
+	LOAD_PIB_ATTRIBUTE (MAC_MAX_CSMA_BACKOFFS, macMaxCSMABackoffs, 4);
+	LOAD_PIB_ATTRIBUTE (MAC_MAX_FRAME_RETRIES, macMaxFrameRetries, 3);
 //	LOAD_PIB_ATTRIBUTE (MAC_MAX_FRAME_TOTAL_WAIT_TIME,macMaxFrameTotalWaitTime);
-//	LOAD_PIB_ATTRIBUTE (MAC_MIN_BE,macMinBE);
+	LOAD_PIB_ATTRIBUTE (MAC_MIN_BE, macMinBE, 7);
 //	LOAD_PIB_ATTRIBUTE (MAC_MIN_LIFS_PERIOD,macMinLIFSPeriod);
 //	LOAD_PIB_ATTRIBUTE (MAC_MIN_SIFS_PERIOD,macMinSIFSPeriod);
 //	LOAD_PIB_ATTRIBUTE (MAC_NUM_ACKS,macNumAcks);

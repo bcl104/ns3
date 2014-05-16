@@ -39,8 +39,10 @@ LifiPhy::LifiPhy() {
 	m_reservedFields = 0x00;
 	m_PsduSize = 0;
 	m_subBandsNum = 1;
-	m_opticClock = NanoSeconds(0);
+	m_opticClock = NanoSeconds(5000);
 	m_opticClockHz = 0;
+	m_plmeSapProvider = Create<PlmeSpecificSapProvider<LifiPhy> > (this);
+	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
 }
 
 LifiPhy::~LifiPhy() {
@@ -67,6 +69,7 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_PsduSize = 0;
 	m_Time = Simulator::Now();
 	m_subBandsNum = 1;
+	m_opticClock = NanoSeconds(5000);
 }
 
 LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) {
@@ -126,7 +129,7 @@ Ptr<LifiPhyPibAttribute> LifiPhy::GetPhyPibAttributes() {
 
 bool LifiPhy::DoCca() {
 	NS_LOG_FUNCTION(this);
-	return false;
+	return true;
 }
 
 uint8_t LifiPhy::DoCca(uint8_t band) {

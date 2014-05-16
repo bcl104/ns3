@@ -21,9 +21,8 @@ public:
 	LifiDevTrxHandler();
 	virtual ~LifiDevTrxHandler();
 	static TypeId GetTypeId ();
-protected:
-
 	virtual void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> p);
+protected:
 	void BuildSuperframeStruct (Ptr<Packet> beacon);
 
 };
