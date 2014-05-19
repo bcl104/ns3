@@ -31,7 +31,7 @@ LifiPhy::LifiPhy() {
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
 	m_duration = Seconds(1);
-	m_band = 1;
+	m_band = 0X01;
 	m_burstMode = false;
 	m_mcsId = 0x00;
 	m_ookDim = false;
@@ -56,7 +56,7 @@ LifiPhy::LifiPhy(Ptr<LifiSpectrumPhy> spectrum) {
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	m_band = 1;
+	m_band = 0X01;
 	m_duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
@@ -79,7 +79,7 @@ LifiPhy::LifiPhy(LifiPhyPibAttribute attributes, Ptr<LifiSpectrumPhy> spectrum) 
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
-	m_band = 1;
+	m_band = 0X01;
 	m_duration = Seconds(1);
 	m_trxStatus = TRX_OFF;
 	m_pdSapProvider = Create<PdSpecificSapProvider<LifiPhy> > (this);
@@ -98,7 +98,7 @@ LifiPhy::LifiPhy(std::vector< Ptr<LifiCell> > cellList){
 	NS_LOG_FUNCTION(this);
 	m_csTh = 1.0;
 	m_edTh = 1.0;
-	m_band = 1;
+	m_band =0X01;
 	m_cellMode = false;
 	m_trxMode = MULTIPLEX;
 	m_txPower = 1;
@@ -129,18 +129,22 @@ Ptr<LifiPhyPibAttribute> LifiPhy::GetPhyPibAttributes() {
 
 bool LifiPhy::DoCca() {
 	NS_LOG_FUNCTION(this);
-	return true;
+	NS_ASSERT(m_trxStatus != TX_BUSY);
+	bool ccaResult = m_spectrumPhy->CarrierSense(7,m_edTh);
+	std::cout<<"cca result:"<<ccaResult<<std::endl;
+	return ccaResult;
 }
 
 uint8_t LifiPhy::DoCca(uint8_t band) {
 	NS_LOG_FUNCTION(this);
-	NS_ASSERT(band < 7);
 	NS_ASSERT(m_trxStatus != TX_BUSY);
-	bool ccaResult = m_spectrumPhy->CarrierSense(band,m_edTh);
+	uint8_t CcaBand = MapbitToInteger(band);
+	NS_ASSERT(CcaBand < 7);
+	bool ccaResult = m_spectrumPhy->CarrierSense(CcaBand,m_edTh);
 	std::cout<<"cca result:"<<ccaResult<<std::endl;
 	uint8_t result = 0;
 	if(ccaResult == true){
-		result = 1 << band;
+		result = 1 << CcaBand;
 	}
 	return result;
 }
@@ -174,7 +178,7 @@ void LifiPhy::SetMcsId(uint8_t mcsid){
 	NS_LOG_FUNCTION(this);
 	m_mcsId = mcsid;
 	m_opticClockHz = SearchOpticClock(mcsid);
-	m_opticClock = NanoSeconds(SearchOpticClock(mcsid));
+	m_opticClock = NanoSeconds(1.0/SearchOpticClock(mcsid));
 	m_attributes.m_mcsid = mcsid;
 }
 
@@ -199,13 +203,48 @@ uint8_t LifiPhy::GetReservedFields(void){
 	return m_reservedFields;
 }
 
+uint8_t LifiPhy:: MapbitToInteger(uint8_t band){
+	NS_LOG_FUNCTION(this);
+	uint8_t Integer = 0;
+	switch(band){
+	case 0X01:
+		Integer = 0;
+		break;
+	case 0X02:
+		Integer = 1;
+		break;
+	case 0X04:
+		Integer = 2;
+		break;
+	case 0X08:
+		Integer = 3;
+		break;
+	case 0X010:
+		Integer = 4;
+		break;
+	case 0X20:
+		Integer = 5;
+		break;
+	case 0X40:
+		Integer = 6;
+		break;
+	case 0Xff:
+		Integer = 7;
+		break;
+	default :
+		NS_LOG_WARN("illogical band!");
+
+	}
+	return Integer;
+}
+
 void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	NS_LOG_FUNCTION(this);
 	if(m_trxStatus == TX_ON){
 		m_trxStatus = TX_BUSY;
 		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
 		uint8_t* channel = (uint8_t*)(m_attributes.GetAttributes(PHY_CURRENT_CHANNEL));
-		m_band = band;
+		m_band = MapbitToInteger(band);
 //		double fb,fe,fc;
 //		GetbandsInfo(fb,fe,fc,m_band);
 		Bands psdBand;
@@ -250,6 +289,7 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	std::cout<<"receive packet size:"<<size<<std::endl;
 	pb->CopyData(buffer,size);
 	std::cout<<"receive buffer:"<<(int)*buffer<<std::endl;
+	delete buffer;
 //	std::ofstream oso("abcd.txt");
 //	pb->Print(oso);
 //	std::cout<<pb<<std::endl;
@@ -317,11 +357,13 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 		case TX_ON:{
 			m_trxStatus = TX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
 			break;
 		}
 		case FORCE_TRX_OFF:{
 			m_trxStatus = TRX_OFF;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 			break;
@@ -650,25 +692,38 @@ LifiPhyHeader LifiPhy::SetLifiPhyHeader (bool isBurstMode,uint8_t channelNum,uin
 
 Ptr<SpectrumValue> LifiPhy::CalculatetxPsd(double txPowerDbm,Bands band,uint8_t bandid,uint8_t Modulation){
 	NS_LOG_FUNCTION(this);
-	NS_ASSERT(bandid < 7);
+//	NS_ASSERT(bandid < 7);
 	Ptr<SpectrumModel> model = Create<SpectrumModel>(band);
 	Ptr<SpectrumValue> txPsd = Create<SpectrumValue>(model);
 //	double fb,fe,fc;
 //	GetbandsInfo(fb,fe,fc,bandid);
 	double powerTxW = std::pow (10., (txPowerDbm - 30) / 10);//turn the unit Dbm to w.
 //	double bandwith = (--(band.end()))->fh - band.begin()->fl;
-	double bandwith = (band.begin()+(7-bandid)*m_subBandsNum )->fl-(band.begin()+(6-bandid)*m_subBandsNum )->fl;//MHZ
+	if(bandid < 7){
+//	double bandwith = (band.begin()+(7-bandid)*m_subBandsNum )->fl-(band.begin()+(6-bandid)*m_subBandsNum )->fl;//MHZ
+	double bandwith = (band.begin()+(6-bandid)*m_subBandsNum )->fh-(band.begin()+(6-bandid)*m_subBandsNum )->fl;
 //	double bandwith = 0.72059e8;
 	double txPowerDensity = powerTxW / bandwith;
 //	std::cout<<"txPower:"<<txPowerDensity<<std::endl;
 	//judge modulation way
-	NS_ASSERT(bandid < 7);
+//	NS_ASSERT(bandid < 7);
 	Values::iterator beg = txPsd->ValuesBegin()+(double)(6-bandid)*m_subBandsNum;
 //	Values::iterator end = txPsd->ValuesEnd();
 	Values::iterator end =beg + m_subBandsNum;
 	while(beg != end){
 		*beg = txPowerDensity;
 		beg++;
+	}
+	}
+	else if(bandid == 7){
+		double bandwith = (--band.end())->fh - band.begin()->fl;
+		double txPowerDensity = powerTxW / bandwith;
+		Values::iterator beg = txPsd->ValuesBegin();
+		Values::iterator end = txPsd->ValuesEnd();
+		while(beg != end){
+			*beg = txPowerDensity;
+			beg++;
+		}
 	}
 //	Values::iterator testbeg = txPsd->ValuesBegin();
 //	Values::iterator testend = txPsd->ValuesEnd();

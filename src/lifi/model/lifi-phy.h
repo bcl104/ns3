@@ -168,6 +168,9 @@ public:
 
 	Bands GetFullBands(void);
 
+	uint8_t MapbitToInteger(uint8_t band);
+
+
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;
 //	Ptr<PlmeSapProvider> m_plmeSapProvider;

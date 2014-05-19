@@ -370,13 +370,32 @@ Ptr<SpectrumValue>LifiInterference::GetAllSignal(){
 
 double LifiInterference::GetSinr(Ptr<SpectrumValue> sinr,uint8_t  band,uint8_t subBand){
 	NS_LOG_FUNCTION (this);
-	Values::iterator ValueBeg = sinr->ValuesBegin() + (6 - band) * subBand;
-	Values::iterator ValueEnd = sinr->ValuesBegin() + (7 - band) * subBand;
+	Values::iterator ValueBeg;
+	Values::iterator ValueEnd;
 	double sinrDouble = 0;
+	if(band < 7){
+	ValueBeg = sinr->ValuesBegin() + (6 - band) * subBand;
+	ValueEnd = sinr->ValuesBegin() + (7 - band) * subBand;
 	while(ValueBeg != ValueEnd){
+		std::cout<<"test values:"<<*ValueBeg;
 		sinrDouble +=*ValueBeg;
 		ValueBeg++;
 	}
+	}
+
+	if(band == 7){
+		ValueBeg = sinr->ValuesBegin();
+		ValueBeg = sinr->ValuesEnd();
+		sinrDouble = Integral(*sinr);
+	}
+
+//	double sinrDouble = 0;
+//	while(ValueBeg != ValueEnd){
+//		std::cout<<"test values:"<<*ValueBeg;
+//		sinrDouble +=*ValueBeg;
+//		ValueBeg++;
+//	}
+
 	return sinrDouble;
 }
 } /* namespace ns3 */
