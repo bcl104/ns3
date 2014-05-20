@@ -298,6 +298,11 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 
 }
 
+PhyOpStatus LifiPhy::GetTRxState(){
+	NS_LOG_FUNCTION(this);
+	return m_trxStatus;
+}
+
 PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
 //	m_trxStatus = state;
@@ -311,7 +316,8 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 		case FORCE_TRX_OFF:{
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			m_trxStatus = TRX_OFF;
-//			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			m_spectrumPhy->CancelEvent();
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 			 break;
 		}
@@ -352,18 +358,21 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 			m_trxStatus = state;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			m_spectrumPhy->CancelEvent();
 			break;
 		}
 		case TX_ON:{
 			m_trxStatus = TX_ON;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			m_spectrumPhy->CancelEvent();
 			break;
 		}
 		case FORCE_TRX_OFF:{
 			m_trxStatus = TRX_OFF;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			m_spectrumPhy->CancelEvent();
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
 //			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteTx(m_spectrumPhy);
 			break;
@@ -391,6 +400,7 @@ PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 			m_trxStatus = state;
 			m_PlmeSapUser->PlemStateIndication(PHY_SUCCESS);
 			DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->DeleteRx(m_spectrumPhy);
+			m_spectrumPhy->CancelEvent();
 			break;
 		}
 		case TX_ON:{

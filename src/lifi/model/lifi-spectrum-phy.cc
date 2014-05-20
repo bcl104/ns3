@@ -170,6 +170,7 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 		m_rxNumCount++;
 		m_interference->SetReceiveState(RX_BUSY);
 		Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
+//		NS_ASSERT(lifiphy->GetTRxState() == RX_ON);
 		lifiphy->SetTRxState(RX_BUSY);
 		lifiphy->GetPlmeSapUser()->PlemStateIndication(RX_BUSY);
 //		m_interference->SetAllsignal(0);
@@ -198,12 +199,29 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 //			++beg;
 //		}
 //		std::cout<<"the duration is "<<lifi_params->duration<<std::endl;//?????????????????????????????????
-		Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
+		EventId id = Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
+		m_eventId.push_back(id);
 	}
 	else{
 
 	}
 
+}
+
+void LifiSpectrumPhy::CancelEvent(){
+	NS_LOG_FUNCTION (this);
+	std::vector<EventId>::iterator beg = m_eventId.begin();
+	std::vector<EventId>::iterator end = m_eventId.end();
+	while(beg != end){
+		if(!(beg->IsExpired())){
+			beg->Cancel();
+		}
+		++beg;
+	}
+	m_eventId.clear();
+	m_rxNumCount = 0;
+	m_interference->SetReceiveState(RX_ON);
+	m_interference->CancelEvent();
 }
 
 uint8_t LifiSpectrumPhy::CalculateWqi(double sinr){

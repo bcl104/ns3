@@ -82,6 +82,8 @@ public:
 
 	PhyOpStatus SetTRxState(PhyOpStatus state);
 
+	PhyOpStatus GetTRxState(void);
+
 	double GetTxPower ();
 
 	double GetEdThreadhold ();

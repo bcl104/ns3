@@ -99,6 +99,7 @@ public:
 
 	double GetberTh(void);
 
+	void CancelEvent();
 //	void SetLifiPhy(Ptr<LifiPhy> phy);
 //
 //	Ptr<LifiPhy> GetLifiPhy(void);
@@ -128,6 +129,7 @@ private:
 	double m_rxPowerTh;
 	double m_berTh;
 	uint8_t m_rxNumCount;
+	std::vector<EventId> m_eventId;
 //	uint8_t m_WQI;
 //	spectrum
 
