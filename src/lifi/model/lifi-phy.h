@@ -82,6 +82,8 @@ public:
 
 	PhyOpStatus SetTRxState(PhyOpStatus state);
 
+	PhyOpStatus GetTRxState(void);
+
 	double GetTxPower ();
 
 	double GetEdThreadhold ();
@@ -167,6 +169,9 @@ public:
 	double SearchOpticClock(uint8_t mcsid);
 
 	Bands GetFullBands(void);
+
+	uint8_t MapbitToInteger(uint8_t band);
+
 
 //	Ptr<PdSapProvider> m_pdSapProvider;
 //	Ptr<PdSapUser> m_pdSapUser;

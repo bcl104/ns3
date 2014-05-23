@@ -83,6 +83,13 @@ std::pair<PhyList ::iterator,PhyList::iterator> LifiSpectrumChannel::SearchRxLis
 
 std::pair<PhyList::iterator,PhyList::iterator> LifiSpectrumChannel::SearchTxList(uint8_t band){
 	NS_LOG_FUNCTION(this);
+	if(band == 7){
+		std::pair<PhyList ::iterator,PhyList::iterator> pos;
+		pos.first = m_txPhyList.begin();
+		pos.second = m_txPhyList.end();
+		return pos;
+	}
+	else
 	return m_txPhyList.equal_range(band);
 }
 
@@ -434,6 +441,7 @@ double LifiSpectrumChannel::CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,ui
 {
 	NS_ASSERT(myMobilityModel!=0);
 	double powerSum=0;
+	if(bandId < 7){
 	PhyList::iterator it;
 	it=m_txPhyList.find(bandId);
 	if(it==m_txPhyList.end())
@@ -456,6 +464,31 @@ double LifiSpectrumChannel::CalcMyCcaPower(Ptr<MobilityModel> myMobilityModel,ui
 		double txPowerDbm=lifiNetDevice->GetPhy()->GetTxPower();
 		powerSum+=m_propagationLossModel->CalcRxPower(txPowerDbm,txMobilityModel,myMobilityModel);
 	}
+	}
+	else if(bandId == 7){
+		std::pair<PhyList::iterator,PhyList::iterator> pos;
+		pos = SearchTxList(7);
+		PhyList::iterator it;
+		PhyList::iterator end ;
+		it = pos.first;
+		end = pos.second;
+		while(it != end){
+			Ptr<LifiSpectrumPhy> lifiSpectrumPhy = it->second;
+	//		lifiSpectrumPhy=DynamicCast<LifiSpectrumPhy> ((*it).second);
+			Ptr<MobilityModel> txMobilityModel=lifiSpectrumPhy->GetMobility();
+			NS_ASSERT(txMobilityModel!=0);
+			Ptr<NetDevice> netDevice;
+			netDevice=(*it).second->GetDevice();
+			Ptr<LifiNetDevice> lifiNetDevice;
+			lifiNetDevice=DynamicCast<LifiNetDevice> (netDevice);
+			NS_ASSERT(lifiNetDevice!=0);
+			double txPowerDbm=lifiNetDevice->GetPhy()->GetTxPower();
+			powerSum+=m_propagationLossModel->CalcRxPower(txPowerDbm,txMobilityModel,myMobilityModel);
+			it++;
+		}
+	}
+	else
+		NS_LOG_WARN("Wrong band!");
     return powerSum;
 
 }

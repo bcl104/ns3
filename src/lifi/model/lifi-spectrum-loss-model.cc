@@ -40,8 +40,19 @@ Ptr<SpectrumValue> LifiSpectrumPropagationLossModel::DoCalcRxPowerSpectralDensit
 //	Ptr<const SpectrumModel> model = txPsd->GetSpectrumModel();
 //	Ptr<SpectrumValue> rxPsd = Create<SpectrumValue>(model);
 	Ptr<SpectrumValue> rxPsd = txPsd->Copy();
-	Values::iterator beg = (rxPsd->ValuesBegin()+(double)(6-m_band) * m_subBand);
-	Values::iterator end = beg + m_subBand;
+	Values::iterator beg;
+	Values::iterator end;
+	if(m_band < 7){
+	beg = (rxPsd->ValuesBegin()+(double)(6-m_band) * m_subBand);
+	end = beg + m_subBand;
+	}
+	else if(m_band == 7){
+		beg = rxPsd->ValuesBegin();
+		end = rxPsd->ValuesEnd();
+	}
+	else {
+		NS_LOG_WARN("Wrong BandId!");
+	}
 	double temp = Integral(*rxPsd);//unit W
 	temp = 10.0*log10(1000.0*temp);//unit dbm
 	double rxPower = DoCalcRxPower(temp,a,b);
@@ -123,10 +134,25 @@ double LifiSpectrumPropagationLossModel::DoCalcRxPower(double txPowerDbm, Ptr<co
 
 void LifiSpectrumPropagationLossModel::SetBandWidth(Ptr<SpectrumValue>psd , uint8_t band , uint8_t subBand){
 	NS_LOG_FUNCTION(this);
+	if(band < 7){
 	Bands::const_iterator psdBeg = psd->ConstBandsBegin() + (6 - band) * subBand;
-	Bands::const_iterator psdEnd = psdBeg + subBand;
-	double bandwidth = psdEnd->fl - psdBeg->fl;
+//	Bands::const_iterator psdEnd = psdBeg + subBand;
+	double bandwidth = psdBeg->fh - psdBeg->fl;
 	m_bandWith = bandwidth;
+	}
+	if(band == 7){
+	Bands::const_iterator psdBeg = psd->ConstBandsBegin();
+//	Bands::const_iterator psdEnd = psd->ConstBandsEnd();
+	Bands::const_iterator psdEnd = psdBeg + 6*subBand;
+	while(psdBeg!=psdEnd){
+		std::cout<<"band fl:"<<psdBeg->fl<<" fh:"<<psdBeg->fh<<std::endl;
+		psdBeg++;
+	}
+//	Bands::const_iterator psdEnd = psdBeg + 7*subBand;
+//	Bands::iterator End = psdEnd;
+	double bandwidth = psdEnd->fh - psdBeg->fl;
+	m_bandWith = bandwidth;
+	}
 }
 
 double LifiSpectrumPropagationLossModel::GetBandWidth(){
