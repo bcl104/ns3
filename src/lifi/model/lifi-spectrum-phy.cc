@@ -15,7 +15,8 @@ LifiSpectrumPhy::LifiSpectrumPhy() {
 	NS_LOG_FUNCTION(this);
 	m_rxPowerTh = 1;
 	m_berTh = 0.5;
-	m_rxNumCount = 0;
+//	m_rxNumCount = 0;
+	m_rxState = false;
 
 }
 
@@ -36,7 +37,8 @@ LifiSpectrumPhy::LifiSpectrumPhy(Ptr<NetDevice> device) {
 	m_device = device;
 	m_rxPowerTh = 1;
 	m_berTh = 0.5;
-	m_rxNumCount = 0;
+//	m_rxNumCount = 0;
+	m_rxState = false;
 //	m_cellId = 0;
 //	m_band = 0;
 }
@@ -152,40 +154,47 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 	Ptr<LifiSpectrumSignalParameters> lifi_params = DynamicCast<LifiSpectrumSignalParameters>(params);
 	bool cellMode = lifi_params->cellMode;
 	if(!cellMode){
-		PhyList::iterator beg;
-		PhyList::iterator  end;
+//		PhyList::iterator beg;
+//		PhyList::iterator  end;
 //		std::vector<Ptr<LifiSpectrumPhy> > txPoint;
 		std::pair<PhyList::iterator,PhyList::iterator> list_pair;
 		Ptr<LifiSpectrumChannel> channel = DynamicCast<LifiSpectrumChannel>(m_channel);
 //		Ptr<LifiSpectrumSignalParameters> lifi_param = DynamicCast<LifiSpectrumSignalParameters>(params);
-		list_pair = channel->SearchTxList(lifi_params->band);
-		beg = list_pair.first;
-		end = list_pair.second;//last modified at 11.05 04.25 by st125475466
+//		list_pair = channel->SearchTxList(lifi_params->band);
+//		beg = list_pair.first;
+//		end = list_pair.second;//last modified at 11.05 04.25 by st125475466
 		Ptr<SpectrumPropagationLossModel> propagationlossmodel = channel->GetSpectrumPropagationLossModel();
 //		m_interference
 		Time startTime = Simulator::Now();
 		lifi_params->time = startTime;
-		if(m_rxNumCount == 0){
+		Ptr<SpectrumValue> rxPsd = lifi_params->psd;
+//		if(m_rxNumCount == 0)
+		if(m_rxState == false){
 		NS_ASSERT(m_interference->GetReceiveState() == RX_ON);
-		m_rxNumCount++;
+//		m_rxNumCount++;
+		m_rxState = true;
 		m_interference->SetReceiveState(RX_BUSY);
 		Ptr<LifiPhy> lifiphy = lifi_device->GetPhy();
 //		NS_ASSERT(lifiphy->GetTRxState() == RX_ON);
 		lifiphy->SetTRxState(RX_BUSY);
 		lifiphy->GetPlmeSapUser()->PlemStateIndication(RX_BUSY);
 //		m_interference->SetAllsignal(0);
-		while(beg != end){
-				Ptr<SpectrumValue> txPsd = beg->second->GetSpectrumSignalParameters()->psd->Copy();
-	//			std::cout<<"aaa"<<Integral(*txPsd)<<std::endl;
-				Ptr<SpectrumValue> rxPsd = propagationlossmodel->CalcRxPowerSpectralDensity(txPsd,beg->second->GetMobility(),m_mobility);
-	//			std::cout<<Integral(*rxPsd)<<std::endl;
-				m_interference->LifiAddSignal(rxPsd,lifi_params->duration,startTime);
-				++beg;
-			}
+//		while(beg != end){
+//				Ptr<SpectrumValue> txPsd = beg->second->GetSpectrumSignalParameters()->psd->Copy();
+//	//			std::cout<<"aaa"<<Integral(*txPsd)<<std::endl;
+//				Ptr<SpectrumValue> rxPsd = propagationlossmodel->CalcRxPowerSpectralDensity(txPsd,beg->second->GetMobility(),m_mobility);
+//	//			std::cout<<Integral(*rxPsd)<<std::endl;
+//				m_interference->LifiAddSignal(rxPsd,lifi_params->duration,startTime);
+//				++beg;
+//			}
+		m_interference->LifiAddSignal(rxPsd,lifi_params->duration,startTime);
+		EventId id = Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
+		m_eventId.push_back(id);
 		}
 		else{
 			NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
-			m_rxNumCount++;
+			m_interference->LifiAddSignal(rxPsd,lifi_params->duration,startTime);
+//			m_rxNumCount++;
 		}
 //		Time startTime = Simulator::Now();
 //		lifi_params->time = startTime;
@@ -199,8 +208,8 @@ void LifiSpectrumPhy::StartRx(Ptr<SpectrumSignalParameters> params) {
 //			++beg;
 //		}
 //		std::cout<<"the duration is "<<lifi_params->duration<<std::endl;//?????????????????????????????????
-		EventId id = Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
-		m_eventId.push_back(id);
+//		EventId id = Simulator::Schedule(lifi_params->duration,&LifiSpectrumPhy::EndRx,this, lifi_params);
+//		m_eventId.push_back(id);
 	}
 	else{
 
@@ -219,7 +228,8 @@ void LifiSpectrumPhy::CancelEvent(){
 		++beg;
 	}
 	m_eventId.clear();
-	m_rxNumCount = 0;
+//	m_rxNumCount = 0;
+	m_rxState = false;
 	m_interference->SetReceiveState(RX_ON);
 	m_interference->CancelEvent();
 }
@@ -269,18 +279,19 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 //	std::cout<<"TimeDomainSinr:"<<TimeDomainSinr<<std::endl;
 	double ber = CalculateBer(TimeDomainSinr);
 	std::cout<<"ber:"<<ber<<std::endl;
-	ber = 0;
+//	ber = 0;
 	NS_ASSERT(m_interference->GetReceiveState() == RX_BUSY);
-	NS_ASSERT(m_rxNumCount > 0);
-	if(m_rxNumCount == 1){
-	m_rxNumCount--;
+//	NS_ASSERT(m_rxNumCount > 0);
+	NS_ASSERT(m_rxState == true);
+//	if(m_rxNumCount == 1){
+//	m_rxNumCount--;
 //	m_interference->SetAllsignal(0);
 	m_interference->SetReceiveState(RX_ON);
 	m_interference->CancelEvent();
-	}
-	else{
-		m_rxNumCount--;
-	}
+//	}
+//	else{
+//		m_rxNumCount--;
+//	}
 	//add a threshold detection statement
 //	ber = 1;//??????????????????????????????????????????????????
 	if(ber < m_berTh){
@@ -292,6 +303,7 @@ void LifiSpectrumPhy::EndRx(Ptr<LifiSpectrumSignalParameters> params){
 	else{
 //		NS_LOG_WARN("the rxBer:"<<ber<<"is less than the berTh"<<m_berTh);
 	}
+	m_rxState = false;
 }
 
 //void LifiSpectrumPhy::SetLifiPhy(Ptr<LifiPhy> phy){

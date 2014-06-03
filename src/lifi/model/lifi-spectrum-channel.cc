@@ -310,7 +310,7 @@ void LifiSpectrumChannel::AddTx(Ptr<LifiSpectrumPhy> phy) {
 		insertElement.first = band;
 		insertElement.second = phy;
 		m_txPhyList.insert(insertElement);
-		AddRxInterference(phy);
+//		AddRxInterference(phy);
 	}
 }
 
