@@ -11,11 +11,11 @@
 #include "ns3/core-module.h"
 
 template <class T>
-void* mem_cast(T ptr)
+long mem_cast(T ptr)
 {
 	T _ptr = ptr;
 	T *_pptr = &_ptr;
-	void* r = (void*) *reinterpret_cast<long*> (_pptr);
+	long r = (long) *reinterpret_cast<long*> (_pptr);
 	return r;
 }
 

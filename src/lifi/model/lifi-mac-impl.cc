@@ -26,8 +26,8 @@ TypeId LifiMacImpl::GetTypeId() {
 	return tid;
 }
 
-void LifiMacImpl::Associate(LogicChannelId channel, TypeId coordAddrMode,
-		uint16_t coordVPANId, Address coordAddr, CapabilityInfo info) {
+void LifiMacImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
+							uint16_t coordVPANId, Mac64Address coordAddr, CapabilityInfo info) {
 	NS_FATAL_ERROR("LifiMacImpl::Associate can not be invoked.");
 }
 
@@ -130,4 +130,12 @@ void LifiMacImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
 }
 
+void LifiMacImpl::AddTransactionPacket(TransactionInfo& transInfo) {
+}
+
+void LifiMacImpl::PetchTransactionPacket(Mac64Address DevAddress) {
+}
+
 } /* namespace ns3 */
+
+

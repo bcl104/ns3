@@ -18,10 +18,16 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED(LifiMacDevImpl);
 
 LifiMacDevImpl::LifiMacDevImpl()
-				: m_trxHandler (new LifiDevTrxHandler)
+				: m_trxHandler (new LifiDevTrxHandler),
+				  m_devAssocHandler (new LifiDevAssocHandler)
 {
 	NS_LOG_FUNCTION (this);
 	m_trxHandler->SetLifiMacImpl(this);
+	m_devAssocHandler->SetLifiMacImpl(this);
+	m_devAssocHandler->SetMacPibAttributes(&m_attributes);
+	m_devAssocHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiDevAssocHandler::GetTypeId(),
+								  GetPointer (m_devAssocHandler));
 }
 
 LifiMacDevImpl::~LifiMacDevImpl() {
@@ -35,10 +41,15 @@ TypeId LifiMacDevImpl::GetTypeId() {
 	return tid;
 }
 
-void LifiMacDevImpl::Associate(LogicChannelId channel,
-		TypeId coordAddrMode, uint16_t coordVPANId, Address coordAddr,
-		CapabilityInfo info) {
-	NS_LOG_FUNCTION (this);
+void LifiMacDevImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
+							   uint16_t coordVPANId, Mac64Address coordAddr, CapabilityInfo info) {
+	NS_LOG_FUNCTION (this << (uint32_t)channel << coordAddrMode << coordVPANId << coordAddr);
+	VPANDescriptor vpanDesr;
+	vpanDesr.coordAddr = coordAddr;
+	vpanDesr.coordAddrMode = coordAddrMode;
+	vpanDesr.coordVPANId = coordVPANId;
+	vpanDesr.logicChannel = channel;
+	m_devAssocHandler->Start(vpanDesr);
 
 }
 
@@ -90,10 +101,11 @@ void LifiMacDevImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
 	header.SetDstAddress(dstAddr);
 	msdu->AddHeader(header);
 	PacketInfo info;
-	info.m_band = 0x01;
+	info.m_band = CHANNEL1;
 	info.m_bust = false;
 	info.m_force = false;
 	info.m_handle = 2;
+	info.m_isAck = false;
 	info.m_listener = &listener;
 	info.m_msduSize = msdu->GetSize();
 	info.m_option = option;

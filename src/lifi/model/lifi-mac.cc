@@ -83,7 +83,7 @@ void LifiMac::AssociateResponse(Mac64Address devAddr,Mac16Address assocShortAddr
 	m_lifiMacImpl->AssociateResponse(devAddr, assocShortAddr, status, capNegoResponse);
 }
 
-void LifiMac::Associate(LogicChannelId channel, TypeId coordAddrMode,uint16_t coordVPANId,
+void LifiMac::Associate(LogicChannelId channel, AddrMode coordAddrMode,uint16_t coordVPANId,
 		Mac64Address coordAddr, CapabilityInfo capInfo) {
 	NS_LOG_FUNCTION(this << (uint32_t)channel << coordAddrMode << coordVPANId << coordAddr /*<< capInfo*/);
 
@@ -203,6 +203,10 @@ void LifiMac::SetMlmeSapUser(const Ptr<MlmeSapUser>& mlmeSapUser) {
 	m_lifiMacImpl->SetMlmeSapUser(mlmeSapUser);
 }
 
+Ptr<MlmeSapUser> LifiMac::GetMlmeSapUser() const {
+	return m_mlmeSapUser;
+}
+
 Ptr<PdSapProvider> LifiMac::GetPdSapProvider() const
 {
 	return m_pdSapProvider;
@@ -233,4 +237,3 @@ const Time* LifiMac::GetOpticalPeriod() const
 }
 
 } // ns3 name space
-

@@ -115,14 +115,6 @@ enum MacColorStabCapab{
 	EITHER_DIRECTION = 0X03,
 };
 
-enum MacAssocStatus
-{
-	ASSOC_SUCCESS = 0x00,
-	VPAN_CAPACITY = 0x01,
-	VPAN_ACCESS_DENY = 0x02
-
-};
-
 enum DisassocReason
 {
 	COORD = 0x01,
@@ -156,6 +148,7 @@ enum GTSDirection
 
 enum LogicChannelId
 {
+	CHANNEL_UNAVAILABLE,
 	CHANNEL1 = 0x01,
 	CHANNEL2 = 0x02,
 	CHANNEL3 = 0x04,
@@ -391,17 +384,37 @@ class TrxHandlerListener;
 struct PacketInfo
 {
 	uint8_t m_handle;
-	uint8_t m_band;
+	LogicChannelId m_band;
 	TxOption m_option;
 	DataRateId m_rate;
 	uint32_t m_msduSize;
 	bool m_bust;
 	bool m_force;
+	bool m_isAck;
 	Ptr<Packet> m_packet;
 	TrxHandlerListener* m_listener;
 	void Reset ();
 	bool Available ();
 };
+
+struct AssocDevAddress{
+	Mac64Address m_extendedAddress;
+	Mac16Address m_shortAddress;
+};
+
+//typedef std::vector<Mac64Address> AssocDevAddrs;
+
+struct TransactionInfo
+{
+	uint16_t m_handle;
+	Mac64Address m_extendDevAddress;
+//	Timer m_timer;
+	PacketInfo m_packetInfo;
+	TrxHandlerListener* m_listener;
+	EventId m_eventId;
+};
+
+typedef std::deque< std::pair<Mac64Address, TransactionInfo> > Transactions;
 
 } /* namespace ns3 */
 

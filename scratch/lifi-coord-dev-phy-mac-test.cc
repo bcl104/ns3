@@ -401,29 +401,43 @@ int main(){
 	LogComponentEnable("LifiMacDevImpl", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiTrxHandler", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiCoordTrxHandler", LOG_LEVEL_FUNCTION);
-
+	LogComponentEnable("LifiDevTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiDevAssocHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiCoordAssocHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiTransactionHandler", LOG_LEVEL_FUNCTION);
+//	LogComponentEnable("Timer", LOG_LEVEL_FUNCTION);
 //	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
-	_test.GetLifiMacTx()->StartVPAN(0x01,CHANNEL1, 0, 2, 2, true);
-	TxOption op;
-	op.ackTx = false;
-	op.indirectTx = false;
-	op.gtsTx = false;
-	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
-							   LifiMac::GetTypeId(),
-							   0x01,
-							   Address(Mac16Address("ff:ff")),
-							   1,
-							   Create<Packet> (1),
-							   2,
-							   op,
-							   PHY_III_24_00_MBPS,
-							   false);
+	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
+//	TxOption op;
+//	op.ackTx = false;
+//	op.indirectTx = false;
+//	op.gtsTx = false;
+//
+//	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
+//							   LifiMac::GetTypeId(),
+//							   0x01,
+//							   Address(Mac16Address("ff:ff")),
+//							   1,
+//							   Create<Packet> (1),
+//							   2,
+//							   op,
+//							   PHY_III_24_00_MBPS,
+//							   false);
 
-	Simulator::Stop(Seconds(1));
+	CapabilityInfo info;
+	info.CoordCapabi = true;
+	info.SecCapabi = false;
+	info.TrafficSup = false;
+	info.batteryInfo = 0x02;
+	info.powerSource = true;
+	_test.GetLifiMacRx()->Associate(CHANNEL1, EXTENDED, 0x01,
+									Mac64Address ("00:00:00:00:00:00:00:01"), info);
+
+	Simulator::Stop(Seconds(8));
 	Simulator::Run ();
 	Simulator::Destroy();
 

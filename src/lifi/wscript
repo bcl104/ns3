@@ -56,7 +56,7 @@ def build(bld):
         'model/lifi-mac-ack.cc',  
         'model/lifi-mac-handler.cc',
         'model/lifi-dev-assoc-handler.cc',
-   ##     'model/lifi-coord-assoc-handler.cc',
+        'model/lifi-coord-assoc-handler.cc',
         'model/lifi-spectrum-loss-model.cc',   
         'helper/lifi-helper.cc',
         ]
@@ -115,7 +115,7 @@ def build(bld):
         'model/lifi-mac-ack.h',
         'model/lifi-mac-handler.h',
         'model/lifi-dev-assoc-handler.h',
-       ## 'model/lifi-coord-assoc-handler.h',
+        'model/lifi-coord-assoc-handler.h',
         'model/lifi-spectrum-loss-model.h',     
         'helper/lifi-helper.h',
         'utils/utils.h'

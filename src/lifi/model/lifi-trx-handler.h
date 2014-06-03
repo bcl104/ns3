@@ -184,10 +184,15 @@ protected:
 
 	enum {
 		IDLE,
-		TRANCEIVER_TASK,
-		GTS_TRANSMISSION,
+//		GTS_TRANSMISSION,
 		BACKOFF,
 	} m_opStatus;
+
+	enum{
+		TASK_IDLE,
+		TRANCEIVER_TASK,
+		GENERAL_RANDOM_ACCESS,
+	} m_taskType;
 
 	TrxHandlerListeners m_listens;
 	TrxTasks m_tranceiverTasks;

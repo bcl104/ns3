@@ -40,35 +40,37 @@ LifiMacAck& LifiMacAck::Construct(Ptr<Packet> p) {
 }
 
 Buffer LifiMacAck::Serialize() {
-	uint32_t bufferSizeSize = 2;
-	uint32_t frameCountSize = 1;
-	uint32_t sequenseControlSize = 2;
-	uint32_t bitmapSize = 512;
-	uint32_t size = bufferSizeSize + frameCountSize +
-			        sequenseControlSize + bitmapSize + 1;
+//	uint32_t bufferSizeSize = 2;
+//	uint32_t frameCountSize = 1;
+//	uint32_t sequenseControlSize = 2;
+//	uint32_t bitmapSize = 512;
+//	uint32_t size = bufferSizeSize + frameCountSize +
+//			        sequenseControlSize + bitmapSize + 1;
+//	Buffer data;
+//	data.AddAtStart(size);
+//	Buffer::Iterator it = data.Begin();
+//	it.WriteU16(m_BufferSize);
+//	it.WriteU8(m_FrameCount);
+//	uint8_t reseved = 1;
+//	it.WriteU8(reseved);
+//	it.WriteU16(m_SequenceControl);
+//	it.Write(m_bitmap, 512);     //ACK is so long that ACKWaitTime is timeout!!
 	Buffer data;
+	uint32_t size = 1;
 	data.AddAtStart(size);
-	Buffer::Iterator it = data.Begin();
-	it.WriteU16(m_BufferSize);
-	it.WriteU8(m_FrameCount);
-	uint8_t reseved = 1;
-	it.WriteU8(reseved);
-	it.WriteU16(m_SequenceControl);
-	it.Write(m_bitmap, 512);
-
 	return data;
 }
 
 void LifiMacAck::Deserialize(const uint8_t *data, uint32_t size) {
-	m_BufferSize =*data++;
-	m_BufferSize =(m_BufferSize <<8) | *data;
-	data ++;
-	m_FrameCount = *data;
-	data += 2;
-	m_SequenceControl = *data++;
-	m_SequenceControl = (m_SequenceControl << 8) | *data;
-	data ++;
-	memcpy(m_bitmap, data, 512);
+//	m_BufferSize =*data++;
+//	m_BufferSize =(m_BufferSize <<8) | *data;
+//	data ++;
+//	m_FrameCount = *data;
+//	data += 2;
+//	m_SequenceControl = *data++;
+//	m_SequenceControl = (m_SequenceControl << 8) | *data;
+//	data ++;
+//	memcpy(m_bitmap, data, 512);
 
 }
 

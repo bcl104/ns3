@@ -9,7 +9,7 @@
 #define LIFI_MAC_COORD_IMPL_H_
 #include "lifi-mac-impl.h"
 #include "lifi-gts-handler.h"
-//#include "lifi-coord-assoc-handler.h"
+#include "lifi-coord-assoc-handler.h"
 #include "lifi-coord-trx-handler.h"
 #include "lifi-data-handler.h"
 #include "lifi-beacon-handler.h"
@@ -21,16 +21,20 @@ class LifiTxHandler;
 class LifiAssocHandler;
 class LifiChannelScanHandler;
 class LifiGtsHandler;
+class LifiCoordAssocHandler;
 
 class LifiMacCoordImpl : public LifiMacImpl
 {
 	friend class LifiCoordTrxHandler;
-
+	friend class LifiCoordAssocHandler;
+	friend class LifiDevAssocHandler;
 public:
 	LifiMacCoordImpl();
 	virtual ~LifiMacCoordImpl();
 	static TypeId GetTypeId ();
 
+//	virtual void Associate(LogicChannelId channel, AddrMode coordAddrMode,
+//						   uint16_t coordVPANId, Address coordAddr, CapabilityInfo info);
 	virtual void AssociateResponse(Mac64Address devAddr, Mac16Address assocShortAddr,
 									MacOpStatus status, MacOpStatus capResponse);
 	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
@@ -64,15 +68,18 @@ public:
 
 private:
 
-	uint32_t m_gtsSlotCount;
+	void AddTransactionPacket (TransactionInfo& transInfo);
+	void PetchTransactionPacket (Mac64Address DevAddress);
 
+	uint32_t m_gtsSlotCount;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
 //	Ptr<LifiCoordAssocHandler> m_assocHandler;
 	Ptr<LifiDisassocHandler> m_disassocHandler;
 	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
 	Ptr<LifiDataHandler> m_dataHandler;
-
+	Ptr<LifiCoordAssocHandler> m_coordAssocHandler;
+	Ptr<LifiTransactionHandler> m_transcHandler;
 };
 
 } /* namespace ns3 */

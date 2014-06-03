@@ -13,6 +13,7 @@
 #include "data-service.h"
 #include "lifi-mac-impl.h"
 #include "lifi-assoc-handler.h"
+#include "lifi-trx-handler.h"
 
 namespace ns3 {
 
@@ -20,7 +21,7 @@ class LifiDevAssocHandler : public LifiAssocHandler
 {
 
 public:
-	static const uint32_t MAX_MAC_RESPONSE_WAIT_TIME = 61440;
+//	static const uint32_t MAX_MAC_RESPONSE_WAIT_TIME = 61440;
 
 	LifiDevAssocHandler ();
 
@@ -30,21 +31,37 @@ public:
 
 	static TypeId GetTypeId ();
 
-	void Start(VPANDescriptor &vpandescri, bool trackbeacon);
+	void Start(VPANDescriptor &vpandescri);
 
 	void SetMacPibAttribtes(LifiMacPibAttribute* attributes);
 
-	virtual void TxResultNotification(MacOpStatus status);
+	void SetTrxHandler (Ptr<LifiTrxHandler> trxHandler);
 
-	void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu);
+	// Inherit from TrxHandlerListener.
+	virtual void AllocNotification (Ptr<DataService> service);
 
-	void ReceiveAck (uint32_t timestamp, Ptr<Packet> msdu);
+	virtual void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> p);
 
-	void ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> msdu);
+	virtual void TxResultNotification (MacOpStatus status,
+									PacketInfo info, Ptr<Packet> ack);
+
+	virtual void ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> p);
 
 	void Reset ();
 
 protected:
+	void onAllocNotification (Ptr<DataService> service);
+
+	void onReceiveBeacon (uint32_t timestamp, Ptr<Packet> p);
+
+	void onTxResultNotification1 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
+
+	void onTxResultNotification2 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
+
+	void onTxResultNotification3 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
+
+	void onReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> p);
+
 	void SendAssocRequest();
 
 	void SendDataRequest();
@@ -53,50 +70,23 @@ protected:
 
 	void EndAssoc(MacOpStatus status);
 
-	void Initialize ();
-	void InitializeTxNotificationCallback (MacOpStatus status);
-
-	void WaitForAck1 ();
-	void WaitForAck1AckNotificationCallback (uint32_t timestamp, Ptr<Packet> msdu);
-
-	void WaitForResponWithTrack ();
-	void WaitForResponWithTrackBeaconNotificationCallback (uint32_t, Ptr<Packet> msdu);
-	void WaitForResponWithTrackTxNotification (MacOpStatus status);
-
-	void WaitForResponWithoutTrack ();
-	void WaitForResponWithoutTrackTxNotification (MacOpStatus status);
-	void WaitForResponWithoutTrackTimeout ();
-
-	void WaitForAck2 ();
-	void WaitForAck2AckNotificationCallback (uint32_t timestamp, Ptr<Packet> msdu);
-
-	void WaitForResponse ();
-	void OnAssocRspNotification (uint32_t, Ptr<Packet> msdu);
-
-	enum State
-	{
-		IDLE,
-		INITIALIZE,
-		WAIT_FOR_ACK1,
-		WAIT_FOR_RESPON_WITH_TRACK,
-		WAIT_FOR_RESPON_WITHOUT_TRACK,
-		WAIT_FOR_ACK2,
-		WAIT_FOR_ASSOC_RESPON,
-	} m_state;
-
 private:
 	Address m_coordAddr;
-	Mac16Address m_allocAddr;
-	Timer m_timer;
+	AddrMode m_coordAddrMode;
 	uint16_t m_VPANId;
 	LogicChannelId m_curChannel;
-	bool m_run;
 	bool m_trackBeacon;
 
-	Callback<void, MacOpStatus> m_txRstNotification;
-	Callback<void, uint32_t, Ptr<Packet> > m_ackNotification;
-	Callback<void, uint32_t, Ptr<Packet> > m_beaconNotification;
-	Callback<void, uint32_t, Ptr<Packet> > m_assocRspNotification;
+	bool m_run;
+	Timer m_timer;
+	Mac16Address m_allocAddr;
+	Ptr<LifiTrxHandler> m_trxHandler;
+	Ptr<DataService> m_service;
+
+	Callback<void, MacOpStatus, PacketInfo, Ptr<Packet> > m_txRstNotification;
+//	Callback<void, uint32_t, Ptr<Packet> > m_ackNotification;
+//	Callback<void, uint32_t, Ptr<Packet> > m_beaconNotification;
+//	Callback<void, uint32_t, Ptr<Packet> > m_assocRspNotification;
 
 };
 

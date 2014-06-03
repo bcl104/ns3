@@ -62,11 +62,12 @@ void LifiBackoff::Reset()
 {
 	this->m_backoffExponential = *minBackoffExponential;
 	this->m_backoffRetries = 0;
+//	this->m_backoffTimer.Cancel();
 }
 
 void PacketInfo::Reset()
 {
-	this->m_band = 0;
+	this->m_band = CHANNEL1;
 	this->m_handle = 0;
 	this->m_listener = 0;
 	this->m_msduSize = 0;

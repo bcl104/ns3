@@ -129,6 +129,7 @@ Ptr<LifiPhyPibAttribute> LifiPhy::GetPhyPibAttributes() {
 
 bool LifiPhy::DoCca() {
 	NS_LOG_FUNCTION(this);
+	std::cout << m_trxStatus << std::endl;
 	NS_ASSERT(m_trxStatus != TX_BUSY);
 	bool ccaResult = m_spectrumPhy->CarrierSense(7,m_edTh);
 	std::cout<<"cca result:"<<ccaResult<<std::endl;
@@ -284,12 +285,12 @@ void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	pb->RemoveHeader(header);
 	uint32_t size = pb->GetSize();
 	m_pdSapUser->PdDataIndication(size,pb,0);
-	uint8_t *buffer=new uint8_t;
-//////	*buffer=56;
-	std::cout<<"receive packet size:"<<size<<std::endl;
-	pb->CopyData(buffer,size);
-	std::cout<<"receive buffer:"<<(int)*buffer<<std::endl;
-	delete buffer;
+//	uint8_t *buffer=new uint8_t;
+////////	*buffer=56;
+//	std::cout<<"receive packet size:"<<size<<std::endl;
+//	pb->CopyData(buffer,size);
+//	std::cout<<"receive buffer:"<<(int)*buffer<<std::endl;
+//	delete buffer;
 //	std::ofstream oso("abcd.txt");
 //	pb->Print(oso);
 //	std::cout<<pb<<std::endl;
@@ -305,6 +306,7 @@ PhyOpStatus LifiPhy::GetTRxState(){
 
 PhyOpStatus LifiPhy::SetTRxState(PhyOpStatus state) {
 	NS_LOG_FUNCTION(this);
+//	std::cout << m_trxStatus << std::endl;
 //	m_trxStatus = state;
 	PhyOpStatus tempState = m_trxStatus;
 	if(tempState == RX_BUSY){

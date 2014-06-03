@@ -250,10 +250,10 @@ Ptr<SpectrumValue> LifiInterference::CalcuAveInterference(Time duration,Time sta
 	while(beg != end){
 		std::map<Time,Ptr<SpectrumValue> >::iterator temp = beg++;
 		*average = ((beg->first.GetSeconds() - temp->first.GetSeconds()) / last_duration) *  (*(temp->second));
-//		std::cout<<"temp interal:"<<(Integral(*(temp->second)))<<std::endl;
+		std::cout<<"temp interal:"<<(Integral(*(temp->second)))<<std::endl;
 //		std::cout<<"beg interal:"<<(Integral(*(beg->second)))<<std::endl;
 //		std::cout<<"time:"<<((beg->first.GetSeconds() - temp->first.GetSeconds())/ last_duration)<<std::endl;
-//		std::cout<<"temp time:"<< temp->first.GetSeconds()<<std::endl;
+		std::cout<<"temp time:"<< temp->first.GetSeconds()<<std::endl;
 //		std::cout<<"beg time:"<< beg->first.GetSeconds()<<std::endl;
 //		std::cout<<"duration:"<< duration.GetSeconds()<<std::endl;
 //		std::cout<<"startTime:"<< startTime.GetSeconds()<<std::endl;

@@ -64,7 +64,7 @@ public:
 	void AssociateResponse (Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status,
 								MacOpStatus capNegoResponse);
 
-	void Associate (LogicChannelId channel, TypeId coorAddrMode, uint16_t coorVPANId,
+	void Associate (LogicChannelId channel, AddrMode coorAddrMode, uint16_t coorVPANId,
 										Mac64Address coordAddr, CapabilityInfo capInfo);
 
 	void Disassociate (TypeId devAddrMode, uint16_t devVPANId, Address devAddr,	DisassocReason reason,
@@ -94,6 +94,8 @@ public:
 	const Ptr<MlmeSapProvider>& GetMlmeSapProvider() const;
 
 	void SetMlmeSapUser(const Ptr<MlmeSapUser>& user);
+
+	Ptr<MlmeSapUser> GetMlmeSapUser () const;
 
 	void SetPdSapProvider(const Ptr<PdSapProvider>& provider);
 

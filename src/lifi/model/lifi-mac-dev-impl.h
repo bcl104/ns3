@@ -18,12 +18,14 @@
 #include "lifi-data-handler.h"
 #include "lifi-assoc-handler.h"
 #include "lifi-channel-scan-handler.h"
+#include "lifi-dev-assoc-handler.h"
 
 namespace ns3 {
 
 //class LifiTxHandler;
 class LifiAssocHandler;
 class LifiChannelScanHandler;
+//class LifiDevAssocHandler;
 //class LifiDisassocHandler;
 //class LifiBeaconHandler;
 //class LifiGtsHandler;
@@ -39,8 +41,8 @@ public:
 	static TypeId GetTypeId ();
 
 
-	virtual void Associate(LogicChannelId channel, TypeId coordAddrMode, uint16_t coordVPANId,
-							Address coordAddr, CapabilityInfo info);
+	virtual void Associate(LogicChannelId channel, AddrMode coordAddrMode, uint16_t coordVPANId,
+						   Mac64Address coordAddr, CapabilityInfo info);
 	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
 	virtual void GtsRequest(GTSCharacteristics characteristic);
@@ -75,6 +77,7 @@ protected:
 	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
 	Ptr<LifiDataHandler> m_dataHandler;
+	Ptr<LifiDevAssocHandler> m_devAssocHandler;
 };
 
 } /* namespace ns3 */

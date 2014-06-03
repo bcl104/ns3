@@ -18,11 +18,25 @@ NS_OBJECT_ENSURE_REGISTERED (LifiMacCoordImpl);
 
 LifiMacCoordImpl::LifiMacCoordImpl()
 				: m_gtsSlotCount (0),
-				  m_trxHandler (new LifiCoordTrxHandler)
+				  m_trxHandler (new LifiCoordTrxHandler),
+				  m_coordAssocHandler (new LifiCoordAssocHandler),
+				  m_transcHandler (new LifiTransactionHandler)
+
 
 {
 	m_trxHandler->SetLifiMacImpl(this);
 	m_trxHandler->SetMacPibAttributes(&m_attributes);
+	m_coordAssocHandler->SetLifiMacImpl(this);
+	m_coordAssocHandler->SetMacPibAttributes(&m_attributes);
+	m_coordAssocHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiCoordAssocHandler::GetTypeId(),
+							  GetPointer (m_coordAssocHandler));
+	m_transcHandler->SetLifiMacImpl(this);
+	m_transcHandler->SetMacPibAttributes(&m_attributes);
+	m_transcHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiTransactionHandler::GetTypeId(),
+							  GetPointer (m_transcHandler));
+
 }
 
 LifiMacCoordImpl::~LifiMacCoordImpl() {
@@ -35,6 +49,11 @@ TypeId LifiMacCoordImpl::GetTypeId() {
 						.AddConstructor<LifiMacCoordImpl> ();
 	return tid;
 }
+
+//void LifiMacCoordImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
+//			uint16_t coordVPANId, Address coordAddr, CapabilityInfo info){
+//	NS_LOG_FUNCTION(this);
+//}
 
 void LifiMacCoordImpl::AssociateResponse(Mac64Address devAddr,
 		Mac16Address assocShortAddr, MacOpStatus status,
@@ -88,6 +107,7 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	beacon.SetBcnOrder((uint8_t)m_attributes.macBeaconOrder);
 	beacon.SetCellSearchEn(true);
 	beacon.SetCellSearchLenth(0);
+
 	beacon.SetFinalCapSlot(15 - m_gtsSlotCount);
 	beacon.SetGtsDescripCount(0);
 	beacon.SetGtsPermit(false);
@@ -100,7 +120,8 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	header.SetFrameType(LIFI_BEACON);
 	header.SetSequenceNumber(m_attributes.macDSN);
 	header.SetSrcAddress(m_mac->GetDevice()->GetAddress());
-	header.SetSrcVPANId(m_attributes.macVPANId);
+	std::cout << m_mac->GetDevice()->GetAddress() << std::endl;
+//	header.SetSrcVPANId(m_attributes.macVPANId);
 	Ptr<Packet> p = beacon.GetPacket();
 	p->AddHeader(header);
 	return p;
@@ -144,4 +165,16 @@ void LifiMacCoordImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
 }
 
+void LifiMacCoordImpl::AddTransactionPacket(TransactionInfo& transInfo)
+{
+	NS_LOG_FUNCTION(this);
+	m_transcHandler->AddTransaction(transInfo);
+}
+
+void LifiMacCoordImpl::PetchTransactionPacket(Mac64Address DevAddress) {
+	NS_LOG_FUNCTION(this);
+	m_transcHandler->PetchTransaction(DevAddress);
+}
+
 } /* namespace ns3 */
+

@@ -23,7 +23,7 @@ public:
 	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capNigoResponse) = 0;
 	virtual void MlmeAssociateIndication(Mac64Address devAddr, CapabilityInfo capInfo) = 0;
 	virtual void MlmeBeaconNotify(uint8_t bsn, VPANDescriptor vpanDiscriptor, PendAddrSpec pendAddrSpec, AddrList addrList, uint32_t size, uint8_t* payload) = 0;
-	virtual void MlmeCommStatusIndication(uint16_t vpanId, TypeId srcAddrMode, Address srcAddr, TypeId dsAddrMode, Address dstAddr, MacOpStatus status) = 0;
+	virtual void MlmeCommStatusIndication(uint16_t vpanId, AddrMode srcAddrMode, Address srcAddr, AddrMode dsAddrMode, Address dstAddr, MacOpStatus status) = 0;
 	virtual void MlmeDisassociateConfirm(MacOpStatus status, TypeId devAddrMode, uint16_t devVPANId, Address devAddr) = 0;
 	virtual void MlmeDisassociateIndication(Mac64Address devAddr, MacOpStatus disassociateReason) = 0;
 	virtual void MlmeGtsConfirm(GTSCharacteristics characteristics, MacOpStatus status) = 0;

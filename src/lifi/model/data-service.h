@@ -39,9 +39,10 @@ public:
 
 	virtual ~DataService();
 
-	template <class T> static Ptr<DataService> Create (T t)
+	template <class T>
+	static Ptr<DataService> Create (T t)
 	{
-		return Create<DataService> (t);
+		return new DataService (t);
 	}
 
 	bool Transmit(PacketInfo& info)
@@ -76,11 +77,12 @@ public:
 		Disconnect();
 	}
 private:
-	template<class T> DataService(T *impl)
-	{
-		m_base = new DataServiceImpl<T> (impl);
-		m_connected = true;
-	}
+	template<class T>
+			DataService(T *impl)
+			{
+				m_base = new DataServiceImpl<T> (impl);
+				m_connected = true;
+			}
 
 	void Disconnect ()
 	{

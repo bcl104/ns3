@@ -267,7 +267,7 @@ public:
 
 	AssocResponseComm();
 
-	AssocResponseComm(MacAssocStatus assoc, uint8_t cap, uint16_t address);
+	AssocResponseComm(MacOpStatus assoc, uint8_t cap, uint16_t address);
 
 	virtual ~AssocResponseComm();
 
@@ -276,11 +276,11 @@ public:
 
     uint16_t GetShortAddr () const;
 
-    void SetShortAddr(uint16_t shortaddr);
+    void SetShortAddr(Mac16Address shortaddr);
 
     MacOpStatus GetAssocStatus () const;
 
-    void SetAssocStatus(uint8_t assocstatus);
+    void SetAssocStatus(MacOpStatus assocstatus);
 
     uint8_t GetCapNegoResponse () const;
 

@@ -32,7 +32,6 @@ class LifiMacImpl : public Object
 	friend class LifiTrxHandler;
 	friend class LifiCoordTrxHandler;
 	friend class LifiDevTrxHandler;
-
 public:
 	LifiMacImpl();
 	virtual ~LifiMacImpl();
@@ -48,8 +47,8 @@ public:
 	 *	\param coorAddress Mac address of the coordinator.
 	 *	\param info Specifies the operational capabilities of the associating device.
 	 * */
-	virtual void Associate(LogicChannelId channel, TypeId coordAddrMode, uint16_t coordVPANId,
-							Address coordAddr, CapabilityInfo info);
+	virtual void Associate(LogicChannelId channel, AddrMode coordAddrMode, uint16_t coordVPANId,
+						   Mac64Address coordAddr, CapabilityInfo info);
 
 	/*
 	 * 	Both coordinator and device should implement this method, which activate the disassociation
@@ -190,6 +189,9 @@ public:
 	virtual void SetMlmeSapUser (Ptr<MlmeSapUser> u);
 
 	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
+
+	virtual void AddTransactionPacket (TransactionInfo& transInfo);
+	virtual void PetchTransactionPacket (Mac64Address DevAddress);
 
 protected:
 

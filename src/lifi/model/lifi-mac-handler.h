@@ -21,8 +21,9 @@ namespace ns3 {
 //class PlmeSapProvider;
 //class PdSapProvider;
 class LifiMacPibAttribute;
+class DataService;
 
-typedef std::map<void*, bool> TrigMap;
+typedef std::map<long, bool> TrigMap;
 
 class LifiMacHandler: public Object
 {
@@ -40,21 +41,21 @@ protected:
 
 	template <class T> void AddTrigger (T trigger, bool enable)
 	{
-		void* key = mem_cast(trigger);
+		double key = (double)mem_cast(trigger);
 		NS_ASSERT (m_trigger.find(key) == m_trigger.end());
-		m_trigger.insert(std::pair<void*, bool> (key, enable));
+		m_trigger.insert(std::pair<long, bool> (key, enable));
 	}
 
 	template <class T> void DelTrigger (T trigger)
 	{
-		void* key = mem_cast(trigger);
+		long key = mem_cast(trigger);
 		NS_ASSERT (m_trigger.find(key) != m_trigger.end());
 		m_trigger.erase(key);
 	}
 
 	template <class T> void EnableTrigger (T trigger)
 	{
-		void* key = mem_cast(trigger);
+		long key = mem_cast(trigger);
 		TrigMap::iterator it = m_trigger.find(key);
 		NS_ASSERT (it != m_trigger.end());
 		it->second = true;
@@ -62,7 +63,7 @@ protected:
 
 	template <class T> void DisableTrigger (T trigger)
 	{
-		void* key = mem_cast(trigger);
+		long key = mem_cast(trigger);
 		TrigMap::iterator it = m_trigger.find(key);
 		NS_ASSERT (it != m_trigger.end());
 		it->second = false;
@@ -90,7 +91,7 @@ protected:
 
 	template <class T> bool CheckTrigger (T trigger)
 	{
-		void* key = mem_cast(trigger);
+		long key = mem_cast(trigger);
 		TrigMap::iterator it = m_trigger.find(key);
 		NS_ASSERT (it != m_trigger.end());
 		return it->second;
@@ -104,7 +105,6 @@ protected:
 
 	template <class T1, class T2> void SwitchState (T1 newState, T2 type)
 	{
-
 		(type->*newState) ();
 	}
 	template <typename T1, typename T2> int compare(const T1 &v1, const T2 &v2){
@@ -116,10 +116,12 @@ protected:
 
 	TrigMap m_trigger;
 
+	Ptr<DataService> m_dataService;
 	Ptr<LifiMacImpl> m_impl;
 	Ptr<PlmeSapProvider> m_plmeProvider;
 	Ptr<PdSapProvider> m_pdProvider;
-	LifiMacPibAttribute* m_attributes;
+	Ptr<LifiMacPibAttribute> m_attributes;
+	Ptr<MlmeSapUser> m_user;
 	const Time* m_opticalPeriod;
 };
 

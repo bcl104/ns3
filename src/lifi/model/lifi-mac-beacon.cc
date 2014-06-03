@@ -172,7 +172,7 @@ void LifiMacBeacon::AddPendingAddress(AddrList address)
 
 bool LifiMacBeacon::AddPendingAddress(Address address) {
 	AddrList::iterator it = std::find_if(m_pendingAddrs.begin(), m_pendingAddrs.end(), address);
-	NS_ASSERT (it == m_pendingAddrs.end());
+	NS_ASSERT (it != m_pendingAddrs.end());
 	m_pendingAddrs.push_back(address);
 	if (Mac16Address::IsMatchingType(address))
 	{

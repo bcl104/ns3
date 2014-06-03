@@ -114,7 +114,7 @@ void LifiCoordTrxHandler::TransmitBeacon()
 	Ptr<Packet> beacon = coordImpl->ConstructBeacon();
 	NS_ASSERT (!m_curTransmission.IsAvailable());
 	m_curTransmission.Reset();
-	m_curTransmission.m_info.m_band = 0x01;
+	m_curTransmission.m_info.m_band = CHANNEL1;
 	m_curTransmission.m_info.m_bust = false;
 	m_curTransmission.m_info.m_force = true;
 	m_curTransmission.m_info.m_handle = 1;	// handle number 1 is for beacon transmission.

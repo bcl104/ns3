@@ -34,12 +34,33 @@ public:
 
 	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack);
 
+	void SetLifiMacImpl (LifiMacImpl* impl);
+
+	Ptr<LifiMacImpl> GetLifiMacImpl () const;
+
+	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
+
+	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
+
+	void SetDataService (Ptr<DataService> service);
+
+	Ptr<DataService> GetDataService () const;
+
+	void SetLifiMacPibAttribute (Ptr<LifiMacPibAttribute> pib);
+
+	Ptr<LifiMacPibAttribute> GetLifiMacPibAttribute () const;
+
+	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
+
+	Ptr<MlmeSapUser> GetMlmeSapUser () const;
+
+
 protected:
-	DataService* m_dataService;
-	LifiMacImpl* m_impl;
-	PlmeSapProvider* m_provider;
-	LifiMacPibAttribute* m_attributes;
-	MlmeSapUser* m_user;
+//	DataService* m_dataService;
+//	LifiMacImpl* m_impl;
+//	PlmeSapProvider* m_provider;
+//	LifiMacPibAttribute* m_attributes;
+//	MlmeSapUser* m_user;
 
 };
 

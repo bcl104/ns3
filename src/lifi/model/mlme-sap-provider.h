@@ -23,7 +23,7 @@ public:
 
 	virtual void MlmeAssocaiteResponse(Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status, MacOpStatus capNegoResponse) = 0;
 
-	virtual void MlmeAssociateRequest(LogicChannelId logicChannel, TypeId coorAddrMode, uint16_t coorVPANId, Mac64Address coordAddr, CapabilityInfo capInfo) = 0;
+	virtual void MlmeAssociateRequest(LogicChannelId logicChannel, AddrMode coorAddrMode, uint16_t coorVPANId, Mac64Address coordAddr, CapabilityInfo capInfo) = 0;
 
 	virtual void MlmeDisassociateRequest(TypeId devAddrMode, uint16_t devVPANId, Address devAddr, DisassocReason reason, bool txIndirect) = 0;
 
@@ -81,7 +81,7 @@ public:
 		m_mac->AssociateResponse (devAddr, assocShortAddr, status, capNegoResponse);
 	}
 
-	virtual void MlmeAssociateRequest(LogicChannelId channel, TypeId coorAddrMode, uint16_t coorVPANId,
+	virtual void MlmeAssociateRequest(LogicChannelId channel, AddrMode coorAddrMode, uint16_t coorVPANId,
 										Mac64Address coordAddr, CapabilityInfo capInfo)
 	{
 		m_mac->Associate (channel, coorAddrMode, coorVPANId, coordAddr, capInfo);

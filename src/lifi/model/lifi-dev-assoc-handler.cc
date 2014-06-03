@@ -22,25 +22,28 @@ NS_OBJECT_ENSURE_REGISTERED (LifiDevAssocHandler);
 LifiDevAssocHandler::LifiDevAssocHandler()
 {
 	NS_LOG_FUNCTION (this);
-	NS_FATAL_ERROR("Unavailable instantiation with this constructor.");
+	m_run = false;
+	m_trackBeacon = false;
+//	NS_FATAL_ERROR("Unavailable instantiation with this constructor.");
 	AddTrigger (LifiDevAssocHandler::TxResultNotification, false);
-	AddTrigger (LifiDevAssocHandler::ReceiveAck, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveBeacon, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveAssocResponse, false);
+	AddTrigger (LifiDevAssocHandler::AllocNotification, false);
 }
 
-
-LifiDevAssocHandler::LifiDevAssocHandler(DataService* service, LifiMacImpl* impl, PlmeSapProvider* p, LifiMacPibAttribute* a, MlmeSapUser* user) {
+LifiDevAssocHandler::LifiDevAssocHandler(DataService* service, LifiMacImpl* impl, PlmeSapProvider* p,
+										 LifiMacPibAttribute* a, MlmeSapUser* user) {
+	NS_LOG_FUNCTION (this);
 	m_run = false;
-	m_state = IDLE;
 	m_dataService = service;
 	m_user = user;
-	m_provider = p;
+	m_plmeProvider = p;
 	m_impl = impl;
+	m_trackBeacon = false;//MLME_SYNC.request primitive has this para.we should get it somewhere.
 	AddTrigger (LifiDevAssocHandler::TxResultNotification, false);
-	AddTrigger (LifiDevAssocHandler::ReceiveAck, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveBeacon, false);
 	AddTrigger (LifiDevAssocHandler::ReceiveAssocResponse, false);
+	AddTrigger (LifiDevAssocHandler::AllocNotification, false);
 }
 
 LifiDevAssocHandler::~LifiDevAssocHandler() {
@@ -57,18 +60,63 @@ void LifiDevAssocHandler::SetMacPibAttribtes(LifiMacPibAttribute* attributes) {
 	m_attributes = attributes;
 }
 
-void Send(uint32_t size, Ptr<Packet> p, uint8_t band, bool contention)
-{
-	return ;
+void LifiDevAssocHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {
+	NS_LOG_FUNCTION(this);
+	m_trxHandler = trxHandler;
 }
 
-void LifiDevAssocHandler::TxResultNotification(MacOpStatus status)
+void LifiDevAssocHandler::Start(VPANDescriptor &vpandescri){
+	NS_LOG_FUNCTION (this << m_run);
+	NS_ASSERT (!m_run);
+	m_run = true;
+	m_curChannel = vpandescri.logicChannel;
+	m_VPANId = vpandescri.coordVPANId;
+	m_coordAddr = vpandescri.coordAddr;
+	m_coordAddrMode = vpandescri.coordAddrMode;
+
+	SendAssocRequest();
+}
+
+void LifiDevAssocHandler::SendAssocRequest() {
+	NS_LOG_FUNCTION(this);
+	AssocRqstComm comm;
+	Ptr<Packet> p = comm.GetPacket();
+	LifiMacHeader header;
+	header.SetFrameType(LIFI_COMMAND);
+	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+//	std::cout << srcAddress << std::endl;
+	header.SetSrcAddress(srcAddress);
+	header.SetDstAddress(m_coordAddr);
+	header.SetAckRequest(true);
+	p->AddHeader(header);
+
+	PacketInfo info;
+	info.m_band = m_curChannel;
+	info.m_bust = false;
+	info.m_handle = 0x11;
+	info.m_force = false;
+	info.m_listener = this;
+	info.m_isAck = false;
+	info.m_msduSize = p->GetSize();
+	info.m_option.ackTx = true;
+	info.m_option.gtsTx = false;
+	info.m_option.indirectTx = false;
+	info.m_packet = p;
+	m_trxHandler->Send(info);
+
+	EnableTrigger(LifiDevAssocHandler::TxResultNotification);
+	ReplaceTriggerCallback (m_txRstNotification,
+							LifiDevAssocHandler::onTxResultNotification1);
+}
+
+void LifiDevAssocHandler::TxResultNotification(MacOpStatus status,
+		PacketInfo info, Ptr<Packet> ack)
 {
 	if (CheckTrigger(LifiDevAssocHandler::TxResultNotification))
 	{
 		NS_LOG_FUNCTION (this << (uint32_t) status);
 		if (!m_txRstNotification.IsNull())
-			m_txRstNotification (status);
+			m_txRstNotification (status, info, ack);
 		else
 			NS_LOG_ERROR ("m_txRstNotification is null.");
 	}
@@ -77,31 +125,115 @@ void LifiDevAssocHandler::TxResultNotification(MacOpStatus status)
 	}
 }
 
+void LifiDevAssocHandler::onTxResultNotification1(MacOpStatus status,
+		PacketInfo info, Ptr<Packet> ack)
+{
+	NS_LOG_FUNCTION (this << status);
+	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
+	if (status == MAC_SUCCESS)
+	{
+		if (m_trackBeacon)
+		{
+			EnableTrigger(LifiDevAssocHandler::ReceiveBeacon);
+			m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
+			m_timer.SetArguments(NO_DATA);
+			uint32_t resWaitTime = m_impl->GetLifiMacPibAttribute().macResponseWaitTime;
+			m_timer.Schedule(NanoSeconds(resWaitTime * m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds()));
+		}else {
+			m_timer.SetFunction(&LifiDevAssocHandler::SendDataRequest, this);
+			int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
+			uint32_t resWaitTime = m_impl->GetLifiMacPibAttribute().macResponseWaitTime
+					             * LifiMac::aBaseSlotDuration * LifiMac::aNumSuperframeSlots;
+//			std::cout << op << std::endl;
+//			std::cout << resWaitTime << std::endl;
+			m_timer.Schedule(NanoSeconds(op * resWaitTime));
+		}
+	}else
+	{
+		EndAssoc(status);
+	}
+}
+
 void LifiDevAssocHandler::ReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu){
 	if (CheckTrigger(LifiDevAssocHandler::ReceiveBeacon))
 	{
 		NS_LOG_FUNCTION (this << timestamp << msdu);
-		if (!m_beaconNotification.IsNull())
-			m_beaconNotification (timestamp,msdu);
-		else
-			NS_LOG_ERROR ("m_beaconNotification is null.");
+		onReceiveBeacon(timestamp, msdu);
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveBeacon");
 	}
 }
 
-void LifiDevAssocHandler::ReceiveAck (uint32_t timestamp, Ptr<Packet> msdu){
-	if (CheckTrigger(LifiDevAssocHandler::ReceiveAck))
+void LifiDevAssocHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p)
+{
+	NS_LOG_FUNCTION (this << timestamp << p);
+
+	LifiMacHeader header;
+	p->RemoveHeader(header);
+	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
+	LifiMacBeacon beacon = LifiMacBeacon::Construct(p);
+	Address address = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+	if (beacon.CheckPendingAddress(address))
 	{
-		NS_LOG_FUNCTION (this << timestamp << msdu);
-		if (!m_ackNotification.IsNull())
-			m_ackNotification (timestamp,msdu);
-		else
-			NS_LOG_ERROR ("m_ackNotification is null.");
+		if (!m_timer.IsExpired())
+			m_timer.Cancel();
+		DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
+		SendDataRequest();
 	}
-	else{
-		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveAck");
+}
+
+void LifiDevAssocHandler::SendDataRequest(){
+	NS_LOG_FUNCTION(this);
+	DataRequestComm comm;
+	Ptr<Packet> p = comm.GetPacket();
+	LifiMacHeader header;
+	header.SetFrameType(LIFI_COMMAND);
+	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+	header.SetSrcAddress(srcAddress);
+	header.SetDstAddress(m_coordAddr);
+	p->AddHeader(header);
+
+	PacketInfo info;
+	info.m_band = m_curChannel;
+	info.m_bust = false;
+	info.m_force = false;
+	info.m_isAck = false;
+	info.m_listener = this;
+	info.m_msduSize = p->GetSize();
+	info.m_option.ackTx = true;
+	info.m_option.gtsTx = false;
+	info.m_option.indirectTx = false;
+	info.m_packet = p;
+	m_trxHandler->Send(info);
+
+	EnableTrigger(LifiDevAssocHandler::TxResultNotification);
+	ReplaceTriggerCallback (m_txRstNotification,
+							LifiDevAssocHandler::onTxResultNotification2);
+}
+
+void LifiDevAssocHandler::onTxResultNotification2(MacOpStatus status,
+		PacketInfo info, Ptr<Packet> ack) {
+	NS_LOG_FUNCTION (this << status);
+	if (status == MAC_SUCCESS)
+	{
+		DisableTrigger(LifiDevAssocHandler::TxResultNotification);
+		LifiMacHeader header;
+		ack->RemoveHeader(header);
+		if (header.GetFramePending())
+		{
+			m_service->Receceive(true);  //enable receiver
+			NS_ASSERT (!m_timer.IsRunning());
+			m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
+			m_timer.SetArguments(NO_DATA);
+			int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
+			uint32_t framTotalWaitTime = m_impl->GetLifiMacPibAttribute().macMaxFrameTotalWaitTime;
+			m_timer.Schedule(NanoSeconds(op * framTotalWaitTime));
+			EnableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
+		}
+	}else
+	{
+		EndAssoc(status);
 	}
 }
 
@@ -109,25 +241,109 @@ void LifiDevAssocHandler::ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> 
 	if (CheckTrigger(LifiDevAssocHandler::ReceiveAssocResponse))
 	{
 		NS_LOG_FUNCTION (this << timestamp << msdu);
-		if (!m_assocRspNotification.IsNull())
-			m_assocRspNotification (timestamp,msdu);
-		else
-			NS_LOG_ERROR ("m_assocRspNotification is null.");
+		onReceiveAssocResponse(timestamp, msdu);
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDevAssocHandler::ReceiveAssocResponse");
 	}
 }
 
-void LifiDevAssocHandler::Start(VPANDescriptor &vpandescri, bool trackbeacon){
+void LifiDevAssocHandler::onReceiveAssocResponse(uint32_t timestamp,
+		Ptr<Packet> p)
+{
+	NS_LOG_FUNCTION (this << timestamp << p);
+	NS_ASSERT (!m_timer.IsExpired());
+
+	m_timer.Cancel();
+	LifiMacHeader header;
+	p->RemoveHeader(header);
+	NS_ASSERT (header.GetFrameType() == LIFI_COMMAND);
+	AssocResponseComm response = AssocResponseComm::Construct(p);
+	if(response.GetAssocStatus() == MAC_SUCCESS)
+	{
+		uint16_t allocShortAddress = response.GetShortAddr();
+		m_allocAddr.CopyFrom((uint8_t*) (&allocShortAddress));
+		m_attributes->macShortAddress = allocShortAddress;
+		NS_ASSERT (header.GetSrcAddressMode () == EXTENDED);
+		m_attributes->macCoordExtendedAddress = Mac64Address::ConvertFrom(header.GetSrcAddress());
+		EndAssoc(MAC_SUCCESS);
+	}
+	else if (response.GetAssocStatus() == DENIED)
+	{
+		m_attributes->macShortAddress = 0xffff;
+		EndAssoc(DENIED);
+	}else
+	{
+		NS_FATAL_ERROR("Unavailable association response status.");
+	}
+	TranceiverTask task;
+	task.Clear();
+	task.id = TX_ACK;
+	task.listener = this;
+	task.priority = GetTrxTaskPriority(TX_ACK);
+
+	m_trxHandler->ServiceRequest(task);
+	EnableTrigger(LifiDevAssocHandler::AllocNotification);
+}
+
+void LifiDevAssocHandler::AllocNotification(Ptr<DataService> service)
+{
+	NS_LOG_FUNCTION (this << service);
+	if (CheckTrigger(LifiDevAssocHandler::AllocNotification))
+	{
+		onAllocNotification(service);
+	}else {
+		NS_LOG_ERROR("Ignore LifiDevAssocHandler::AllocNotification");
+	}
+}
+
+void LifiDevAssocHandler::onAllocNotification(Ptr<DataService> service)
+{
+	NS_LOG_FUNCTION (this << service);
+	NS_ASSERT (service != 0);
+	m_service = service;
+
+	SendAck();
+}
+
+
+void LifiDevAssocHandler::SendAck(){
 	NS_LOG_FUNCTION (this);
-	NS_ASSERT (!m_run);
-	m_run = true;
-	m_curChannel = vpandescri.logicChannel;
-	m_VPANId = vpandescri.coordVPANId;
-	m_coordAddr = vpandescri.coordAddr;
-	m_trackBeacon = trackbeacon;
-	SwitchState(LifiDevAssocHandler::Initialize);
+	LifiMacAck ack;
+	Ptr<Packet> p = ack.GetPacket();
+	LifiMacHeader header;
+	header.SetFrameType(LIFI_ACK);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
+	header.SetDstAddress(m_coordAddr);
+	p->AddHeader(header);
+
+	PacketInfo info;
+	info.m_band = m_curChannel;
+	info.m_bust = false;
+	info.m_force = true;
+	info.m_listener = this;
+	info.m_isAck = true;
+	info.m_msduSize = p->GetSize();
+	info.m_option.ackTx = true;
+	info.m_option.gtsTx = false;
+	info.m_option.indirectTx = false;
+	info.m_packet = p;
+	m_service->Transmit(info);
+	EnableTrigger(LifiDevAssocHandler::TxResultNotification);
+	ReplaceTriggerCallback (m_txRstNotification,
+								LifiDevAssocHandler::onTxResultNotification3);
+}
+
+void LifiDevAssocHandler::onTxResultNotification3(MacOpStatus status, PacketInfo info, Ptr<Packet> ack)
+{
+	NS_LOG_FUNCTION (this << status);
+	NS_ASSERT(info.m_isAck == true);
+	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
+		if (status != MAC_SUCCESS)
+		{
+			//retransmission coding.
+		}
+		EndAssoc(status);
 }
 
 void LifiDevAssocHandler::EndAssoc(MacOpStatus status){
@@ -155,50 +371,10 @@ void LifiDevAssocHandler::EndAssoc(MacOpStatus status){
 		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), DENIED, NO_COLOR_STABI);
 	}
 	m_run = false;
+	m_service->Release();
+	m_service = 0;
 	Reset ();
 }
-
-void LifiDevAssocHandler::SendAssocRequest() {
-	AssocRqstComm comm;
-	Ptr<Packet> p = comm.GetPacket();
-	LifiMacHeader header;
-	header.SetFrameType(LIFI_COMMAND);
-	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-	header.SetSrcAddress(srcAddress);
-	header.SetDstAddress(m_coordAddr);
-	p->AddHeader(header);
-
-//	m_dataService->Transmission(p->GetSize(), p, (uint8_t)m_curChannel, true);
-	return;
-}
-
-void LifiDevAssocHandler::SendDataRequest(){
-	DataRequestComm comm;
-	Ptr<Packet> p = comm.GetPacket();
-	LifiMacHeader header;
-	header.SetFrameType(LIFI_COMMAND);
-	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-	header.SetSrcAddress(srcAddress);
-	header.SetDstAddress(m_coordAddr);
-	p->AddHeader(header);
-
-//	sendPacket();
-//	m_dataService->TransmissionRequest(p->GetSize(), p, (uint8_t)m_curChannel, true);
-}
-
-void LifiDevAssocHandler::SendAck(){
-	NS_LOG_FUNCTION (this);
-	LifiMacAck ack;
-	Ptr<Packet> p = ack.GetPacket();
-	LifiMacHeader header;
-	header.SetFrameType(LIFI_ACK);
-	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
-	header.SetDstAddress(m_coordAddr);
-	p->AddHeader(header);
-//	sendPacket();
-//	m_dataService->TransmissionRequest(p->GetSize(), p, (uint8_t)m_curChannel, true);
-}
-
 
 void LifiDevAssocHandler::Reset()
 {
@@ -209,258 +385,7 @@ void LifiDevAssocHandler::Reset()
 		m_allocAddr = 0;
 		m_curChannel = (LogicChannelId)0;
 		m_trackBeacon = false;
-		m_ackNotification.Nullify();
 		m_txRstNotification.Nullify();
-		m_beaconNotification.Nullify();
-		m_assocRspNotification.Nullify();
-		m_state = IDLE;
-	}else
-	{
-		return;
-	}
-}
-
-void LifiDevAssocHandler::Initialize()
-{
-	NS_LOG_FUNCTION (this);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	EnableTrigger(LifiDevAssocHandler::TxResultNotification);
-	ReplaceTriggerCallback(m_txRstNotification,
-	LifiDevAssocHandler::InitializeTxNotificationCallback);
-
-	SendAssocRequest();
-
-	m_state = INITIALIZE;
-}
-
-void LifiDevAssocHandler::InitializeTxNotificationCallback(MacOpStatus status)
-{
-	NS_LOG_FUNCTION (this << (uint32_t) status);
-	NS_ASSERT ((status == MAC_SUCCESS)
-			|| (status == CHANNEL_ACCESS_FAILURE));
-	if (status == MAC_SUCCESS)
-		SwitchState(LifiDevAssocHandler::WaitForAck1);
-	else
-		EndAssoc(CHANNEL_ACCESS_FAILURE);
-}
-
-void LifiDevAssocHandler::WaitForAck1()
-{
-	NS_LOG_FUNCTION (this);
-
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
-	EnableTrigger(LifiDevAssocHandler::ReceiveAck);
-	ReplaceTriggerCallback(m_ackNotification,
-	LifiDevAssocHandler::WaitForAck1AckNotificationCallback);
-
-	m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
-	m_timer.SetArguments(NO_ACK);
-	m_timer.Schedule(Seconds(10));
-	m_state = WAIT_FOR_ACK1;
-}
-
-void LifiDevAssocHandler::WaitForAck1AckNotificationCallback(uint32_t timestamp,
-		Ptr<Packet> msdu)
-{
-	NS_LOG_FUNCTION (this << timestamp << msdu);
-	NS_ASSERT (!m_timer.IsExpired());
-
-	m_timer.Cancel();
-
-	if (m_trackBeacon)
-	{
-		SwitchState(LifiDevAssocHandler::WaitForResponWithTrack);
-	}
-	else{
-		SwitchState(LifiDevAssocHandler::WaitForResponWithoutTrack);
-	}
-}
-
-void LifiDevAssocHandler::WaitForResponWithTrack()
-{
-	NS_LOG_FUNCTION (this);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-	EnableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	ReplaceTriggerCallback(m_beaconNotification,
-	LifiDevAssocHandler::WaitForResponWithTrackBeaconNotificationCallback);
-
-	m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
-	m_timer.SetArguments(NO_DATA);
-	m_timer.Schedule(Seconds(11));
-	m_provider->PlmeSetTRXStateRequest(RX_ON);
-
-	m_state = WAIT_FOR_RESPON_WITH_TRACK;
-}
-
-void LifiDevAssocHandler::WaitForResponWithTrackBeaconNotificationCallback(
-		uint32_t unsignedInt, Ptr<Packet> msdu)
-{
-	NS_LOG_FUNCTION (this << unsignedInt << msdu);
-	NS_ASSERT (!m_timer.IsExpired());
-
-	LifiMacHeader header;
-	msdu->RemoveHeader(header);
-	LifiMacBeacon beacon = LifiMacBeacon::Construct(msdu);
-	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
-	if ((header.GetFramePending())
-	  && beacon.CheckPendingAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress()))
-	{
-		m_timer.Cancel();
-		SendDataRequest();
-		DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-		DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-		DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-		EnableTrigger(LifiDevAssocHandler::TxResultNotification);
-		ReplaceTriggerCallback(m_txRstNotification,
-		LifiDevAssocHandler::WaitForResponWithTrackTxNotification);
-	}
-}
-
-void LifiDevAssocHandler::WaitForResponWithTrackTxNotification(MacOpStatus status)
-{
-	NS_LOG_FUNCTION (this << (uint32_t) status);
-	if (status == MAC_SUCCESS)
-	{
-		SwitchState(LifiDevAssocHandler::WaitForAck2);
-	}
-	else if (status == CHANNEL_ACCESS_FAILURE){
-		EndAssoc(CHANNEL_ACCESS_FAILURE);
-	}
-}
-
-void LifiDevAssocHandler::WaitForResponWithoutTrack()
-{
-	NS_LOG_FUNCTION (this);
-	// Disable all trigger.
-	DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
-
-	NS_ASSERT (!m_timer.IsRunning());
-	m_timer.SetFunction(&LifiDevAssocHandler::WaitForResponWithoutTrackTimeout, this);
-	m_timer.Schedule(Seconds (10));
-
-	m_state = WAIT_FOR_RESPON_WITHOUT_TRACK;
-}
-
-void LifiDevAssocHandler::WaitForResponWithoutTrackTxNotification(
-		MacOpStatus status)
-{
-	NS_LOG_FUNCTION (this << (uint32_t) status);
-	if (status == MAC_SUCCESS)
-	{
-		SwitchState(LifiDevAssocHandler::WaitForAck2);
-	}
-	else if (status == CHANNEL_ACCESS_FAILURE){
-		EndAssoc(CHANNEL_ACCESS_FAILURE);
-	}
-}
-
-void LifiDevAssocHandler::WaitForResponWithoutTrackTimeout()
-{
-	NS_LOG_FUNCTION (this);
-
-	SendDataRequest();
-	DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	EnableTrigger(LifiDevAssocHandler::TxResultNotification);
-	ReplaceTriggerCallback(m_txRstNotification,
-	LifiDevAssocHandler::WaitForResponWithoutTrackTxNotification);
-}
-
-void LifiDevAssocHandler::WaitForAck2()
-{
-	NS_LOG_FUNCTION (this);
-	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	EnableTrigger(LifiDevAssocHandler::ReceiveAck);
-	ReplaceTriggerCallback(m_ackNotification,
-	LifiDevAssocHandler::WaitForAck2AckNotificationCallback);
-
-	NS_ASSERT (!m_timer.IsRunning());
-	m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
-	m_timer.SetArguments(NO_ACK);
-	m_timer.Schedule(Seconds (10));
-
-	m_state = WAIT_FOR_ACK2;
-}
-
-void LifiDevAssocHandler::WaitForAck2AckNotificationCallback(uint32_t timestamp,
-		Ptr<Packet> msdu)
-{
-	NS_LOG_FUNCTION (this << timestamp << msdu);
-
-	NS_ASSERT (!m_timer.IsExpired());
-	m_timer.Cancel();
-
-	LifiMacHeader header;
-	msdu->RemoveHeader(header);
-
-	if (header.GetFramePending())
-	{
-		SwitchState(LifiDevAssocHandler::WaitForResponse);
-	}else
-	{
-		EndAssoc(NO_DATA);
-	}
-}
-
-void LifiDevAssocHandler::WaitForResponse()
-{
-	NS_LOG_FUNCTION (this);
-	DisableTrigger(LifiDevAssocHandler::TxResultNotification);
-	DisableTrigger(LifiDevAssocHandler::ReceiveBeacon);
-	DisableTrigger(LifiDevAssocHandler::ReceiveAck);
-	EnableTrigger(LifiDevAssocHandler::ReceiveAssocResponse);
-	ReplaceTriggerCallback(m_assocRspNotification,
-	LifiDevAssocHandler::OnAssocRspNotification);
-
-	m_timer.SetFunction(&LifiDevAssocHandler::EndAssoc, this);
-	m_timer.SetArguments(NO_DATA);
-	m_timer.Schedule(Seconds (10));
-
-	m_provider->PlmeSetTRXStateRequest(RX_ON);
-	m_state = WAIT_FOR_ASSOC_RESPON;
-}
-
-void LifiDevAssocHandler::OnAssocRspNotification(uint32_t unsignedInt,
-		Ptr<Packet> msdu)
-{
-	NS_LOG_FUNCTION (this << unsignedInt << msdu);
-	NS_ASSERT (!m_timer.IsExpired());
-
-	m_timer.Cancel();
-	LifiMacHeader header;
-	msdu->RemoveHeader(header);
-	NS_ASSERT (header.GetFrameType() == LIFI_COMMAND);
-
-	AssocResponseComm response = AssocResponseComm::Construct(msdu);
-
-	if(response.GetAssocStatus() == MAC_SUCCESS)
-	{
-		uint16_t allocShortAddress = response.GetShortAddr();
-		m_allocAddr.CopyFrom((uint8_t*) (&allocShortAddress));
-		m_attributes->macShortAddress = allocShortAddress;
-		NS_ASSERT (header.GetSrcAddressMode () == EXTENDED);
-		m_attributes->macCoordExtendedAddress = Mac64Address::ConvertFrom(header.GetSrcAddress());
-		EndAssoc(MAC_SUCCESS);
-	}
-	else if (response.GetAssocStatus() == DENIED)
-	{
-		m_attributes->macShortAddress = 0xffff;
-		EndAssoc(DENIED);
-	}else
-	{
-		NS_FATAL_ERROR("Unavailable association response status.");
 	}
 }
 
