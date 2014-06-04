@@ -151,33 +151,33 @@ void LifiTrxHandler::Fetch()
 	if(!m_curTranceiverTask.Available()){
 		//	if (m_opStatus == TRANCEIVER_TASK) return;
 
-	if ((!m_tranceiverTasks.empty()))
-	{
-		m_curTranceiverTask = m_tranceiverTasks.top();
-		m_tranceiverTasks.pop();
-		NS_ASSERT (m_curTranceiverTask.listener);
-		Simulator::ScheduleNow(&TrxHandlerListener::AllocNotification,
-				m_curTranceiverTask.listener,DataService::Create(this));
-		m_taskType = TRANCEIVER_TASK;
-		return;
-	}
-	switch (m_superframeStruct.m_state)
-	{
-	case SuperframeStrcut::CAP:
-		if (m_raTasks.empty()) return;
-//		std::cout << m_raTasks.size() << std::endl;
-		m_curTransmission.Reset();
-		m_curTransmission.m_info = m_raTasks.front();
-		StartRandomAccess(m_curTransmission.m_info);
-		m_taskType = GENERAL_RANDOM_ACCESS;
-		m_raTasks.pop();
-		break;
-	case SuperframeStrcut::CFP:
-		// In the CFP, GtsHandler will occupy all the resource of TrxHandler.
-		break;
-	default:
-		return;
-	}
+		if ((!m_tranceiverTasks.empty()))
+		{
+			m_curTranceiverTask = m_tranceiverTasks.top();
+			m_tranceiverTasks.pop();
+			NS_ASSERT (m_curTranceiverTask.listener);
+			Simulator::ScheduleNow(&TrxHandlerListener::AllocNotification,
+					m_curTranceiverTask.listener,DataService::Create(this));
+			m_taskType = TRANCEIVER_TASK;
+			return;
+		}
+		switch (m_superframeStruct.m_state)
+		{
+		case SuperframeStrcut::CAP:
+			if (m_raTasks.empty()) return;
+//			std::cout << m_raTasks.size() << std::endl;
+			m_curTransmission.Reset();
+			m_curTransmission.m_info = m_raTasks.front();
+			StartRandomAccess(m_curTransmission.m_info);
+			m_taskType = GENERAL_RANDOM_ACCESS;
+			m_raTasks.pop();
+			break;
+		case SuperframeStrcut::CFP:
+			// In the CFP, GtsHandler will occupy all the resource of TrxHandler.
+			break;
+		default:
+			return;
+		}
 	}
 	else{
 		return;
@@ -392,7 +392,7 @@ bool LifiTrxHandler::RetransmitData()
 
 void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 {
-	NS_LOG_FUNCTION (this << status << ack);
+	NS_LOG_FUNCTION (this << status << ack << m_curTransmission.m_info.m_listener);
 //	m_curTransmission.m_info.m_listener->TxResultNotification(status, ack);
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
 							m_curTransmission.m_info.m_listener,
@@ -472,6 +472,7 @@ bool LifiTrxHandler::DoTransmitData() {
 	EnableTrigger(LifiTrxHandler::ReceivePacket);
 	EnableTrigger(LifiTrxHandler::TxConfirm);
 	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+
 	return true;
 }
 void LifiTrxHandler::onTxConfirm(PhyOpStatus status)

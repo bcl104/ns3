@@ -21,6 +21,8 @@ uint16_t GetTrxTaskPriority(TranceiverTaskId task)
 	case TX_DATA:
 	case TX_COMMAND:
 		return 3;
+	case RX_ASSOC_RESPONSE:
+		return 4;
 	default:
 		return 0;
 	}

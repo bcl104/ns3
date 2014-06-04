@@ -204,6 +204,7 @@ MacOpStatus AssocResponseComm::GetAssocStatus () const{
 
 void AssocResponseComm::SetAssocStatus(MacOpStatus assocstatus){
 	NS_ASSERT (assocstatus == DENIED || assocstatus == MAC_SUCCESS);
+	m_assocStatus = assocstatus;
 }
 
 uint8_t AssocResponseComm::GetCapNegoResponse () const{
@@ -585,7 +586,7 @@ void AssocResponseComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_shortAddr = *data++ ;
 	m_shortAddr = (m_shortAddr<<8)|(*data);
 	data++;
-//	m_assocStatus =(MacAssocStatus)(*data);
+	m_assocStatus =(MacOpStatus)(*data);
 	data++;
 	m_capabilityNegoResponse= (uint8_t)(((*data) & 0xc0) >> 6) ;
 }

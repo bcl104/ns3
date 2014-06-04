@@ -75,7 +75,7 @@ private:
 
 //	void DoDelTransaction (uint8_t handle);
 
-	void SendTransaction(PacketInfo& packet);
+	void SendTransaction();
 
 	void TimeOutTransaction(Mac64Address DevAddress, MacOpStatus status, Ptr<Packet> ack);
 
@@ -90,6 +90,7 @@ private:
 	uint64_t m_transationNumbers;
 	bool m_IsSevenTransactions;
 	TransactionInfo m_curTransactionInfo;
+	TransactionInfo m_curTranmitTransactionInfo;
 	Transactions::iterator m_curTransactionIterator;
 	std::pair<Mac64Address, TransactionInfo> m_curTransactionPair;
 

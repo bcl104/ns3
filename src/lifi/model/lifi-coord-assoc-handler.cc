@@ -106,7 +106,7 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 	m_trxHandler->ServiceRequest(task);
 }
 
-void LifiCoordAssocHandler::sendAck() {
+void LifiCoordAssocHandler::sendAck1() {
 	NS_LOG_FUNCTION (this);
 	LifiMacAck ack;
 	Ptr<Packet> p = ack.GetPacket();
@@ -115,6 +115,41 @@ void LifiCoordAssocHandler::sendAck() {
 	header.SetFrameType(LIFI_ACK);
 	header.SetSrcAddress(m_coordAddress);
 	header.SetDstAddress(m_curDeviceAddress);
+	header.SetFramePending(false);
+
+	p->AddHeader(header);
+
+	PacketInfo info;
+	info.m_band = m_curChannel;
+	info.m_handle = 0x25;
+	info.m_bust = false;
+	info.m_force = true;
+	info.m_isAck = true;
+	info.m_listener = this;
+	info.m_msduSize = p->GetSize();
+	std::cout << info.m_msduSize << std::endl;
+	info.m_option.ackTx = false;
+	info.m_option.gtsTx = false;
+	info.m_option.indirectTx = false;
+	info.m_packet = p;
+//	std::cout << (info.m_band !=0) << std::endl;
+//	std::cout << (info.m_handle != 0) << std::endl;
+//	std::cout << (info.m_msduSize != 0) << std::endl;
+//	std::cout << (info.m_packet !=0) << std::endl;
+
+	m_dataService->Transmit(info);
+}
+
+void LifiCoordAssocHandler::sendAck2() {
+	NS_LOG_FUNCTION (this);
+	LifiMacAck ack;
+	Ptr<Packet> p = ack.GetPacket();
+	LifiMacHeader header;
+	header.SetAckRequest(false);
+	header.SetFrameType(LIFI_ACK);
+	header.SetSrcAddress(m_coordAddress);
+	header.SetDstAddress(m_curDeviceAddress);
+	header.SetFramePending(true);
 
 	p->AddHeader(header);
 
@@ -142,10 +177,12 @@ void LifiCoordAssocHandler::sendAck() {
 void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 		Mac16Address allocAssocShortAddr, MacOpStatus status)
 {
+	NS_LOG_FUNCTION (this << devAddress << allocAssocShortAddr << status);
 	AssocResponseComm rescom;
 //	Mac16Address address = Mac16Address::ConvertFrom(allocAssocShortAddr);
 	rescom.SetShortAddr(allocAssocShortAddr);
 	rescom.SetAssocStatus(status);//not set capability negotiation response
+	std::cout << rescom.GetAssocStatus() << std::endl;
 	Ptr<Packet> p = rescom.GetPacket();
 
 	LifiMacHeader header;
@@ -169,6 +206,11 @@ void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 	transInfo.m_packetInfo.m_option.indirectTx = true;
 	transInfo.m_listener = this;
 
+//	LifiMacHeader headerer;
+//	transInfo.m_packetInfo.m_packet->RemoveHeader(headerer);
+//	AssocResponseComm response = AssocResponseComm::Construct(transInfo.m_packetInfo.m_packet);
+//	std::cout << response.GetAssocStatus() << std::endl;
+//	std::cout << response.GetShortAddr() << std::endl;
 //	m_temp->AddTransaction(transInfo);
 //	m_coordImpl->m_transcHandler->AddTransaction(p);
 	m_impl->AddTransactionPacket(transInfo);//transctionHandler need the info of this packet and return it.
@@ -230,11 +272,12 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 
 	NS_ASSERT(m_AckState == SEND_ACK1 || m_AckState == SEND_ACK2);
 	EnableTrigger(LifiCoordAssocHandler::TxResultNotification);
-	sendAck();//rewrite the info of the device.
 	if(m_AckState == SEND_ACK1){
+		sendAck1();//rewrite the info of the device.
 		MlmeAssocResponse(m_curDeviceAddress, Mac16Address("12:34"), MAC_SUCCESS);
 //		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
 	}else{
+		sendAck2();
 //		uint8_t mcsid = m_impl->GetLifiMac()->GetPlmeSapProvider()->PlmeGetRequset<uint8_t>(PHY_MCSID);
 //		double dataRateKbps = LifiPhy::GetRate(mcsid);
 //		Time AcktxDuration = NanoSeconds(((double)m_AckPacketSize*8)/(dataRateKbps*1000)*1e9);
@@ -265,16 +308,18 @@ void LifiCoordAssocHandler::onTxResultNotification(MacOpStatus status, PacketInf
 		   || status == CHANNEL_ACCESS_FAILURE);
 	if(info.m_isAck){
 		// we can do retransmission in the future.
-
+		m_dataService->Release();
+		m_dataService = 0;
 	}
 	else{
 		DisableTrigger(LifiCoordAssocHandler::TxResultNotification);
-		m_user->MlmeCommStatusIndication(m_vpanId, m_srcAddrMode, m_curDeviceAddress,
-										 m_dstAddrMode, m_coordAddress, status);
+//		m_user->MlmeCommStatusIndication(m_vpanId, m_srcAddrMode, m_curDeviceAddress,
+//										 m_dstAddrMode, m_coordAddress, status);
 	}
-	m_dataService->Release();
-	m_dataService = 0;
 	reset();
+//	m_dataService->Release();
+//	m_dataService = 0;
+//	reset();
 
 }
 

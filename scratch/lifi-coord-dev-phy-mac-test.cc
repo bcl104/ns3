@@ -395,16 +395,28 @@ SinglePhyTest::SinglePhyTest(){
 	}
 
 int main(){
+//	char huanjing[] ="NS_LOG=*=prefix_time";
+//	std::cout << putenv(huanjing) << std::endl;
+
 	SinglePhyTest _test;
 	LogComponentEnable("LifiMac", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMac", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiMacCoordImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacCoordImpl", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiMacDevImpl", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiMacDevImpl", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiTrxHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiCoordTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiCoordTrxHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiDevTrxHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiDevTrxHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiDevAssocHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiDevAssocHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiCoordAssocHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiCoordAssocHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiTransactionHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiTransactionHandler", LOG_PREFIX_TIME);
 //	LogComponentEnable("Timer", LOG_LEVEL_FUNCTION);
 //	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);

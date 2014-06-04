@@ -14,9 +14,11 @@
 #include "lifi-mac-impl.h"
 #include "lifi-assoc-handler.h"
 #include "lifi-trx-handler.h"
+#include "lifi-mac-comm.h"
 
 namespace ns3 {
 
+//class AssocResponseComm;
 class LifiDevAssocHandler : public LifiAssocHandler
 {
 
@@ -50,7 +52,8 @@ public:
 	void Reset ();
 
 protected:
-	void onAllocNotification (Ptr<DataService> service);
+	void onAllocNotification1 (Ptr<DataService> service);
+	void onAllocNotification2 (Ptr<DataService> service);
 
 	void onReceiveBeacon (uint32_t timestamp, Ptr<Packet> p);
 
@@ -76,6 +79,8 @@ private:
 	uint16_t m_VPANId;
 	LogicChannelId m_curChannel;
 	bool m_trackBeacon;
+	AssocResponseComm m_assocResponse;
+
 
 	bool m_run;
 	Timer m_timer;
@@ -83,7 +88,13 @@ private:
 	Ptr<LifiTrxHandler> m_trxHandler;
 	Ptr<DataService> m_service;
 
+//	enum {
+//		RECEIVE_ASSOC_RESPONSE,
+//		SEND_ACK,
+//	} m_occupationState;
+
 	Callback<void, MacOpStatus, PacketInfo, Ptr<Packet> > m_txRstNotification;
+	Callback<void, Ptr<DataService> > m_allocNotification;
 //	Callback<void, uint32_t, Ptr<Packet> > m_ackNotification;
 //	Callback<void, uint32_t, Ptr<Packet> > m_beaconNotification;
 //	Callback<void, uint32_t, Ptr<Packet> > m_assocRspNotification;

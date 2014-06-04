@@ -48,7 +48,8 @@ private:
 
 	void onAllocNotification (Ptr<DataService> service);
 
-	void sendAck();
+	void sendAck1();
+	void sendAck2();
 
 	void onReceiveDataRequest (uint32_t timestamp, Ptr<Packet> msdu);
 

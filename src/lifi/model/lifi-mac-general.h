@@ -207,6 +207,7 @@ enum TranceiverTaskId
 	TX_ACK,
 	TX_DATA,
 	TX_COMMAND,
+	RX_ASSOC_RESPONSE,
 };
 
 uint16_t GetTrxTaskPriority (TranceiverTaskId task);
