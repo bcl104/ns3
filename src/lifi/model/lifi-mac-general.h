@@ -95,6 +95,7 @@ enum MacOpStatus
 	COUNTER_ERROR,
 	FRAME_TOO_LONG,
 	MAC_INVALID_PARAMETER,
+	MAC_INVALID_GTS,
 	TRANSACTION_OVERFLOW,
 	TRANSACTION_EXPIRED,
 	LIMIT_REACHED,
@@ -142,8 +143,8 @@ enum DisassocState
 
 enum GTSDirection
 {
-	RX_ONLY = 0x01,
-	TX_ONLY = 0x00
+	Transmit_GTS = 0x00,
+	Receive_GTS = 0x01,
 };
 
 enum LogicChannelId
@@ -171,13 +172,6 @@ enum CommId
 	MULTI_CHANNEL_ASSIGNMENT = 0x0F,
 	BAND_HOPPING = 0x10,
 	INFORMANTION_ELEMENT = 0x14
-};
-
-enum Reason
-	{
-		DISASSOC_COORD = 0x01,
-		DISASSOC_DEV = 0x02,
-		DISASSOC_NOT_SUPPORT = 0x03,
 };
 
 enum ElementId{
@@ -208,6 +202,7 @@ enum TranceiverTaskId
 	TX_DATA,
 	TX_COMMAND,
 	RX_ASSOC_RESPONSE,
+	RX_DISASSOC_NOTIFICATION,
 };
 
 uint16_t GetTrxTaskPriority (TranceiverTaskId task);
@@ -242,6 +237,51 @@ public:
 
 };
 
+struct TxOption
+{
+
+public:
+	bool ackTx;
+	bool gtsTx;
+	bool indirectTx;
+
+};
+
+struct DataDescriptor{
+public:
+	AddrMode DstAddrMode;
+	AddrMode SrcAddrMode;
+	Address DstAddr;
+	uint16_t DstVPANId;
+	Ptr<Packet> Msdu;
+	uint16_t MsduLenth;
+	uint8_t MsduHandle;
+	TxOption Options;
+
+};
+
+struct DataIndicaDescriptor{
+public:
+	AddrMode DstAddrMode;
+	AddrMode SrcAddrMode;
+	Address DstAddr;
+	Address SrcAddr;
+	uint16_t DstVPANId;
+	uint16_t SrcVPANId;
+	Ptr<Packet> Msdu;
+	uint16_t MsduLenth;
+    uint8_t DSN;
+    uint32_t TimeStamp;
+};
+
+struct DisassocDescriptor{
+	AddrMode DeviceAddrMode;
+	Address DeviceAddr;
+	uint16_t DeviceVPANId;
+	DisassocReason DisassociationReason;
+	bool TxIndirect;
+};
+
 typedef std::vector<VPANDescriptor> VpanDescriptors;
 
 struct GTSCharacteristics
@@ -251,12 +291,16 @@ public:
 	GTSCharacteristics ()
 	{
 		charType = ALLOCATION;
-		gtsDirection = TX_ONLY;
+		gtsDirection = Transmit_GTS;
 		gtsLength = 0;
 	}
 	GTSCharType charType;
 	GTSDirection gtsDirection;
 	uint8_t gtsLength;
+	bool operator== (GTSCharacteristics& d)
+	{
+		return ((d.gtsDirection == gtsDirection) && (d.gtsLength == gtsLength));
+	}
 
 };
 
@@ -291,16 +335,6 @@ public:
 
 };
 
-struct TxOption
-{
-
-public:
-	bool ackTx;
-	bool gtsTx;
-	bool indirectTx;
-
-};
-
 struct PendAddrSpec
 {
 
@@ -327,23 +361,51 @@ public:
 	uint8_t gtsStartSlot;
 	uint8_t gtsLenth;
 
+	GtsDescriptor ()
+	{
+		deviceShortAddr = 0;
+		gtsStartSlot = 0;
+		gtsLenth = 0;
+	}
+
 	GtsDescriptor (uint16_t address, uint8_t slot, uint8_t lenth)
 	{
 		deviceShortAddr = address;
 		gtsStartSlot = slot;
 		gtsLenth = lenth;
 	}
+	bool operator== (GtsDescriptor& d)
+		{
+			return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLenth == gtsLenth)/* && (d.gtsStartSlot = gtsStartSlot)*/);
+		}
 
 	bool operator() (GtsDescriptor& d)
 	{
-		return ((d.deviceShortAddr == deviceShortAddr)/* && (d.gtsLenth == gtsLenth) && (d.gtsStartSlot == gtsStartSlot)*/);
+		return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLenth == gtsLenth) /*&& (d.gtsStartSlot == gtsStartSlot)*/);
 	}
 
-//	bool operator() (Mac16Address& address)
-//	{
-//		return (address == deviceShortAddr);
-//	}
+};
 
+struct GTSDesInfo{
+public:
+	GTSDesInfo(){
+		counter = 0;
+		gtsDirection = Transmit_GTS;
+	}
+	GtsDescriptor gtsDescriptor;
+	uint16_t counter;
+	GTSDirection gtsDirection;
+
+	bool operator== (GTSDesInfo& d)
+			{
+				return ((d.counter == counter) && (d.gtsDescriptor == gtsDescriptor) && (d.gtsDirection == gtsDirection));
+			}
+	bool operator() (GTSDesInfo& g)
+		{
+			return ((g.gtsDescriptor == gtsDescriptor)
+				&& (g.gtsDirection == gtsDirection));/* && (d.gtsLenth == gtsLenth) && (d.gtsStartSlot == gtsStartSlot)*/
+
+		}
 };
 
 typedef std::vector<GtsDescriptor> GtsList;
@@ -355,6 +417,14 @@ typedef std::vector<GtsDescriptor> GtsList;
 //	 GtsDescr gtslist;
 //
 //};
+
+struct GtsStructure{
+	Timer gtsStartTime;
+	uint16_t shortAddr;
+	GTSDirection gtsdirc;
+};
+
+typedef std::vector<GtsStructure> GtsTimer;
 
 struct PendAddrField{
 public:
@@ -416,6 +486,17 @@ struct TransactionInfo
 };
 
 typedef std::deque< std::pair<Mac64Address, TransactionInfo> > Transactions;
+
+struct GtsTransactionInfo
+{
+	uint16_t m_handle;
+	uint16_t m_ShortAddress;
+	PacketInfo m_packetInfo;
+	TrxHandlerListener* m_listener;
+	EventId m_eventId;
+};
+
+typedef std::multimap<uint16_t, GtsTransactionInfo> GtsTransactions;
 
 } /* namespace ns3 */
 

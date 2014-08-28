@@ -445,7 +445,8 @@ bool LifiTrxHandler::DoTransmitData() {
 	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
 	{
 		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
-		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+		enough = (m_superframeStruct.m_gtsEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+//		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
 	}else
 	{
 		NS_FATAL_ERROR("Error transmit timing.");
@@ -504,10 +505,6 @@ void LifiTrxHandler::onReceiveAck(uint32_t timestamp, Ptr<Packet> ack)
 	// Report the acknowledgment to the upper handler.
 	EndTransmission(MAC_SUCCESS, ack);
 }
-
-
-
-
 
 void LifiTrxHandler::TransmissionInfo::IncrePacketRetry()
 {
@@ -577,6 +574,14 @@ void LifiTrxHandler::StartGtsTransmit(PacketInfo& task)
 {
 }
 
+void LifiTrxHandler::SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount){
+
+}
+
+void LifiTrxHandler::SetGtsTrxState(GTSDirection direction){
+
+}
+
 void LifiTrxHandler::onBackoffTimeout()
 {
 	NS_LOG_FUNCTION (this);
@@ -597,6 +602,8 @@ LifiTrxHandler::SuperframeStrcut::SuperframeStrcut()
 				  m_contentionFreePeriod (false),
 				  m_inactivePortion (false),
 				  m_capEnd (Timer::CANCEL_ON_DESTROY),
+				  m_gtsStart(Timer::CANCEL_ON_DESTROY),
+				  m_gtsEnd(Timer::CANCEL_ON_DESTROY),
 				  m_cfpEnd (Timer::CANCEL_ON_DESTROY),
 				  m_supframeEnd (Timer::CANCEL_ON_DESTROY),
 				  m_state (DEFAULT)
@@ -657,23 +664,18 @@ void LifiTrxHandler::ContentionAccessPeriodEnd()
 
 void LifiTrxHandler::ContentionFreePeriodStart()
 {
-	NS_LOG_FUNCTION (this);
-	m_superframeStruct.m_state = SuperframeStrcut::CFP;
-	NS_ASSERT (!m_curTransmission.IsAvailable());
-	TrxHandlerListeners::iterator it = m_listens.find(LifiGtsHandler::GetTypeId().GetUid());
-	if (it != m_listens.end())
-		it->second->AllocNotification(DataService::Create(this));
+}
+
+void LifiTrxHandler::GtsTransmitStart(){
+
+}
+
+void LifiTrxHandler::GtsTransmitEnd(){
+
 }
 
 void LifiTrxHandler::ContentionFreePeriodEnd()
 {
-	NS_LOG_FUNCTION (this);
-	m_curTransmission.Reset();
-	m_curTranceiverTask.Clear();
-	if (m_superframeStruct.m_inactivePortion)
-	{
-		InactionPortionStart ();
-	}
 }
 
 void LifiTrxHandler::InactionPortionStart()

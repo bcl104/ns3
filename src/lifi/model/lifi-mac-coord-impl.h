@@ -14,6 +14,7 @@
 #include "lifi-data-handler.h"
 #include "lifi-beacon-handler.h"
 #include "lifi-disassoc-handler.h"
+#include "lifi-gts-coord-handler.h"
 
 namespace ns3 {
 
@@ -28,6 +29,7 @@ class LifiMacCoordImpl : public LifiMacImpl
 	friend class LifiCoordTrxHandler;
 	friend class LifiCoordAssocHandler;
 	friend class LifiDevAssocHandler;
+	friend class LifiMacBeacon;
 public:
 	LifiMacCoordImpl();
 	virtual ~LifiMacCoordImpl();
@@ -54,6 +56,8 @@ public:
 
 	Ptr<Packet> ConstructBeacon () const;
 
+	virtual void SetCFPLenth(uint32_t gtsLenth);
+
 	virtual void SetLifiMac (Ptr<LifiMac> mac);
 
 	virtual void SetOpticalPeriod (const Time* oc);
@@ -68,8 +72,13 @@ public:
 
 private:
 
+	void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
 	void AddTransactionPacket (TransactionInfo& transInfo);
 	void PetchTransactionPacket (Mac64Address DevAddress);
+	GtsList GetGtsLists()const;
+	uint8_t GetGtsDesCount()const;
+	uint8_t GetGtsDirectionsMark() const;
+	AddrList GetPendingAddresses () const;
 
 	uint32_t m_gtsSlotCount;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
@@ -80,6 +89,7 @@ private:
 	Ptr<LifiDataHandler> m_dataHandler;
 	Ptr<LifiCoordAssocHandler> m_coordAssocHandler;
 	Ptr<LifiTransactionHandler> m_transcHandler;
+	Ptr<LifiGtsCoordHandler> m_gtsCoordHandler;
 };
 
 } /* namespace ns3 */

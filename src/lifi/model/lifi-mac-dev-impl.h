@@ -25,6 +25,7 @@ namespace ns3 {
 //class LifiTxHandler;
 class LifiAssocHandler;
 class LifiChannelScanHandler;
+//class LifiTransactionHandler;
 //class LifiDevAssocHandler;
 //class LifiDisassocHandler;
 //class LifiBeaconHandler;
@@ -68,6 +69,7 @@ public:
 
 	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
 
+	virtual void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
 protected:
 
 	Ptr<LifiTrxHandler> m_trxHandler;
@@ -78,6 +80,7 @@ protected:
 	Ptr<LifiGtsHandler> m_gtsHandler;
 	Ptr<LifiDataHandler> m_dataHandler;
 	Ptr<LifiDevAssocHandler> m_devAssocHandler;
+
 };
 
 } /* namespace ns3 */

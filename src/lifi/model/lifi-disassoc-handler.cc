@@ -1,8 +1,8 @@
 /*
  * lifi-disassoc-handler.cc
  *
- *  Created on: 2014年3月30日
- *      Author: will
+ *  Created on: 2014年8月15日
+ *      Author: wanghongqiao
  */
 
 #include "lifi-disassoc-handler.h"
@@ -24,12 +24,31 @@ LifiDisassocHandler::~LifiDisassocHandler() {
 
 TypeId LifiDisassocHandler::GetTypeId() {
 	static TypeId tid = TypeId ("ns3::LifiDisassocHandler")
-						.SetParent<Object> ()
+						.SetParent<LifiMacHandler> ()
 						.AddConstructor<LifiDisassocHandler> ();
 	return tid;
 }
 
-void LifiDisassocHandler::TxResultNotification(MacOpStatus status) {
+void LifiDisassocHandler::AllocNotification(Ptr<DataService> service) {
+}
+
+void LifiDisassocHandler::TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack) {
+}
+
+AddrMode LifiDisassocHandler::GetCurAddressMode(Address address) const {
+	if (Mac16Address::IsMatchingType(address))
+	{
+		return SHORT;
+	}else if (Mac64Address::IsMatchingType(address))
+	{
+		return EXTENDED;
+	}else
+	{
+		NS_FATAL_ERROR("Invalid address mode.");
+	}
+	return ERROR;
 }
 
 } /* namespace ns3 */
+
+

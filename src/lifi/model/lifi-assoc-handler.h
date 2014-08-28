@@ -15,11 +15,11 @@
 namespace ns3
 {
 
-class DataService;
-class LifiMacImpl;
-class PlmeSapProvider;
-class LifiMacPibAttribute;
-class MlmeSapUser;
+//class DataService;
+//class LifiMacImpl;
+//class PlmeSapProvider;
+//class LifiMacPibAttribute;
+//class MlmeSapUser;
 
 class LifiAssocHandler: public LifiMacHandler, public TrxHandlerListener
 {
@@ -55,13 +55,12 @@ public:
 	Ptr<MlmeSapUser> GetMlmeSapUser () const;
 
 
-protected:
+//protected:
 //	DataService* m_dataService;
 //	LifiMacImpl* m_impl;
 //	PlmeSapProvider* m_provider;
 //	LifiMacPibAttribute* m_attributes;
 //	MlmeSapUser* m_user;
-
 };
 
 } /* namespace ns3 */

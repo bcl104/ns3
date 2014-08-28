@@ -8,10 +8,10 @@
 #ifndef LIFI_DEV_ASSOC_HANDLER_H_
 #define LIFI_DEV_ASSOC_HANDLER_H_
 #include "ns3/object.h"
-#include "lifi-mac-general.h"
+//#include "lifi-mac-general.h"
 #include "op-status-callback.h"
-#include "data-service.h"
-#include "lifi-mac-impl.h"
+//#include "data-service.h"
+//#include "lifi-mac-impl.h"
 #include "lifi-assoc-handler.h"
 #include "lifi-trx-handler.h"
 #include "lifi-mac-comm.h"

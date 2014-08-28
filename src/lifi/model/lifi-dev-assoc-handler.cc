@@ -7,7 +7,7 @@
 
 #include "lifi-dev-assoc-handler.h"
 #include "ns3/log.h"
-#include "lifi-mac-comm.h"
+//#include "lifi-mac-comm.h"
 #include "lifi-mac-header.h"
 #include "lifi-mac-beacon.h"
 #include "lifi-mac-ack.h"

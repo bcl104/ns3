@@ -83,7 +83,7 @@ uint8_t LifiMacBeacon::GetFinalCapSlot() const {
 }
 
 void LifiMacBeacon::SetFinalCapSlot(uint8_t slot) {
-	NS_ASSERT((slot >= 0) && (slot <= 15));
+	NS_ASSERT((slot >= 0) && (slot <= 16));
 	m_finalCapSlot = slot;
 }
 
@@ -143,8 +143,13 @@ void LifiMacBeacon::AddGts(std::vector<GtsDescriptor>& descriptors)
 	m_gts = descriptors;
 }
 
+void LifiMacBeacon::AddGtsList(GtsList gtsList){
+	NS_ASSERT (m_gts.empty());
+	m_gts = gtsList;
+}
+
 bool LifiMacBeacon::AddGts(GtsDescriptor gts) {
-	NS_ASSERT ((gts.deviceShortAddr != 0xff) && (gts.deviceShortAddr != 0xfe));
+	NS_ASSERT ((gts.deviceShortAddr != 0xffff) && (gts.deviceShortAddr != 0xfffe));
 	GtsList::iterator it = std::find_if(m_gts.begin(), m_gts.end(), gts);
 	NS_ASSERT (it == m_gts.end());
 	m_gts.push_back(gts);
@@ -228,6 +233,10 @@ uint8_t LifiMacBeacon::GetExtendedAddressCount() const {
 
 AddrList& LifiMacBeacon::GetAddrs() {
 	return m_pendingAddrs;
+}
+
+void LifiMacBeacon::SetAddrs(AddrList addrList) {
+	m_pendingAddrs = addrList;
 }
 
 uint32_t LifiMacBeacon::WriteTo(Buffer::Iterator &it, AddrList address) {
@@ -333,7 +342,44 @@ bool LifiMacBeacon::CheckPendingAddress(Address address) {
 	return (it != m_pendingAddrs.end());
 }
 
-GtsList::iterator LifiMacBeacon::FindAssignedGts(Mac16Address address) {
+bool LifiMacBeacon::AssignedGtsExist(uint16_t address) {
+	GtsList::iterator it = m_gts.begin();
+	while (it != m_gts.end())
+	{
+		if (address == (*it).deviceShortAddr)
+			return true;
+		it ++;
+	}
+	return false;
+}
+
+GtsDescriptor LifiMacBeacon::GetGtsDescriptor(uint16_t address){
+	GtsList::iterator it = m_gts.begin();
+	while (it != m_gts.end())
+	{
+		if (address == (*it).deviceShortAddr)
+			return *it;
+		it ++;
+	}
+	return GtsDescriptor(0, 0, 0);//invalid Descriptor,it will not appear.normally.
+}
+
+bool LifiMacBeacon::GetGtsDirection(uint16_t address){
+	uint8_t tempInt = 0;
+	for (GtsList::iterator it = m_gts.begin(); it != m_gts.end(); it ++)
+	{
+		if (address == (*it).deviceShortAddr)
+			break;
+		tempInt ++;
+	}
+	if(tempInt != 7){
+		if((m_gtsDirMask & (1<<(7-tempInt))) != 0)
+			return 1;
+		else return 0;
+	}else return 0;
+}
+
+GtsList::iterator LifiMacBeacon::FindAssignedGts(uint16_t address) {
 	GtsList::iterator it = m_gts.begin();
 	while (it != m_gts.end())
 	{

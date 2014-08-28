@@ -190,6 +190,7 @@ public:
 
 	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
 
+	virtual void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
 	virtual void AddTransactionPacket (TransactionInfo& transInfo);
 	virtual void PetchTransactionPacket (Mac64Address DevAddress);
 

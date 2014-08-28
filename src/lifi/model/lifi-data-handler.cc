@@ -2,7 +2,7 @@
  * lifi-data-handler.cc
  *
  *  Created on: 2014年3月30日
- *      Author: will
+ *      Author: wanghongqiao
  */
 
 #include "lifi-data-handler.h"
@@ -15,21 +15,30 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (LifiDataHandler);
 
 LifiDataHandler::LifiDataHandler() {
-
 }
 
 LifiDataHandler::~LifiDataHandler() {
-
 }
 
 TypeId LifiDataHandler::GetTypeId() {
 	static TypeId tid = TypeId ("ns3::LifiDataHandler")
-						.SetParent<Object> ()
-						.AddConstructor<LifiDataHandler> ();
+						.AddConstructor<LifiDataHandler> ()
+						.SetParent<LifiMacHandler> ();
 	return tid;
 }
 
-void LifiDataHandler::TxResultNotification(MacOpStatus status) {
+void LifiDataHandler::StartTransmit(DataDescriptor DataDesc){
+}
+
+void LifiDataHandler::ReceiveDataFrame(uint32_t timestamp, Ptr<Packet> msdu){
+
+}
+void LifiDataHandler::AllocNotification (Ptr<DataService> service) {
+
+}
+
+void LifiDataHandler::TxResultNotification(MacOpStatus status,
+			          PacketInfo info, Ptr<Packet> ack) {
 }
 
 } /* namespace ns3 */

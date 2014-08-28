@@ -142,6 +142,11 @@ void LifiMacDevImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
 }
 
+void LifiMacDevImpl::AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo){
+	NS_LOG_FUNCTION(this);
+	m_gtsHandler->AddGtsTransaction(gtsTransInfo);
+}
+
 } /* namespace ns3 */
 
 

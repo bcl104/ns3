@@ -325,5 +325,3 @@ void LifiTransactionHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {
 }
 
 } /* namespace ns3 */
-
-

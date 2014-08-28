@@ -118,13 +118,13 @@ void GtsResponseComm::Setgtsstartslot(uint8_t startslot){
 }
 
 /*  DisassocNotificationComm Get and Set Function  */
-uint8_t DisassocNotificationComm::GetDissassocReason () const{
-	return (uint8_t)reason;
+DisassocReason DisassocNotificationComm::GetDissassocReason () const{
+	return reason;
 }
 
-void DisassocNotificationComm::SetDissassocReason(uint8_t disassreason){
-	NS_ASSERT (disassreason == 0x01 || disassreason == 0x02  || disassreason == 0x03);
-	reason = (Reason)disassreason;
+void DisassocNotificationComm::SetDissassocReason(DisassocReason disassreason){
+	NS_ASSERT (disassreason == COORD || disassreason == DEVICE  || disassreason == CAN_NOT_SUPPORT);
+	reason = disassreason;
 }
 
 /*  MultiChannelAssignComm Get and Set Function  */
@@ -317,7 +317,7 @@ Buffer GtsResponseComm::Serialize() {
 
 DisassocNotificationComm::DisassocNotificationComm() {
 	m_commId = DISASSOC_NOTIFICATION;
-	reason = DISASSOC_COORD;
+	reason = COORD;
 }
 
 DisassocNotificationComm::~DisassocNotificationComm() {
@@ -327,7 +327,7 @@ void DisassocNotificationComm::Deserialize(const uint8_t *data, uint32_t size) {
 	m_commId = (CommId)*data;
 	data += 2;
 	NS_ASSERT(m_commId == DISASSOC_NOTIFICATION);
-	reason = (Reason)*data;
+	reason = (DisassocReason)*data;
 }
 
 DisassocNotificationComm& DisassocNotificationComm::Construct(Ptr<Packet> p) {

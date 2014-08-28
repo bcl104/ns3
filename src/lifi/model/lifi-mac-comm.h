@@ -131,9 +131,9 @@ public:
 	static DisassocNotificationComm& Construct (Ptr<Packet> p);
 
 
-	uint8_t GetDissassocReason () const;
+	DisassocReason GetDissassocReason () const;
 
-	void SetDissassocReason(uint8_t disassreason);
+	void SetDissassocReason(DisassocReason disassreason);
 
 
 private:
@@ -141,7 +141,7 @@ private:
 	virtual void Deserialize(const uint8_t *data, uint32_t size);
 	virtual Buffer Serialize();
 
-	Reason reason;
+	DisassocReason reason;
 };
 
 struct BeaconRequestComm : public LifiMacComm

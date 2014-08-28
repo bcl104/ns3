@@ -15,6 +15,7 @@
 #include "lifi-mac-impl.h"
 #include "lifi-mac-handler.h"
 #include "lifi-mac-ack.h"
+#include "lifi-gts-handler.h"
 
 namespace ns3 {
 
@@ -101,6 +102,10 @@ public:
 		m_curTransmission.m_backoff.maxBackoffRetry = d;
 		m_suspendedTransmission.m_backoff.maxBackoffRetry = d;
 	}
+
+	virtual void SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount);
+	virtual void SetGtsTrxState(GTSDirection direction);
+
 protected:
 	// Interface for upper layer handler.
 	bool Transmit(PacketInfo& info);
@@ -136,6 +141,7 @@ protected:
 	// Method for GTS transmission.
 	void StartGtsTransmit (PacketInfo& task);
 
+
 	virtual void AcknowledgmentTimeout ();
 	virtual bool RetransmitData ();
 
@@ -146,6 +152,8 @@ protected:
 	virtual void SuperframeStart ();
 	virtual void ContentionAccessPeriodEnd ();
 	virtual void ContentionFreePeriodStart ();
+	virtual void GtsTransmitStart();
+	virtual void GtsTransmitEnd();
 	virtual void ContentionFreePeriodEnd ();
 	virtual void InactionPortionStart ();
 	virtual void SuperframeEnd ();
@@ -175,8 +183,15 @@ protected:
 		bool m_contentionFreePeriod;
 		bool m_inactivePortion;
 		Timer m_capEnd;
+		Timer m_gtsStart;
+		Timer m_gtsEnd;
 		Timer m_cfpEnd;
 		Timer m_supframeEnd;
+		enum {
+			TX_tranceiver,
+			RX_tranceiver
+		} m_gtsState;
+
 		enum {
 			BEACON, CAP, CFP, INACTIVE, DEFAULT
 		} m_state;
@@ -198,8 +213,10 @@ protected:
 	TrxTasks m_tranceiverTasks;
 	DataBuffer m_raTasks;
 //	DataBuffer m_gtsTasks;
+	uint8_t capEndSlot;
 
 	TranceiverTask m_curTranceiverTask;
+	Ptr<LifiGtsHandler> m_gtsHandler;
 
 };
 

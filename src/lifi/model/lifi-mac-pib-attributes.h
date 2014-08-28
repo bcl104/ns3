@@ -32,6 +32,12 @@ class LifiMacPibAttribute : public LifiPIBAttribute
 	friend class LifiCoordTrxHandler;
 	friend class LifiDevTrxHandler;
 	friend class LifiTransactionHandler;
+	friend class LifiDisassocDevHandler;
+	friend class LifiDisassocCoordHandler;
+	friend class LifiGtsDevHandler;
+	friend class LifiGtsCoordHandler;
+	friend class LifiDataDevHandler;
+	friend class LifiDataCoordHandler;
 
 public:
 	LifiMacPibAttribute();

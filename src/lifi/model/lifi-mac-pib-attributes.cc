@@ -20,8 +20,8 @@ LifiMacPibAttribute::LifiMacPibAttribute() {
 //	LOAD_PIB_ATTRIBUTE (MAC_BEACON_PAYLOAD_LENGTH,macBeaconPayloadLength);
 //	LOAD_PIB_ATTRIBUTE (MAC_BEACON_TX_TIME,macBeaconTxTime);
 	LOAD_PIB_ATTRIBUTE (MAC_BSN,macBSN, 0);
-	LOAD_PIB_ATTRIBUTE (MAC_COORD_EXTENDED_ADDRESS,macCoordExtendedAddress,Mac64Address("ff:ee:ff:ee:ff:ee:ff:ee"));
-//	LOAD_PIB_ATTRIBUTE (MAC_COORD_SHORT_ADDRESS,macCoordShortAddress);
+	LOAD_PIB_ATTRIBUTE (MAC_COORD_EXTENDED_ADDRESS,macCoordExtendedAddress,Mac64Address("ff:ff:ff:ff:ff:ff:ff:ff"));
+	LOAD_PIB_ATTRIBUTE (MAC_COORD_SHORT_ADDRESS,macCoordShortAddress,Mac16Address("ff:ff"));
 //	LOAD_PIB_ATTRIBUTE (MAC_DSN,macDSN);
 //	LOAD_PIB_ATTRIBUTE (MAC_GTS_PERMIT,macGTSPermit);
 //	LOAD_PIB_ATTRIBUTE (MAC_LINK_TIME_OUT,macLinkTimeOut);

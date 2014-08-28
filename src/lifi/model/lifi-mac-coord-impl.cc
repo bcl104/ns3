@@ -108,17 +108,23 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	beacon.SetCellSearchEn(true);
 	beacon.SetCellSearchLenth(0);
 
-	beacon.SetFinalCapSlot(15 - m_gtsSlotCount);
-	beacon.SetGtsDescripCount(0);
-	beacon.SetGtsPermit(false);
+	beacon.SetFinalCapSlot(16 - m_gtsSlotCount);
+
+	beacon.SetGtsPermit(true);
 	beacon.SetSupframeOrder((uint8_t)m_attributes.macSuperframeOrder);
 	beacon.SetVpanCoord(true);
+
+	beacon.SetGtsDescripCount(GetGtsDesCount());
+	beacon.AddGtsList(GetGtsLists());
+	beacon.SetGtsDirMask(GetGtsDirectionsMark());
+	beacon.SetAddrs(GetPendingAddresses());
+
 	LifiMacHeader header;
 	header.SetAckRequest(false);
 	header.SetDstAddress(Address(Mac16Address("ff:ff")));
 	header.SetDstVPANId(m_attributes.macVPANId);
 	header.SetFrameType(LIFI_BEACON);
-	header.SetSequenceNumber(m_attributes.macDSN);
+	header.SetSequenceNumber(m_attributes.macBSN);
 	header.SetSrcAddress(m_mac->GetDevice()->GetAddress());
 	std::cout << m_mac->GetDevice()->GetAddress() << std::endl;
 //	header.SetSrcVPANId(m_attributes.macVPANId);
@@ -127,6 +133,9 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	return p;
 }
 
+void LifiMacCoordImpl::SetCFPLenth(uint32_t gtsLenth){
+	m_gtsSlotCount = gtsLenth;
+}
 
 void LifiMacCoordImpl::SetLifiMac(Ptr<LifiMac> mac)
 {
@@ -165,6 +174,12 @@ void LifiMacCoordImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
 }
 
+void LifiMacCoordImpl::AddGtsTransactionPacket(GtsTransactionInfo& gtsTransInfo)
+{
+	NS_LOG_FUNCTION(this);
+	m_gtsHandler->AddGtsTransaction(gtsTransInfo);
+}
+
 void LifiMacCoordImpl::AddTransactionPacket(TransactionInfo& transInfo)
 {
 	NS_LOG_FUNCTION(this);
@@ -174,6 +189,28 @@ void LifiMacCoordImpl::AddTransactionPacket(TransactionInfo& transInfo)
 void LifiMacCoordImpl::PetchTransactionPacket(Mac64Address DevAddress) {
 	NS_LOG_FUNCTION(this);
 	m_transcHandler->PetchTransaction(DevAddress);
+}
+
+GtsList LifiMacCoordImpl::GetGtsLists() const{
+	NS_LOG_FUNCTION(this);
+	GtsList m_tempGtsList;
+	m_tempGtsList = m_gtsCoordHandler->GetGtsDescList();
+	return m_tempGtsList;
+}
+
+uint8_t LifiMacCoordImpl::GetGtsDesCount() const{
+	NS_LOG_FUNCTION(this);
+	return m_gtsCoordHandler->GetGtsDesCount();
+}
+
+uint8_t LifiMacCoordImpl::GetGtsDirectionsMark() const{
+	NS_LOG_FUNCTION(this);
+	return m_gtsCoordHandler->GetGtsDirectionsMark();
+}
+
+AddrList LifiMacCoordImpl::GetPendingAddresses () const{
+	NS_LOG_FUNCTION(this);
+	return m_transcHandler->GetPendingAddress();
 }
 
 } /* namespace ns3 */

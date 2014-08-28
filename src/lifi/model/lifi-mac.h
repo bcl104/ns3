@@ -44,7 +44,7 @@ public:
 	static const uint32_t aMaxMpudUnsecuredOverhead = 25;
 	static const uint32_t aMaxMacSafePayloadSize = MAX_PHY_FRAME_SIZE - aMaxMpudUnsecuredOverhead;
 	static const uint32_t aMaxSifsFrameSize = 18;
-	static const uint32_t aMinCapLength = 440;
+	static const uint32_t aMinCapLength = 2;
 	static const uint32_t aUnitBackoffPeriod = 20;
 
 

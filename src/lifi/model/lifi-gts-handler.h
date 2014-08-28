@@ -8,19 +8,17 @@
 #ifndef LIFI_GTS_HANDLER_H_
 #define LIFI_GTS_HANDLER_H_
 
-#include "ns3/core-module.h"
-#include "lifi-mac-general.h"
-#include "op-status-callback.h"
+#include "lifi-mac-handler.h"
 #include "data-service.h"
-#include "lifi-mac-impl.h"
+#include "lifi-mac-general.h"
 
 namespace ns3 {
 
-class LifiMacImpl;
+
 
 typedef std::vector<GtsDescriptor> GtsDescriptors;
 
-class LifiGtsHandler : public Object
+class LifiGtsHandler : public LifiMacHandler, public TrxHandlerListener
 {
 
 public:
@@ -37,16 +35,26 @@ public:
 
 	GtsDescriptors GetGtsDescritors () const;
 
-
-
+	void AllocNotification (Ptr<DataService> service);
+	void TxResultNotification (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	virtual void ReportTransmission(MacOpStatus status);
+	virtual void AddGtsTransaction(GtsTransactionInfo& gtsTransInfo);
+	virtual void SetGtsOffset(uint8_t startSlot, uint8_t gtsLength);
+	virtual void SendGtsDatas();
+	virtual void EndGtsTransmit();
+	virtual void OpenGtsDataReceive(uint16_t devAddr);
+	virtual void CloseGtsDataReceive();
+	virtual void ReceiveData (uint32_t timestamp, Ptr<Packet> p);
+	virtual void SetGtsTransmitArgument(uint16_t shortAddr, bool transmitState);
 
-protected:
-	DataService* m_dataService;
-	LifiMacImpl* m_impl;
+//protected:
+//	DataService* m_dataService;
+//	LifiMacImpl* m_impl;
 
 private:
 	GtsDescriptors m_descriptors;
+	GtsTransactions m_gtsTransactions;
+	GtsTransactionInfo m_curGtsTransaction;
 
 };
 } /* namespace ns3 */

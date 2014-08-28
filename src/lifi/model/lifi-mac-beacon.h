@@ -57,6 +57,7 @@ public:
 	void SetGtsDirMask ( uint8_t mask);
 
 	void AddGts (std::vector<GtsDescriptor>& descriptors);
+	void AddGtsList(GtsList gtsList);
 	bool AddGts (GtsDescriptor gts);
 	bool RemoveGts (GtsDescriptor gts);
 
@@ -73,9 +74,12 @@ public:
 
 	bool CheckPendingAddress (Address address);
 
-	GtsList::iterator FindAssignedGts (Mac16Address address);
-
+	GtsList::iterator FindAssignedGts (uint16_t address);
+	bool AssignedGtsExist(uint16_t address);
+	GtsDescriptor GetGtsDescriptor(uint16_t address);
 	AddrList& GetAddrs ();
+	void SetAddrs(AddrList addrList);
+	bool GetGtsDirection(uint16_t address);
 
 private:
 

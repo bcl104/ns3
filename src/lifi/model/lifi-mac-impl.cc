@@ -130,6 +130,9 @@ void LifiMacImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
 }
 
+void LifiMacImpl::AddGtsTransactionPacket(GtsTransactionInfo& gtsTransInfo) {
+}
+
 void LifiMacImpl::AddTransactionPacket(TransactionInfo& transInfo) {
 }
 

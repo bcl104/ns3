@@ -1,34 +1,30 @@
 /*
  * lifi-disassoc-handler.h
  *
- *  Created on: 2014年3月30日
- *      Author: will
+ *  Created on: 2014年8月15日
+ *      Author: wanghongqiao
  */
 
 #ifndef LIFI_DISASSOC_HANDLER_H_
 #define LIFI_DISASSOC_HANDLER_H_
-#include "ns3/object.h"
-#include "lifi-mac-general.h"
-#include "op-status-callback.h"
+#include "lifi-mac-handler.h"
 #include "data-service.h"
-#include "lifi-mac-impl.h"
+#include "lifi-mac-general.h"
 
 namespace ns3 {
 
-class LifiDisassocHandler : public Object, public OpStatusCallback
+class LifiDisassocHandler : public LifiMacHandler, public TrxHandlerListener
 {
 
 public:
 	LifiDisassocHandler();
 	virtual ~LifiDisassocHandler();
 	static TypeId GetTypeId ();
-
-	virtual void TxResultNotification(MacOpStatus status);
+	void AllocNotification(Ptr<DataService> service);
+	void TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 
 protected:
-	DataService* m_dataService;
-	LifiMacImpl* m_impl;
-
+	AddrMode GetCurAddressMode(Address address) const;
 };
 
 } /* namespace ns3 */
