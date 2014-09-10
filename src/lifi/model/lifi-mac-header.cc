@@ -135,6 +135,7 @@ uint32_t LifiMacHeader::GetSerializedSize (void) const
 }
 void LifiMacHeader::Serialize (Buffer::Iterator start) const
 {
+
 	Buffer::Iterator it = start;
 	uint16_t frameControlField = (m_version & 0x03)
 									| ((m_type & 0x07) << 6)
@@ -188,6 +189,7 @@ uint32_t LifiMacHeader::Deserialize (Buffer::Iterator start)
 	m_ackRequest = (bool) ((frameControlField >> 11) & 0x0001);
 
 	AddrMode dstAddrMode = (AddrMode) ((frameControlField >> 12) & 0x0003);
+
 	AddrMode srcAddrMode = (AddrMode) ((frameControlField >> 14) & 0x0003);
 
 	m_sequenceNumber = it.ReadU8();

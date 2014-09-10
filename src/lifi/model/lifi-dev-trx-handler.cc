@@ -42,8 +42,9 @@ void LifiDevTrxHandler::BuildSuperframeStruct(Ptr<Packet> beacon)
 {
 	NS_LOG_FUNCTION (this);
 	LifiMacHeader header;
-	beacon->RemoveHeader(header);
-	LifiMacBeacon bcn = LifiMacBeacon::Construct(beacon);
+	Ptr<Packet> tempPacket = beacon->Copy();
+	tempPacket->RemoveHeader(header);
+	LifiMacBeacon bcn = LifiMacBeacon::Construct(tempPacket);
 	uint8_t bcnOrder = bcn.GetBcnOrder();
 	uint8_t superframeOrder = bcn.GetSupframeOrder();
 	capEndSlot = bcn.GetFinalCapSlot();
@@ -102,8 +103,8 @@ void LifiDevTrxHandler::SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uin
 		m_gtsIsCapEnd = true;
 		m_gtsIsCfpEnd = true;
 	}else if(gtsCount > 1){
-		uint32_t gtsStart = startSlot * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
-		uint32_t gtsEnd = (startSlot + gtsLength) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
+		uint32_t gtsStart = (1 + startSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
+		uint32_t gtsEnd = (1 + startSlot + gtsLength) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 		Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 		Time gtsStartTime = NanoSeconds(gtsStart * op.GetNanoSeconds() -1);
 		Time gtsEndTime = NanoSeconds(gtsEnd * op.GetNanoSeconds() -1);
@@ -112,11 +113,11 @@ void LifiDevTrxHandler::SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uin
 		m_superframeStruct.m_gtsStart.SetFunction(&LifiDevTrxHandler::GtsTransmitStart, this);
 		m_superframeStruct.m_gtsEnd.SetFunction(&LifiDevTrxHandler::GtsTransmitEnd, this);
 
-		if(gtsStart == capEndSlot){
+		if(startSlot == capEndSlot - 1){
 			m_superframeStruct.m_gtsEnd.Schedule();
 			m_gtsIsCapEnd = true;
 		}
-		if(gtsStart + gtsLength == 16){
+		if(startSlot + gtsLength == 15){
 			m_superframeStruct.m_gtsStart.Schedule();
 			m_gtsIsCfpEnd = true;
 		}

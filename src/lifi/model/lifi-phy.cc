@@ -241,6 +241,7 @@ uint8_t LifiPhy:: MapbitToInteger(uint8_t band){
 
 void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 	NS_LOG_FUNCTION(this);
+	Ptr<Packet> pbCopy = pb->Copy();
 	if(m_trxStatus == TX_ON){
 		m_trxStatus = TX_BUSY;
 		m_PlmeSapUser->PlemStateIndication(m_trxStatus);
@@ -255,15 +256,17 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 //		else{
 //		psdBand = GetBands(fb,fc,fe);
 //		}
+
 		psdBand = GetFullBands();
 		m_psd = CalculatetxPsd(m_txPower,psdBand,m_band,0)->Copy();//modulation way is not used yet.
 		double headerrate = GetHeaderRate(m_mcsId);
 		LifiPhyHeader header = SetLifiPhyHeader(m_burstMode,*channel,m_mcsId,size,m_ookDim,0x00);
-		pb->AddHeader(header);
+		pbCopy->AddHeader(header);
+
 //		DynamicCast<LifiSpectrumChannel>(m_spectrumPhy->GetChannel())->AddTx(m_spectrumPhy);
 		double rate = GetRate (m_mcsId);
-		m_duration = Seconds(header.GetSerializedSize()/headerrate + pb->GetSize()/(1000*rate));
-		StartTx (pb);
+		m_duration = Seconds(header.GetSerializedSize()/headerrate + pbCopy->GetSize()/(1000*rate));
+		StartTx (pbCopy);
 	}
 	else
 		EndTx (m_trxStatus);
@@ -271,7 +274,7 @@ void LifiPhy::Transmit(uint32_t size, Ptr<Packet> pb, uint8_t band) {
 
 void LifiPhy::Receive(Ptr<LifiSpectrumSignalParameters> param,uint8_t wqi) {
 	NS_LOG_FUNCTION(this);
-	Ptr<Packet> pb = param->pb;
+	Ptr<Packet> pb = param->pb->Copy();
 //	uint8_t txChannel = param->band;
 //	Ptr<LifiSpectrumPhy> txSpectrumPhy = DynamicCast<LifiSpectrumPhy>(param->txPhy);
 //	Ptr<LifiNetDevice> txDevice = DynamicCast<LifiNetDevice>(txSpectrumPhy->GetDevice());

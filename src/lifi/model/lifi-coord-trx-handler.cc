@@ -43,6 +43,13 @@ TypeId LifiCoordTrxHandler::GetTypeId()
 void LifiCoordTrxHandler::SuperframeEnd()
 {
 	NS_LOG_FUNCTION (this);
+	NS_ASSERT (!m_curTransmission.IsAvailable());
+	NS_ASSERT (!m_curTranceiverTask.Available());
+	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
+	m_superframeStruct.m_synchronized = false;
+	m_superframeStruct.m_state = SuperframeStrcut::DEFAULT;
 	if (m_running)
 		Simulator::ScheduleNow (&LifiCoordTrxHandler::BeaconStart, this);
 }
@@ -66,18 +73,25 @@ void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo in
 	p->RemoveHeader(header);
 	LifiMacBeacon beacon = LifiMacBeacon::Construct(p);
 
+//	uint16_t tempCapSlot = beacon.GetFinalCapSlot();
+//	std::cout<<tempCapSlot << std::endl;
+
 	m_superframeStruct.m_capEnd.Schedule();
 	if (m_superframeStruct.m_contentionFreePeriod)
 		m_superframeStruct.m_cfpEnd.Schedule();
 
-    m_superframGtsList = m_gtsCoordHandler->GetGtsDescList();
-	m_gtsCount = m_gtsCoordHandler->GetGtsCount();
+//	m_gtsCount = m_gtsCoordHandler->GetGtsCount();
+//    m_superframGtsList = m_gtsCoordHandler->GetGtsDescList();
+    Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+    m_gtsCount = coordImpl->GetGtsDesCount();
+	m_superframGtsList = coordImpl->GetGtsLists();
+
 	Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 
 	for(GtsList::reverse_iterator it = m_superframGtsList.rbegin(); it != m_superframGtsList.rend(); it ++){
 		m_curGtsTimer.shortAddr = (*it).deviceShortAddr;
 		m_curGtsTimer.gtsdirc = (GTSDirection)beacon.GetGtsDirection((*it).deviceShortAddr);
-		uint32_t curGts = (*it).gtsStartSlot * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
+		uint32_t curGts = (1+(*it).gtsStartSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 		Time curGtsStart = NanoSeconds(curGts * op.GetNanoSeconds());
 		m_curGtsTimer.gtsStartTime.SetFunction(&LifiCoordTrxHandler::StartOneGts, this);
 		m_curGtsTimer.gtsStartTime.SetArguments(m_curGtsTimer.shortAddr, m_curGtsTimer.gtsdirc);
@@ -96,12 +110,12 @@ void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo in
 void LifiCoordTrxHandler::BeaconStart()
 {
 	NS_LOG_FUNCTION (this);
+	m_superframeStruct.m_synchronized = true;
 	m_superframeStruct.m_state = SuperframeStrcut::BEACON;
 	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
 	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, m_attributes->macBeaconOrder);
 	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, m_attributes->macSuperframeOrder);
 	uint32_t capDur = (16 - coordImpl->m_gtsSlotCount) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
-
 
 	Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 	Time bcnIntvalTime = NanoSeconds(bcnIntval * op.GetNanoSeconds());
@@ -149,6 +163,7 @@ void LifiCoordTrxHandler::TransmitBeacon()
 	m_curTransmission.m_info.m_option.indirectTx = false;
 	m_curTransmission.m_info.m_msduSize = beacon->GetSize();
 	m_curTransmission.m_info.m_packet = beacon;
+
 	DoTransmitData();
 }
 

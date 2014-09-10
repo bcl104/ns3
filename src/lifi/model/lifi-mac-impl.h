@@ -60,7 +60,7 @@ public:
 	 * 	\param reason	The reason of the disassociation.
 	 * 	\param txIndirect TRUE if the disassociation notification command is to be sent indirectly.
 	 * */
-	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
+	virtual void Disassociate(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 								DisassocReason reason, bool txIndirect);
 
 	/*
@@ -82,8 +82,9 @@ public:
 	 * 	deallocate an existing GTS. It is also used by the coordinator to initiate a GTS deallocation.
 	 *
 	 * 	\param characteristic The characteristic of the GTS request.
+	 * 	\param dstAddr The destination address of the GTS request.
 	 * */
-	virtual void GtsRequest(GTSCharacteristics characteristic);
+	virtual void GtsRequest(GTSCharacteristics characteristic, Address dstAddr);
 
 	/*
 	 * 	This method prompt the device to request data from a coordinator.
@@ -146,9 +147,9 @@ public:
 	 * 	\param	option
 	 * 	\param	rate
 	 * */
-	virtual void SendData(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId, Address dstAddr,
+	virtual void SendData(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId, Address dstAddr,
 							uint32_t size, Ptr<Packet> msdu, uint8_t handle, TxOption option,
-							DataRateId rate);
+							DataRateId rate, bool burstMode);
 
 	/*
 	 * 	This method should be implemented as coordinator to start a new VPAN.

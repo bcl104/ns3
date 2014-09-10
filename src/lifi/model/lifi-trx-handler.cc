@@ -66,7 +66,7 @@ void LifiTrxHandler::ReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 
 void LifiTrxHandler::Reset()
 {
-	NS_LOG_FUNCTION (this);
+//	NS_LOG_FUNCTION (this);
 	m_curTranceiverTask.Clear();
 }
 
@@ -135,7 +135,7 @@ void LifiTrxHandler::Suspend()
 
 void LifiTrxHandler::Release()
 {
-	NS_LOG_FUNCTION (this);
+//	NS_LOG_FUNCTION (this);
 	m_opStatus = IDLE;
 	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
 	m_curTranceiverTask.Clear();
@@ -412,7 +412,8 @@ void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 }
 
 bool LifiTrxHandler::DoTransmitData() {
-	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds());
+	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds() << m_curTransmission.m_info.m_listener);
+
 	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
 	NS_ASSERT (m_curTransmission.IsAvailable());
 
@@ -471,6 +472,7 @@ bool LifiTrxHandler::DoTransmitData() {
 	// Enable the external trigger to onTxConfirm.
 	DisableAllTrigger();
 	EnableTrigger(LifiTrxHandler::ReceivePacket);
+
 	EnableTrigger(LifiTrxHandler::TxConfirm);
 	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
 
@@ -539,6 +541,7 @@ LifiTrxHandler::TransmissionInfo::~TransmissionInfo()
 
 void LifiTrxHandler::TransmissionInfo::Reset()
 {
+//	NS_LOG_FUNCTION(this);
 	this->m_info.Reset();
 	this->m_packetRetry = 0;
 	this->m_sequenceNum = 0;

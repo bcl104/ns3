@@ -83,7 +83,7 @@ uint8_t LifiMacBeacon::GetFinalCapSlot() const {
 }
 
 void LifiMacBeacon::SetFinalCapSlot(uint8_t slot) {
-	NS_ASSERT((slot >= 0) && (slot <= 16));
+	NS_ASSERT((slot >= 0) && (slot <= 15));
 	m_finalCapSlot = slot;
 }
 
@@ -209,6 +209,24 @@ bool LifiMacBeacon::RemovePendingAddress(Address address) {
 	NS_ASSERT (m_pendingAddrs.size() >= 0);
 	m_pendingAddrs.erase(it);
 	return true;
+}
+
+void LifiMacBeacon::SetPendingAddrSpec(){
+	AddrList::iterator it = m_pendingAddrs.begin() ;
+	m_extendedAddrsCount = 0;
+	m_shortAddrsCount = 0;
+	if(it != m_pendingAddrs.end()){
+		if (Mac64Address::IsMatchingType(*it))
+		{
+			m_extendedAddrsCount ++;
+		}else if (Mac16Address::IsMatchingType(*it))
+		{
+			m_shortAddrsCount ++;
+		}else
+		{
+			NS_FATAL_ERROR("Unsupported address type.");
+		}
+	}
 }
 
 uint8_t* LifiMacBeacon::GetPayload(uint32_t* size) {
@@ -339,6 +357,7 @@ void LifiMacBeacon::SetCellSearchLenth(uint8_t lenth) {
 
 bool LifiMacBeacon::CheckPendingAddress(Address address) {
 	AddrList::iterator it = std::find_if(m_pendingAddrs.begin(), m_pendingAddrs.end(), address);
+//	std::cout << m_pendingAddrs.size() << std::endl;
 	return (it != m_pendingAddrs.end());
 }
 
@@ -476,7 +495,6 @@ void LifiMacBeacon::Deserialize(const uint8_t *data, uint32_t size) {
 	cur += 1;
 
 	m_bcnPayloadSize = ReadFrom(m_bcnPayload, cur, end);
-
 }
 
 } /* namespace ns3 */

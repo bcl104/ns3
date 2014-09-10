@@ -31,7 +31,7 @@ void LifiMacImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
 	NS_FATAL_ERROR("LifiMacImpl::Associate can not be invoked.");
 }
 
-void LifiMacImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
+void LifiMacImpl::Disassociate(AddrMode devAddrMode, uint16_t devVPANId,
 		Address devAddr, DisassocReason reason, bool txIndirect) {
 	NS_FATAL_ERROR("LifiMacImpl::Disassociate can not be invoked.");
 }
@@ -42,7 +42,7 @@ void LifiMacImpl::AssociateResponse(Mac64Address devAddr,
 	NS_FATAL_ERROR("LifiMacImpl::AssociateResponse can not be invoked.");
 }
 
-void LifiMacImpl::GtsRequest(GTSCharacteristics characteristic) {
+void LifiMacImpl::GtsRequest(GTSCharacteristics characteristic, Address dstAddr) {
 }
 
 void LifiMacImpl::Polling(TypeId coordAddrMode, uint16_t coordVPANId,
@@ -75,9 +75,9 @@ void LifiMacImpl::Scan(ScanType scanType, uint8_t channel,
 		uint32_t scanDuration) {
 }
 
-void LifiMacImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
+void LifiMacImpl::SendData(AddrMode srcAddrMode, AddrMode dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t size, Ptr<Packet> msdu,
-		uint8_t handle, TxOption option, DataRateId rate) {
+		uint8_t handle, TxOption option, DataRateId rate, bool burstMode) {
 }
 
 void LifiMacImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,

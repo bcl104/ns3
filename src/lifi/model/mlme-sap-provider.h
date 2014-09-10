@@ -25,7 +25,7 @@ public:
 
 	virtual void MlmeAssociateRequest(LogicChannelId logicChannel, AddrMode coorAddrMode, uint16_t coorVPANId, Mac64Address coordAddr, CapabilityInfo capInfo) = 0;
 
-	virtual void MlmeDisassociateRequest(TypeId devAddrMode, uint16_t devVPANId, Address devAddr, DisassocReason reason, bool txIndirect) = 0;
+	virtual void MlmeDisassociateRequest(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr, DisassocReason reason, bool txIndirect) = 0;
 
 	template <class T>
 	T MlmeGetRequest(MacPIBAttributeId id, uint32_t index)
@@ -33,7 +33,7 @@ public:
 		return *(T*)Get(id, index);
 	}
 
-	virtual void MlmeGtsRequest(GTSCharacteristics characteristics) = 0;
+	virtual void MlmeGtsRequest(GTSCharacteristics characteristics, Address dstAddr) = 0;
 
 	virtual void MlmePollRequest(TypeId corAddrMode, uint16_t coordVPANId, Address coordAddr) = 0;
 
@@ -87,15 +87,15 @@ public:
 		m_mac->Associate (channel, coorAddrMode, coorVPANId, coordAddr, capInfo);
 	}
 
-	virtual void MlmeDisassociateRequest(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
+	virtual void MlmeDisassociateRequest(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 											DisassocReason reason, bool txIndirect)
 	{
 		m_mac->Disassociate (devAddrMode, devVPANId, devAddr, reason, txIndirect);
 	}
 
-	virtual void MlmeGtsRequest(GTSCharacteristics characteristics)
+	virtual void MlmeGtsRequest(GTSCharacteristics characteristics, Address dstAddr)
 	{
-		m_mac->GtsRequest (characteristics);
+		m_mac->GtsRequest (characteristics, dstAddr);
 	}
 
 	virtual void MlmePollRequest(TypeId corAddrMode, uint16_t coordVPANId, Address coordAddr)

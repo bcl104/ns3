@@ -61,14 +61,14 @@ void LifiMac::DoReceive(uint32_t size, Ptr<Packet> p,
 	m_lifiMacImpl->Receive(size, p, quality);
 }
 
-void LifiMac::Send(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
+void LifiMac::Send(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 		Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu, uint8_t handle,
 		const TxOption& txOption, DataRateId rate, bool burstMode) {
 //	NS_LOG_FUNCTION (this << srcAddrMode << dstAddrMode << dstVPANId << dstAddr << msduLength << handle
 //					<< txOption << rate << burstMode);
 	NS_LOG_FUNCTION (this);
 	m_lifiMacImpl->SendData(srcAddrMode, dstAddrMode, dstVPANId, dstAddr, msduLength, msdu, handle,
-							txOption, rate);
+							txOption, rate, burstMode);
 
 }
 
@@ -90,17 +90,17 @@ void LifiMac::Associate(LogicChannelId channel, AddrMode coordAddrMode,uint16_t 
 	m_lifiMacImpl->Associate(channel, coordAddrMode, coordVPANId, coordAddr, capInfo);
 }
 
-void LifiMac::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
+void LifiMac::Disassociate(AddrMode devAddrMode, uint16_t devVPANId,
 		Address devAddr, DisassocReason reason, bool txIndirect) {
 	NS_LOG_FUNCTION (this << devAddrMode << devVPANId << devAddr << (uint32_t)reason << txIndirect);
 
 	m_lifiMacImpl->Disassociate(devAddrMode, devVPANId, devAddr, reason, txIndirect);
 }
 
-void LifiMac::GtsRequest(GTSCharacteristics characteristics) {
+void LifiMac::GtsRequest (GTSCharacteristics characteristics, Address dstAddr) {
 //	NS_LOG_FUNCTION (this << (uint32_t) characteristics);
 	NS_LOG_FUNCTION (this);
-	m_lifiMacImpl->GtsRequest(characteristics);
+	m_lifiMacImpl->GtsRequest(characteristics, dstAddr);
 }
 
 void LifiMac::Poll(TypeId coordAddrMode, uint16_t coordVPANId, Address coordAddr) {

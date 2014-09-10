@@ -20,22 +20,43 @@ LifiMacCoordImpl::LifiMacCoordImpl()
 				: m_gtsSlotCount (0),
 				  m_trxHandler (new LifiCoordTrxHandler),
 				  m_coordAssocHandler (new LifiCoordAssocHandler),
-				  m_transcHandler (new LifiTransactionHandler)
-
-
+				  m_transcHandler (new LifiTransactionHandler),
+				  m_dataCoordHandler (new LifiDataCoordHandler),
+				  m_disassocCoordHandler (new LifiDisassocCoordHandler),
+				  m_gtsCoordHandler (new LifiGtsCoordHandler)
 {
 	m_trxHandler->SetLifiMacImpl(this);
 	m_trxHandler->SetMacPibAttributes(&m_attributes);
+
 	m_coordAssocHandler->SetLifiMacImpl(this);
 	m_coordAssocHandler->SetMacPibAttributes(&m_attributes);
 	m_coordAssocHandler->SetTrxHandler(m_trxHandler);
 	m_trxHandler->AddListener(LifiCoordAssocHandler::GetTypeId(),
 							  GetPointer (m_coordAssocHandler));
+
 	m_transcHandler->SetLifiMacImpl(this);
 	m_transcHandler->SetMacPibAttributes(&m_attributes);
 	m_transcHandler->SetTrxHandler(m_trxHandler);
 	m_trxHandler->AddListener(LifiTransactionHandler::GetTypeId(),
 							  GetPointer (m_transcHandler));
+
+	m_dataCoordHandler->SetLifiMacImpl(this);
+	m_dataCoordHandler->SetMacPibAttributes(&m_attributes);
+	m_dataCoordHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiDataCoordHandler::GetTypeId(),
+							  GetPointer (m_dataCoordHandler));
+
+	m_disassocCoordHandler->SetLifiMacImpl(this);
+	m_disassocCoordHandler->SetMacPibAttributes(&m_attributes);
+	m_disassocCoordHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiDisassocCoordHandler::GetTypeId(),
+							  GetPointer (m_disassocCoordHandler));
+
+	m_gtsCoordHandler->SetLifiMacImpl(this);
+	m_gtsCoordHandler->SetMacPibAttributes(&m_attributes);
+	m_gtsCoordHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiGtsCoordHandler::GetTypeId(),
+							  GetPointer (m_gtsCoordHandler));
 
 }
 
@@ -79,9 +100,22 @@ void LifiMacCoordImpl::Scan(ScanType scanType, LogicChannelId channel,
 		uint32_t scanDuration) {
 }
 
-void LifiMacCoordImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
+void LifiMacCoordImpl::SendData(AddrMode srcAddrMode, AddrMode dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t msduLength,
-		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate) {
+		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate, bool burstMode) {
+	NS_LOG_FUNCTION (this);
+	DataDescriptor m_dataDescriptor;
+	m_dataDescriptor.SrcAddrMode = srcAddrMode;
+	m_dataDescriptor.DstAddrMode = dstAddrMode;
+	m_dataDescriptor.DstVPANId = dstVPANId;
+	m_dataDescriptor.DstAddr = dstAddr;
+	m_dataDescriptor.MsduLenth = msduLength;
+	m_dataDescriptor.Msdu = msdu;
+	m_dataDescriptor.MsduHandle = msduHanle;
+	m_dataDescriptor.Options = option;
+	m_dataDescriptor.Rate = rate;
+	m_dataDescriptor.BurstMode = burstMode;
+	m_dataCoordHandler->StartTransmit(m_dataDescriptor);
 }
 
 void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
@@ -96,8 +130,17 @@ void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 	m_trxHandler->Start();
 }
 
-void LifiMacCoordImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
+void LifiMacCoordImpl::Disassociate(AddrMode devAddrMode, uint16_t devVPANId,
 		Address devAddr, DisassocReason reason, bool txIndirect) {
+	NS_LOG_FUNCTION (this);
+	DisassocDescriptor m_disassocDes;
+	m_disassocDes.DeviceAddrMode = devAddrMode;
+	m_disassocDes.DeviceVPANId = devVPANId;
+	m_disassocDes.DeviceAddr = devAddr;
+	m_disassocDes.DisassociationReason = reason;
+	m_disassocDes.TxIndirect = txIndirect;
+
+	m_disassocCoordHandler->StartDisassoc(m_disassocDes);
 }
 
 Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
@@ -108,7 +151,7 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	beacon.SetCellSearchEn(true);
 	beacon.SetCellSearchLenth(0);
 
-	beacon.SetFinalCapSlot(16 - m_gtsSlotCount);
+	beacon.SetFinalCapSlot(15 - m_gtsSlotCount);
 
 	beacon.SetGtsPermit(true);
 	beacon.SetSupframeOrder((uint8_t)m_attributes.macSuperframeOrder);
@@ -118,6 +161,9 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	beacon.AddGtsList(GetGtsLists());
 	beacon.SetGtsDirMask(GetGtsDirectionsMark());
 	beacon.SetAddrs(GetPendingAddresses());
+	beacon.SetPendingAddrSpec();
+
+	Ptr<Packet> p = beacon.GetPacket();
 
 	LifiMacHeader header;
 	header.SetAckRequest(false);
@@ -126,10 +172,13 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 	header.SetFrameType(LIFI_BEACON);
 	header.SetSequenceNumber(m_attributes.macBSN);
 	header.SetSrcAddress(m_mac->GetDevice()->GetAddress());
-	std::cout << m_mac->GetDevice()->GetAddress() << std::endl;
+//	std::cout << m_mac->GetDevice()->GetAddress() << std::endl;
+//	Mac16Address temp = m_attributes.macCoordShortAddress;
+//	std::cout <<  (uint16_t)temp << std::endl;
 //	header.SetSrcVPANId(m_attributes.macVPANId);
-	Ptr<Packet> p = beacon.GetPacket();
+
 	p->AddHeader(header);
+
 	return p;
 }
 
@@ -212,6 +261,7 @@ AddrList LifiMacCoordImpl::GetPendingAddresses () const{
 	NS_LOG_FUNCTION(this);
 	return m_transcHandler->GetPendingAddress();
 }
+
 
 } /* namespace ns3 */
 

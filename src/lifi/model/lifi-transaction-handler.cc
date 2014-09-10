@@ -59,9 +59,10 @@ void LifiTransactionHandler::onAddTransaction(TransactionInfo& transInfo) {
 	m_curTransactionPair.first = transInfo.m_extendDevAddress;
 	m_curTransactionPair.second = transInfo;
 	m_curTransactionPair.second.m_listener = this;
-	uint32_t transPerTime = m_impl->GetLifiMacPibAttribute().macTransactionPersistenceTime;
+	uint32_t transPer = m_impl->GetLifiMacPibAttribute().macTransactionPersistenceTime;
+	uint32_t transPerTimes = transPer * LifiMac::aBaseSuperframeDuration * pow(2, m_attributes->macBeaconOrder);
 	int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
-	Time delay = NanoSeconds(transPerTime * op);
+	Time delay = NanoSeconds(transPerTimes * op);
 //	Ptr<Packet> temp = Create<Packet>();
 	Ptr<Packet> temp = 0;
 	EventId id = Simulator::Schedule(delay, &LifiTransactionHandler::TimeOutTransaction, this,
@@ -75,6 +76,7 @@ void LifiTransactionHandler::onAddTransaction(TransactionInfo& transInfo) {
 //	m_curTransactionPair.second.m_timer.Schedule(NanoSeconds(transPerTime * m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds()));
 
 	m_transactions.push_back(m_curTransactionPair);
+	m_transationNumbers ++;
 }
 
 void LifiTransactionHandler::PetchTransaction(Mac64Address DevAddress) {
@@ -181,6 +183,7 @@ void LifiTransactionHandler::onTxResultNotification(MacOpStatus status, PacketIn
 							status, m_curTransactionInfo.m_packetInfo, ack);
 	if(status == MAC_SUCCESS || status == NO_ACK){
 			m_transactions.erase(m_curTransactionIterator);
+			m_transationNumbers --;
 		}
 	m_dataService->Release();
 	m_dataService = 0;
@@ -214,6 +217,7 @@ void LifiTransactionHandler::onDelTransaction(Mac64Address DevAddress, MacOpStat
 						//gts need to write later
 					}
 					m_transactions.erase(it);
+					m_transationNumbers --;
 					break;
 				}
 			}
@@ -231,6 +235,7 @@ void LifiTransactionHandler::onDelTransaction(Mac64Address DevAddress, MacOpStat
 						//gts need to write later
 					}
 					m_transactions.erase(it);
+					m_transationNumbers --;
 					break;
 				}
 			}
@@ -266,6 +271,7 @@ void LifiTransactionHandler::TimeOutTransaction(Mac64Address DevAddress, MacOpSt
 							(*m_transactions.begin()).second.m_listener,
 							status, (*m_transactions.begin()).second.m_packetInfo, ack);
 	m_transactions.pop_front();
+	m_transationNumbers --;
 
 }
 

@@ -11,10 +11,12 @@
 #include "lifi-gts-handler.h"
 #include "lifi-coord-assoc-handler.h"
 #include "lifi-coord-trx-handler.h"
-#include "lifi-data-handler.h"
+#include "lifi-data-coord-handler.h"
 #include "lifi-beacon-handler.h"
 #include "lifi-disassoc-handler.h"
 #include "lifi-gts-coord-handler.h"
+#include "lifi-disassoc-coord-handler.h"
+
 
 namespace ns3 {
 
@@ -39,16 +41,16 @@ public:
 //						   uint16_t coordVPANId, Address coordAddr, CapabilityInfo info);
 	virtual void AssociateResponse(Mac64Address devAddr, Mac16Address assocShortAddr,
 									MacOpStatus status, MacOpStatus capResponse);
-	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
+	virtual void Disassociate(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
 	virtual void PurgeTrancsion(uint8_t handle);
 	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, LogicChannelId channel, uint32_t scanDuration);
-	virtual void SendData(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
+	virtual void SendData(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 							Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu,
-							uint8_t msduHanle, TxOption option, DataRateId rate);
+							uint8_t msduHanle, TxOption option, DataRateId rate, bool burstMode);
 	virtual void StartVPAN(uint16_t vpanId, LogicChannelId channel, uint32_t startTime,
 						uint32_t beaconOrder, uint32_t supframeOrder, bool vpanCoord);
 
@@ -82,13 +84,12 @@ private:
 
 	uint32_t m_gtsSlotCount;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
-//	Ptr<LifiCoordAssocHandler> m_assocHandler;
-	Ptr<LifiDisassocHandler> m_disassocHandler;
-	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
-	Ptr<LifiDataHandler> m_dataHandler;
+
 	Ptr<LifiCoordAssocHandler> m_coordAssocHandler;
 	Ptr<LifiTransactionHandler> m_transcHandler;
+	Ptr<LifiDataCoordHandler> m_dataCoordHandler;
+	Ptr<LifiDisassocCoordHandler> m_disassocCoordHandler;
 	Ptr<LifiGtsCoordHandler> m_gtsCoordHandler;
 };
 

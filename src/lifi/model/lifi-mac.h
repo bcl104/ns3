@@ -56,7 +56,7 @@ public:
 
 	Ptr<LifiMacPibAttribute> GetMacPibAttributes ();
 
-	void Send (TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
+	void Send (AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 			   Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu, uint8_t msduHandle,
 			   const TxOption& txOption, DataRateId rate, bool burstMode);
 	void Purge (uint8_t handle);
@@ -67,10 +67,10 @@ public:
 	void Associate (LogicChannelId channel, AddrMode coorAddrMode, uint16_t coorVPANId,
 										Mac64Address coordAddr, CapabilityInfo capInfo);
 
-	void Disassociate (TypeId devAddrMode, uint16_t devVPANId, Address devAddr,	DisassocReason reason,
+	void Disassociate (AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,	DisassocReason reason,
 						bool txIndirect);
 
-	void GtsRequest (GTSCharacteristics characteristics);
+	void GtsRequest (GTSCharacteristics characteristics, Address dstAddr);
 
 	void Poll (TypeId corAddrMode, uint16_t coordVPANId, Address coordAddr);
 

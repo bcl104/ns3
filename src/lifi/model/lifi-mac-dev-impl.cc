@@ -19,15 +19,38 @@ NS_OBJECT_ENSURE_REGISTERED(LifiMacDevImpl);
 
 LifiMacDevImpl::LifiMacDevImpl()
 				: m_trxHandler (new LifiDevTrxHandler),
-				  m_devAssocHandler (new LifiDevAssocHandler)
+				  m_devAssocHandler (new LifiDevAssocHandler),
+				  m_dataDevHandler (new LifiDataDevHandler),
+				  m_disassocDevHandler (new LifiDisassocDevHandler),
+				  m_gtsDevHandler (new LifiGtsDevHandler)
 {
 	NS_LOG_FUNCTION (this);
 	m_trxHandler->SetLifiMacImpl(this);
+	m_trxHandler->SetMacPibAttributes(&m_attributes);
+
 	m_devAssocHandler->SetLifiMacImpl(this);
 	m_devAssocHandler->SetMacPibAttributes(&m_attributes);
 	m_devAssocHandler->SetTrxHandler(m_trxHandler);
 	m_trxHandler->AddListener(LifiDevAssocHandler::GetTypeId(),
 								  GetPointer (m_devAssocHandler));
+
+	m_dataDevHandler->SetLifiMacImpl(this);
+	m_dataDevHandler->SetMacPibAttributes(&m_attributes);
+	m_dataDevHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiDataDevHandler::GetTypeId(),
+								  GetPointer (m_dataDevHandler));
+
+	m_disassocDevHandler->SetLifiMacImpl(this);
+	m_disassocDevHandler->SetMacPibAttributes(&m_attributes);
+	m_disassocDevHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiDisassocDevHandler::GetTypeId(),
+								  GetPointer (m_disassocDevHandler));
+
+	m_gtsDevHandler->SetLifiMacImpl(this);
+	m_gtsDevHandler->SetMacPibAttributes(&m_attributes);
+	m_gtsDevHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiGtsDevHandler::GetTypeId(),
+								  GetPointer (m_gtsDevHandler));
 }
 
 LifiMacDevImpl::~LifiMacDevImpl() {
@@ -53,13 +76,23 @@ void LifiMacDevImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
 
 }
 
-void LifiMacDevImpl::Disassociate(TypeId devAddrMode, uint16_t devVPANId,
+void LifiMacDevImpl::Disassociate(AddrMode devAddrMode, uint16_t devVPANId,
 		Address devAddr, DisassocReason reason, bool txIndirect) {
 	NS_LOG_FUNCTION (this);
+	DisassocDescriptor m_disassocDes;
+	m_disassocDes.DeviceAddrMode = devAddrMode;
+	m_disassocDes.DeviceVPANId = devVPANId;
+	m_disassocDes.DeviceAddr = devAddr;
+	m_disassocDes.DisassociationReason = reason;
+	m_disassocDes.TxIndirect = txIndirect;
+
+	m_disassocDevHandler->StartDisassoc(m_disassocDes);
+
 }
 
-void LifiMacDevImpl::GtsRequest(GTSCharacteristics characteristic) {
+void LifiMacDevImpl::GtsRequest(GTSCharacteristics characteristic, Address dstAddr) {
 	NS_LOG_FUNCTION (this);
+	m_gtsDevHandler->StartGtsRequest(characteristic, dstAddr);
 }
 
 void LifiMacDevImpl::Polling(TypeId coordAddrMode, uint16_t coordVPANId,
@@ -90,27 +123,22 @@ void LifiMacDevImpl::Scan(ScanType scanType, uint8_t channel,
 	NS_LOG_FUNCTION (this);
 }
 
-void LifiMacDevImpl::SendData(TypeId srcAddrMode, TypeId dstAddrMode,
+void LifiMacDevImpl::SendData(AddrMode srcAddrMode, AddrMode dstAddrMode,
 		uint16_t dstVPANId, Address dstAddr, uint32_t msduLength,
-		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate) {
+		Ptr<Packet> msdu, uint8_t msduHanle, TxOption option, DataRateId rate, bool burstMode) {
 	NS_LOG_FUNCTION (this);
-	static TrxHandlerListener listener;
-	LifiMacHeader header;
-	header.SetFrameType(LIFI_DATA);
-	header.SetSrcAddress(Address(Mac16Address("00:00")));
-	header.SetDstAddress(dstAddr);
-	msdu->AddHeader(header);
-	PacketInfo info;
-	info.m_band = CHANNEL1;
-	info.m_bust = false;
-	info.m_force = false;
-	info.m_handle = 2;
-	info.m_isAck = false;
-	info.m_listener = &listener;
-	info.m_msduSize = msdu->GetSize();
-	info.m_option = option;
-	info.m_packet = msdu;
-	m_trxHandler->Send(info);
+	DataDescriptor m_dataDescriptor;
+	m_dataDescriptor.SrcAddrMode = srcAddrMode;
+	m_dataDescriptor.DstAddrMode = dstAddrMode;
+	m_dataDescriptor.DstVPANId = dstVPANId;
+	m_dataDescriptor.DstAddr = dstAddr;
+	m_dataDescriptor.MsduLenth = msduLength;
+	m_dataDescriptor.Msdu = msdu;
+	m_dataDescriptor.MsduHandle = msduHanle;
+	m_dataDescriptor.Options = option;
+	m_dataDescriptor.Rate = rate;
+	m_dataDescriptor.BurstMode = burstMode;
+	m_dataDevHandler->StartTransmit(m_dataDescriptor);
 }
 
 void LifiMacDevImpl::Synchronize(LogicChannelId channel,

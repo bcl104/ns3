@@ -171,9 +171,10 @@ void LifiDevAssocHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p)
 	NS_LOG_FUNCTION (this << timestamp << p);
 
 	LifiMacHeader header;
-	p->RemoveHeader(header);
+	Ptr<Packet> tempPacket = p->Copy();
+	tempPacket->RemoveHeader(header);
 	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
-	LifiMacBeacon beacon = LifiMacBeacon::Construct(p);
+	LifiMacBeacon beacon = LifiMacBeacon::Construct(tempPacket);
 	Address address = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	if (beacon.CheckPendingAddress(address))
 	{
@@ -220,7 +221,8 @@ void LifiDevAssocHandler::onTxResultNotification2(MacOpStatus status,
 	{
 		DisableTrigger(LifiDevAssocHandler::TxResultNotification);
 		LifiMacHeader header;
-		ack->RemoveHeader(header);
+		Ptr<Packet> tempPacket = ack->Copy();
+		tempPacket->RemoveHeader(header);
 		if (header.GetFramePending())
 		{
 //			m_impl->GetLifiMac()->GetPlmeSapProvider()->PlmeSetTRXStateRequest(RX_ON);
@@ -271,9 +273,10 @@ void LifiDevAssocHandler::onReceiveAssocResponse(uint32_t timestamp,
 
 //	m_timer.Cancel();
 	LifiMacHeader header;
-	p->RemoveHeader(header);
+	Ptr<Packet> tempPacket = p->Copy();
+	tempPacket->RemoveHeader(header);
 	NS_ASSERT (header.GetFrameType() == LIFI_COMMAND);
-	m_assocResponse = AssocResponseComm::Construct(p);
+	m_assocResponse = AssocResponseComm::Construct(tempPacket);
 
 	if(m_assocResponse.GetAssocStatus() == MAC_SUCCESS)
 			{

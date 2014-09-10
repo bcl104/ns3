@@ -170,8 +170,9 @@ void LifiChannelScanHandler::SendBeaconRequest() {
 
 void LifiChannelScanHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> msdu) {
 	LifiMacHeader header;
-	msdu->RemoveHeader(header);
-	LifiMacBeacon beacon = LifiMacBeacon::Construct(msdu);
+	Ptr<Packet> tempPacket = msdu->Copy();
+	tempPacket->RemoveHeader(header);
+	LifiMacBeacon beacon = LifiMacBeacon::Construct(tempPacket);
 	VPANDescriptor d;
 	d.coordAddr = header.GetSrcAddress();
 	d.coordAddrMode = header.GetSrcAddressMode();

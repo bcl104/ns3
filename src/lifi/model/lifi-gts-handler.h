@@ -47,6 +47,21 @@ public:
 	virtual void ReceiveData (uint32_t timestamp, Ptr<Packet> p);
 	virtual void SetGtsTransmitArgument(uint16_t shortAddr, bool transmitState);
 
+	void SetLifiMacImpl (LifiMacImpl* impl);
+	Ptr<LifiMacImpl> GetLifiMacImpl () const;
+
+	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
+	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
+
+	void SetDataService (Ptr<DataService> service);
+	Ptr<DataService> GetDataService () const;
+
+	void SetLifiMacPibAttribute (Ptr<LifiMacPibAttribute> pib);
+	Ptr<LifiMacPibAttribute> GetLifiMacPibAttribute () const;
+
+	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
+	Ptr<MlmeSapUser> GetMlmeSapUser () const;
+
 //protected:
 //	DataService* m_dataService;
 //	LifiMacImpl* m_impl;

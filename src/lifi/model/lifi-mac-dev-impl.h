@@ -15,22 +15,24 @@
 #include "lifi-disassoc-handler.h"
 #include "lifi-beacon-handler.h"
 #include "lifi-gts-handler.h"
-#include "lifi-data-handler.h"
 #include "lifi-assoc-handler.h"
 #include "lifi-channel-scan-handler.h"
 #include "lifi-dev-assoc-handler.h"
+#include "lifi-data-dev-handler.h"
+#include "lifi-disassoc-dev-handler.h"
+#include "lifi-gts-dev-handler.h"
 
 namespace ns3 {
 
 //class LifiTxHandler;
-class LifiAssocHandler;
-class LifiChannelScanHandler;
+//class LifiAssocHandler;
+//class LifiChannelScanHandler;
 //class LifiTransactionHandler;
 //class LifiDevAssocHandler;
 //class LifiDisassocHandler;
 //class LifiBeaconHandler;
 //class LifiGtsHandler;
-//class LifiDataHandler;
+class LifiDataDevHandler;
 
 class LifiMacDevImpl : public LifiMacImpl
 {
@@ -41,12 +43,11 @@ public:
 
 	static TypeId GetTypeId ();
 
-
 	virtual void Associate(LogicChannelId channel, AddrMode coordAddrMode, uint16_t coordVPANId,
 						   Mac64Address coordAddr, CapabilityInfo info);
-	virtual void Disassociate(TypeId devAddrMode, uint16_t devVPANId, Address devAddr,
+	virtual void Disassociate(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
-	virtual void GtsRequest(GTSCharacteristics characteristic);
+	virtual void GtsRequest(GTSCharacteristics characteristic, Address dstAddr);
 	virtual void Polling(TypeId coordAddrMode, uint16_t coordVPANId, Address coordAddr);
 	virtual void PurgeTrancsion(uint8_t handle);
 	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
@@ -54,9 +55,9 @@ public:
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 	virtual void Scan(ScanType scanType, uint8_t channel, uint32_t scanDuration);
 
-	virtual void SendData(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId, Address dstAddr,
-								uint32_t size, Ptr<Packet> msdu, uint8_t handle, TxOption option,
-								DataRateId rate);
+	virtual void SendData(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId, Address dstAddr,
+						  uint32_t size, Ptr<Packet> msdu, uint8_t handle, TxOption option,
+						  DataRateId rate, bool burstMode);
 	virtual void Synchronize(LogicChannelId channel, bool trackBeacon);
 
 	virtual void DataConfirm (PhyOpStatus status);
@@ -75,11 +76,14 @@ protected:
 	Ptr<LifiTrxHandler> m_trxHandler;
 	Ptr<LifiAssocHandler> m_assocHandler;
 	Ptr<LifiChannelScanHandler> m_channelScanHandler;
-	Ptr<LifiDisassocHandler> m_disassocHandler;
-	Ptr<LifiBeaconHandler> m_beaconHandler;
+//	Ptr<LifiDisassocHandler> m_disassocHandler;
+//	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
-	Ptr<LifiDataHandler> m_dataHandler;
+
 	Ptr<LifiDevAssocHandler> m_devAssocHandler;
+	Ptr<LifiDataDevHandler> m_dataDevHandler;
+	Ptr<LifiDisassocDevHandler> m_disassocDevHandler;
+	Ptr<LifiGtsDevHandler> m_gtsDevHandler;
 
 };
 

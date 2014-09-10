@@ -257,7 +257,8 @@ public:
 	uint16_t MsduLenth;
 	uint8_t MsduHandle;
 	TxOption Options;
-
+	DataRateId Rate;
+	bool BurstMode;
 };
 
 struct DataIndicaDescriptor{

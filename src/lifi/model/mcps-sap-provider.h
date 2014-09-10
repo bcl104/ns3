@@ -21,7 +21,7 @@ public:
 	McpsSapProvider();
 	virtual ~McpsSapProvider();
 
-	virtual void McpsDataRequest(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
+	virtual void McpsDataRequest(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 								Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu, uint8_t msduHandle,
 								const TxOption& txOption, DataRateId rate, bool burstMode) = 0;
 	virtual void McpsPurgeRequest(uint8_t msduHandle) = 0;
@@ -42,7 +42,7 @@ public:
 
 	}
 
-	virtual void McpsDataRequest(TypeId srcAddrMode, TypeId dstAddrMode, uint16_t dstVPANId,
+	virtual void McpsDataRequest(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 									Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu, uint8_t msduHandle,
 									const TxOption& txOption, DataRateId rate, bool burstMode)
 	{

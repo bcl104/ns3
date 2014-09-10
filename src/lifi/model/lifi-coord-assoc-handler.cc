@@ -6,7 +6,7 @@
  */
 
 #include "lifi-coord-assoc-handler.h"
-#include "lifi-mac-general.h"
+//#include "lifi-mac-general.h"
 #include "lifi-transaction-handler.h"
 #include "ns3/log.h"
 
@@ -25,7 +25,7 @@ LifiCoordAssocHandler::LifiCoordAssocHandler()
 //	NS_FATAL_ERROR("Unavailable instantiation with this constructor.");
 	AddTrigger(LifiCoordAssocHandler::AllocNotification, false);
 	AddTrigger(LifiCoordAssocHandler::ReceiveAssocRequest, true);
-	AddTrigger(LifiCoordAssocHandler::ReceiveDataRequest, true);
+	AddTrigger(LifiCoordAssocHandler::ReceiveDataRequest, false);
 	AddTrigger(LifiCoordAssocHandler::MlmeAssocResponse,true);
 	AddTrigger(LifiCoordAssocHandler::TxResultNotification, false);
 }
@@ -42,7 +42,7 @@ LifiCoordAssocHandler::LifiCoordAssocHandler(DataService* service,LifiMacImpl* i
 	m_coordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	AddTrigger(LifiCoordAssocHandler::AllocNotification, false);
 	AddTrigger(LifiCoordAssocHandler::ReceiveAssocRequest, true);
-	AddTrigger(LifiCoordAssocHandler::ReceiveDataRequest, true);
+	AddTrigger(LifiCoordAssocHandler::ReceiveDataRequest, false);
 	AddTrigger(LifiCoordAssocHandler::MlmeAssocResponse,true);
 	AddTrigger(LifiCoordAssocHandler::TxResultNotification, false);
 }
@@ -79,9 +79,10 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 //	m_temp->printffff();
 
 	LifiMacHeader header;
-	msdu->RemoveHeader(header);
+	Ptr<Packet> tempPacket = msdu->Copy();
+	tempPacket->RemoveHeader(header);
 	NS_ASSERT (header.GetFrameType() == LIFI_COMMAND);
-	AssocRqstComm comm = AssocRqstComm::Construct(msdu);
+	AssocRqstComm comm = AssocRqstComm::Construct(tempPacket);
 	NS_ASSERT (comm.GetCommId() == ASSOC_REQUEST);
 	DisableTrigger(LifiCoordAssocHandler::ReceiveAssocRequest);  //occupation sometime
 	m_curDeviceAddress = Mac64Address::ConvertFrom(header.GetSrcAddress());
@@ -89,12 +90,14 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 	m_dstAddrMode = header.GetDstAddressMode();//assign coordinatorAddress to shortAddress
 //	std::cout << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 //	std::cout << header.GetDstAddress() << std::endl;
+//	std::cout << m_curDeviceAddress << std::endl;
 	m_coordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+//	std::cout << m_coordAddress << std::endl;
 	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
 												//local device associate to local coordinator.
 	m_vpanId = header.GetDstVPANId();
 
-	m_AckState = SEND_ACK1;
+ 	m_AckState = SEND_ACK1;
 
 	TranceiverTask task;
 	task.Clear();
@@ -275,6 +278,7 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 	if(m_AckState == SEND_ACK1){
 		sendAck1();//rewrite the info of the device.
 		MlmeAssocResponse(m_curDeviceAddress, Mac16Address("12:34"), MAC_SUCCESS);
+		EnableTrigger(LifiCoordAssocHandler::ReceiveDataRequest);
 //		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
 	}else{
 		sendAck2();

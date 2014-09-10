@@ -64,6 +64,7 @@ public:
 	void AddPendingAddress (AddrList address);
 	bool AddPendingAddress (Address address);
 	bool RemovePendingAddress (Address address);
+	void SetPendingAddrSpec();
 
 	uint8_t* GetPayload (uint32_t *size);
 	void SetPayload (uint8_t *data, uint32_t size);

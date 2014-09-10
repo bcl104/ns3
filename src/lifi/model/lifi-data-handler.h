@@ -21,9 +21,24 @@ public:
 	virtual ~LifiDataHandler();
 	static TypeId GetTypeId ();
 	virtual void StartTransmit(DataDescriptor DataDesc);
-	virtual void ReceiveDataFrame(uint32_t timestamp, Ptr<Packet> msdu);
+	virtual void ReceiveData (uint32_t timestamp, Ptr<Packet> p);
 	virtual void AllocNotification (Ptr<DataService> service);
 	virtual void TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
+
+	void SetLifiMacImpl (LifiMacImpl* impl);
+	Ptr<LifiMacImpl> GetLifiMacImpl () const;
+
+	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
+	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
+
+	void SetDataService (Ptr<DataService> service);
+	Ptr<DataService> GetDataService () const;
+
+	void SetLifiMacPibAttribute (Ptr<LifiMacPibAttribute> pib);
+	Ptr<LifiMacPibAttribute> GetLifiMacPibAttribute () const;
+
+	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
+	Ptr<MlmeSapUser> GetMlmeSapUser () const;
 
 };
 

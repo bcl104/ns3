@@ -10,6 +10,7 @@
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
+#include "lifi-mac-header.h"
 
 namespace ns3 {
 
@@ -38,6 +39,9 @@ public:
 
 	virtual void DataRequest(uint32_t size, Ptr<Packet> pb, uint8_t band)
 	{
+		LifiMacHeader header;
+		pb->PeekHeader(header);
+		std::cout << (uint16_t)header.GetDstAddressMode() << std::endl;
 		m_phy->Transmit (size, pb, band);
 	}
 
