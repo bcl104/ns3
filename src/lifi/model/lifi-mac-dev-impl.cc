@@ -175,6 +175,31 @@ void LifiMacDevImpl::AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo){
 	m_gtsHandler->AddGtsTransaction(gtsTransInfo);
 }
 
+void LifiMacDevImpl::SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState){
+	NS_LOG_FUNCTION(this);
+	m_gtsDevHandler->SetGtsTransmitArgument(shortAddr, transmitState);
+}
+
+void LifiMacDevImpl::OpenGtsDataReceive(uint16_t devAddr){
+	NS_LOG_FUNCTION(this);
+	m_gtsDevHandler->OpenGtsDataReceive(devAddr);
+}
+
+void LifiMacDevImpl::CloseGtsDataReceive(){
+	NS_LOG_FUNCTION(this);
+	m_gtsDevHandler->CloseGtsDataReceive();
+}
+
+void LifiMacDevImpl::EndGtsTransmit(){
+	NS_LOG_FUNCTION(this);
+	m_gtsDevHandler->EndGtsTransmit();
+}
+
+void LifiMacDevImpl::SendGtsDatas(){
+	NS_LOG_FUNCTION(this);
+	m_gtsDevHandler->SendGtsDatas();
+}
+
 } /* namespace ns3 */
 
 

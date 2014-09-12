@@ -139,6 +139,26 @@ void LifiMacImpl::AddTransactionPacket(TransactionInfo& transInfo) {
 void LifiMacImpl::PetchTransactionPacket(Mac64Address DevAddress) {
 }
 
+void LifiMacImpl::SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState){
+
+}
+
+void LifiMacImpl::OpenGtsDataReceive(uint16_t devAddr){
+
+}
+
+void LifiMacImpl::CloseGtsDataReceive(){
+
+}
+
+void LifiMacImpl::EndGtsTransmit(){
+
+}
+
+void LifiMacImpl::SendGtsDatas(){
+
+}
+
 } /* namespace ns3 */
 
 

@@ -134,18 +134,18 @@ void LifiDevTrxHandler::SetGtsTrxState(GTSDirection direction){
 void LifiDevTrxHandler::GtsTransmitStart(){
 	NS_LOG_FUNCTION (this);
 	if(m_superframeStruct.m_gtsState == SuperframeStrcut::TX_tranceiver){
-		m_gtsHandler->SendGtsDatas();
+		m_impl->SendGtsDatas();
 	}else if(m_superframeStruct.m_gtsState == SuperframeStrcut::RX_tranceiver){
-		m_gtsHandler->OpenGtsDataReceive(0);
+		m_impl->OpenGtsDataReceive(0);
 	}
 }
 void LifiDevTrxHandler::GtsTransmitEnd(){
 	NS_LOG_FUNCTION (this);
 	if(!m_gtsIsCfpEnd){
 		if(m_superframeStruct.m_gtsState == SuperframeStrcut::TX_tranceiver){
-			m_gtsHandler->EndGtsTransmit();
+			m_impl->EndGtsTransmit();
 		}else if(m_superframeStruct.m_gtsState == SuperframeStrcut::RX_tranceiver){
-			m_gtsHandler->CloseGtsDataReceive();
+			m_impl->CloseGtsDataReceive();
 		}
 	}
 }
@@ -157,9 +157,9 @@ void LifiDevTrxHandler::ContentionFreePeriodStart()
 	NS_ASSERT (!m_curTransmission.IsAvailable());
 	if(m_gtsIsCapEnd){
 		if(m_superframeStruct.m_gtsState == SuperframeStrcut::TX_tranceiver){
-			m_gtsHandler->SendGtsDatas();
+			m_impl->SendGtsDatas();
 		}else if(m_superframeStruct.m_gtsState == SuperframeStrcut::RX_tranceiver){
-			m_gtsHandler->OpenGtsDataReceive(0);
+			m_impl->OpenGtsDataReceive(0);
 		}
 	}
 }
@@ -169,9 +169,9 @@ void LifiDevTrxHandler::ContentionFreePeriodEnd()
 	NS_LOG_FUNCTION (this);
 	if(m_gtsIsCfpEnd){
 		if(m_superframeStruct.m_gtsState == SuperframeStrcut::TX_tranceiver){
-			m_gtsHandler->EndGtsTransmit();
+			m_impl->EndGtsTransmit();
 		}else if(m_superframeStruct.m_gtsState == SuperframeStrcut::RX_tranceiver){
-			m_gtsHandler->CloseGtsDataReceive();
+			m_impl->CloseGtsDataReceive();
 		}
 	}
 	m_curTransmission.Reset();

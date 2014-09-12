@@ -43,6 +43,7 @@ public:
 									MacOpStatus status, MacOpStatus capResponse);
 	virtual void Disassociate(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
+	virtual void GtsRequest(GTSCharacteristics characteristic, Address dstAddr);
 	virtual void PurgeTrancsion(uint8_t handle);
 	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
@@ -77,12 +78,20 @@ private:
 	void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
 	void AddTransactionPacket (TransactionInfo& transInfo);
 	void PetchTransactionPacket (Mac64Address DevAddress);
-	GtsList GetGtsLists()const;
+	GtsList GetGtsLists() const;
+	GtsList GetBeaconGtsLists() const;
 	uint8_t GetGtsDesCount()const;
 	uint8_t GetGtsDirectionsMark() const;
 	AddrList GetPendingAddresses () const;
 
+	virtual void SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState);
+	virtual void OpenGtsDataReceive(uint16_t devAddr);
+	virtual void CloseGtsDataReceive();
+	virtual void EndGtsTransmit();
+	virtual void SendGtsDatas();
+
 	uint32_t m_gtsSlotCount;
+	GtsList m_gtsList;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
 

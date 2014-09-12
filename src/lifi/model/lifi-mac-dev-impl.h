@@ -71,6 +71,12 @@ public:
 	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
 
 	virtual void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
+
+	virtual void SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState);
+	virtual void OpenGtsDataReceive(uint16_t devAddr);
+	virtual void CloseGtsDataReceive();
+	virtual void EndGtsTransmit();
+	virtual void SendGtsDatas();
 protected:
 
 	Ptr<LifiTrxHandler> m_trxHandler;

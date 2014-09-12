@@ -438,7 +438,7 @@ int main(){
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
 	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
-//	_test.GetLifiMacRx()->Reset();
+	_test.GetLifiMacRx()->Reset();
 //	TxOption op;
 //	op.ackTx = false;
 //	op.indirectTx = false;
@@ -478,9 +478,13 @@ int main(){
 //	_test.GetLifiMacTx()->Disassociate(EXTENDED, 0x01,
 //									   Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
 
+//	GTSCharacteristics character;
+//	character.gtsLength = 3;
+//	_test.GetLifiMacRx()->GtsRequest(character, Mac64Address ("00:00:00:00:00:00:00:01"));
+
 	GTSCharacteristics character;
 	character.gtsLength = 3;
-	_test.GetLifiMacRx()->GtsRequest(character, Mac64Address ("00:00:00:00:00:00:00:01"));
+	_test.GetLifiMacTx()->GtsRequest(character, Mac16Address ("55:55"));
 
 	Simulator::Stop(Seconds(8));
 	Simulator::Run ();

@@ -41,7 +41,7 @@ private:
 	GtsList m_superframGtsList;
 	GtsStructure m_curGtsTimer;
 	GtsTimer m_gtsTimerList;
-//	Ptr<LifiGtsCoordHandler> m_gtsCoordHandler;
+	Ptr<LifiGtsCoordHandler> m_gtsCoordHandler;
 
 };
 

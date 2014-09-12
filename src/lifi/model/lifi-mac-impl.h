@@ -195,6 +195,11 @@ public:
 	virtual void AddTransactionPacket (TransactionInfo& transInfo);
 	virtual void PetchTransactionPacket (Mac64Address DevAddress);
 
+	virtual void SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState);
+	virtual void OpenGtsDataReceive(uint16_t devAddr);
+	virtual void CloseGtsDataReceive();
+	virtual void EndGtsTransmit();
+	virtual void SendGtsDatas();
 protected:
 
 	Ptr<LifiMac> m_mac;

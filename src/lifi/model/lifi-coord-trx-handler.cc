@@ -49,6 +49,8 @@ void LifiCoordTrxHandler::SuperframeEnd()
 	DisableAllTrigger();
 	EnableTrigger(LifiTrxHandler::ReceivePacket);
 	m_superframeStruct.m_synchronized = false;
+	m_gtsCount = 0;
+	m_curGtsCount = 0;
 	m_superframeStruct.m_state = SuperframeStrcut::DEFAULT;
 	if (m_running)
 		Simulator::ScheduleNow (&LifiCoordTrxHandler::BeaconStart, this);
@@ -77,30 +79,31 @@ void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo in
 //	std::cout<<tempCapSlot << std::endl;
 
 	m_superframeStruct.m_capEnd.Schedule();
-	if (m_superframeStruct.m_contentionFreePeriod)
+	if (m_superframeStruct.m_contentionFreePeriod){
 		m_superframeStruct.m_cfpEnd.Schedule();
 
-//	m_gtsCount = m_gtsCoordHandler->GetGtsCount();
-//    m_superframGtsList = m_gtsCoordHandler->GetGtsDescList();
-    Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-    m_gtsCount = coordImpl->GetGtsDesCount();
-	m_superframGtsList = coordImpl->GetGtsLists();
+		//	m_gtsCount = m_gtsCoordHandler->GetGtsCount();
+		//    m_superframGtsList = m_gtsCoordHandler->GetGtsDescList();
+		Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+		m_gtsCount = coordImpl->GetGtsDesCount();
+		m_superframGtsList = coordImpl->GetBeaconGtsLists();
 
-	Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
+		Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 
-	for(GtsList::reverse_iterator it = m_superframGtsList.rbegin(); it != m_superframGtsList.rend(); it ++){
-		m_curGtsTimer.shortAddr = (*it).deviceShortAddr;
-		m_curGtsTimer.gtsdirc = (GTSDirection)beacon.GetGtsDirection((*it).deviceShortAddr);
-		uint32_t curGts = (1+(*it).gtsStartSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
-		Time curGtsStart = NanoSeconds(curGts * op.GetNanoSeconds());
-		m_curGtsTimer.gtsStartTime.SetFunction(&LifiCoordTrxHandler::StartOneGts, this);
-		m_curGtsTimer.gtsStartTime.SetArguments(m_curGtsTimer.shortAddr, m_curGtsTimer.gtsdirc);
-		m_curGtsTimer.gtsStartTime.SetDelay(curGtsStart);
-		if(it != m_superframGtsList.rbegin())
-			m_curGtsTimer.gtsStartTime.Schedule();
-		m_gtsTimerList.push_back(m_curGtsTimer);
+		for(GtsList::reverse_iterator it = m_superframGtsList.rbegin(); it != m_superframGtsList.rend(); it ++){
+//			std::cout << m_superframGtsList.size() << std::endl;
+			m_curGtsTimer.shortAddr = (*it).deviceShortAddr;
+			m_curGtsTimer.gtsdirc = (GTSDirection)beacon.GetGtsDirection((*it).deviceShortAddr);
+			uint32_t curGts = (1+(*it).gtsStartSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
+			Time curGtsStart = NanoSeconds(curGts * op.GetNanoSeconds());
+			m_curGtsTimer.gtsStartTime.SetFunction(&LifiCoordTrxHandler::StartOneGts, this);
+			m_curGtsTimer.gtsStartTime.SetArguments(m_curGtsTimer.shortAddr, m_curGtsTimer.gtsdirc);
+			m_curGtsTimer.gtsStartTime.SetDelay(curGtsStart);
+			if(it != m_superframGtsList.rend() - 1)
+				m_curGtsTimer.gtsStartTime.Schedule();
+			m_gtsTimerList.push_back(m_curGtsTimer);
+		}
 	}
-
 	m_superframeStruct.m_supframeEnd.Schedule();
 	Simulator::ScheduleNow(&LifiCoordTrxHandler::SuperframeStart, this);
 	DisableAllTrigger();
@@ -181,9 +184,9 @@ void LifiCoordTrxHandler::ContentionFreePeriodEnd()
 	NS_LOG_FUNCTION (this);
 	GtsTimer::reverse_iterator it = m_gtsTimerList.rbegin();
 	if((*it).gtsdirc == (GTSDirection)SuperframeStrcut::TX_tranceiver){
-		m_gtsHandler->EndGtsTransmit();
+		m_impl->EndGtsTransmit();
 	}else if((*it).gtsdirc == (GTSDirection)SuperframeStrcut::RX_tranceiver){
-		m_gtsHandler->CloseGtsDataReceive();
+		m_impl->CloseGtsDataReceive();
 	}
 	m_curTransmission.Reset();
 	m_curTranceiverTask.Clear();
@@ -197,9 +200,9 @@ void LifiCoordTrxHandler::StartOneGts(uint16_t shortAddr, GTSDirection gtsDirec)
 	NS_LOG_FUNCTION(this);
 	m_curGtsCount ++;
 	if(gtsDirec == (GTSDirection)SuperframeStrcut::TX_tranceiver){
-		m_gtsHandler->SetGtsTransmitArgument(shortAddr, true);
+		m_impl->SetGtsTransmitArgument(shortAddr, true);
 	}else if(gtsDirec == (GTSDirection)SuperframeStrcut::RX_tranceiver){
-		m_gtsHandler->OpenGtsDataReceive(shortAddr);
+		m_impl->OpenGtsDataReceive(shortAddr);
 	}
 }
 

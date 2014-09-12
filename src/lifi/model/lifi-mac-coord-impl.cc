@@ -77,8 +77,13 @@ TypeId LifiMacCoordImpl::GetTypeId() {
 //}
 
 void LifiMacCoordImpl::AssociateResponse(Mac64Address devAddr,
-		Mac16Address assocShortAddr, MacOpStatus status,
-		MacOpStatus capResponse) {
+		Mac16Address assocShortAddr, MacOpStatus status, MacOpStatus capResponse) {
+
+}
+
+void LifiMacCoordImpl::GtsRequest(GTSCharacteristics characteristic, Address dstAddr){
+	NS_LOG_FUNCTION (this);
+	m_gtsCoordHandler->StartGtsDealloc(characteristic, dstAddr);
 }
 
 void LifiMacCoordImpl::PurgeTrancsion(uint8_t handle) {
@@ -247,6 +252,13 @@ GtsList LifiMacCoordImpl::GetGtsLists() const{
 	return m_tempGtsList;
 }
 
+GtsList LifiMacCoordImpl::GetBeaconGtsLists() const{
+	NS_LOG_FUNCTION(this);
+	GtsList m_tempGtsList;
+	m_tempGtsList = m_gtsCoordHandler->GetBeaconGtsDescList();
+	return m_tempGtsList;
+}
+
 uint8_t LifiMacCoordImpl::GetGtsDesCount() const{
 	NS_LOG_FUNCTION(this);
 	return m_gtsCoordHandler->GetGtsDesCount();
@@ -262,6 +274,30 @@ AddrList LifiMacCoordImpl::GetPendingAddresses () const{
 	return m_transcHandler->GetPendingAddress();
 }
 
+void LifiMacCoordImpl::SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState){
+	NS_LOG_FUNCTION(this);
+	m_gtsCoordHandler->SetGtsTransmitArgument(shortAddr, transmitState);
+}
+
+void LifiMacCoordImpl::OpenGtsDataReceive(uint16_t devAddr){
+	NS_LOG_FUNCTION(this);
+	m_gtsCoordHandler->OpenGtsDataReceive(devAddr);
+}
+
+void LifiMacCoordImpl::CloseGtsDataReceive(){
+	NS_LOG_FUNCTION(this);
+	m_gtsCoordHandler->CloseGtsDataReceive();
+}
+
+void LifiMacCoordImpl::EndGtsTransmit(){
+	NS_LOG_FUNCTION(this);
+	m_gtsCoordHandler->EndGtsTransmit();
+}
+
+void LifiMacCoordImpl::SendGtsDatas(){
+	NS_LOG_FUNCTION(this);
+	m_gtsCoordHandler->SendGtsDatas();
+}
 
 } /* namespace ns3 */
 
