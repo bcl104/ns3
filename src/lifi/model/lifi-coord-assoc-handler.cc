@@ -6,7 +6,6 @@
  */
 
 #include "lifi-coord-assoc-handler.h"
-//#include "lifi-mac-general.h"
 #include "lifi-transaction-handler.h"
 #include "ns3/log.h"
 
@@ -21,7 +20,7 @@ LifiCoordAssocHandler::LifiCoordAssocHandler()
 {
 	NS_LOG_FUNCTION (this);
 	m_AckState = SEND_ACK1;
-	m_curChannel = CHANNEL1;//how to get the current channel?
+	m_curChannel = CHANNEL1;////how to get the current channel?
 //	NS_FATAL_ERROR("Unavailable instantiation with this constructor.");
 	AddTrigger(LifiCoordAssocHandler::AllocNotification, false);
 	AddTrigger(LifiCoordAssocHandler::ReceiveAssocRequest, true);
@@ -39,7 +38,6 @@ LifiCoordAssocHandler::LifiCoordAssocHandler(DataService* service,LifiMacImpl* i
 	m_plmeProvider = p;
 	m_impl = impl;
 	m_AckState = SEND_ACK1;
-	m_coordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	AddTrigger(LifiCoordAssocHandler::AllocNotification, false);
 	AddTrigger(LifiCoordAssocHandler::ReceiveAssocRequest, true);
 	AddTrigger(LifiCoordAssocHandler::ReceiveDataRequest, false);
@@ -76,8 +74,6 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 {
 	NS_LOG_FUNCTION (this << timestamp << msdu);
 
-//	m_temp->printffff();
-
 	LifiMacHeader header;
 	Ptr<Packet> tempPacket = msdu->Copy();
 	tempPacket->RemoveHeader(header);
@@ -88,15 +84,10 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 	m_curDeviceAddress = Mac64Address::ConvertFrom(header.GetSrcAddress());
 	m_srcAddrMode = header.GetSrcAddressMode();
 	m_dstAddrMode = header.GetDstAddressMode();//assign coordinatorAddress to shortAddress
-//	std::cout << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
-//	std::cout << header.GetDstAddress() << std::endl;
-//	std::cout << m_curDeviceAddress << std::endl;
 	m_coordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-//	std::cout << m_coordAddress << std::endl;
 	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
-												//local device associate to local coordinator.
+									//local device associate to local coordinator.
 	m_vpanId = header.GetDstVPANId();
-
  	m_AckState = SEND_ACK1;
 
 	TranceiverTask task;
@@ -119,7 +110,6 @@ void LifiCoordAssocHandler::sendAck1() {
 	header.SetSrcAddress(m_coordAddress);
 	header.SetDstAddress(m_curDeviceAddress);
 	header.SetFramePending(false);
-
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -135,10 +125,6 @@ void LifiCoordAssocHandler::sendAck1() {
 	info.m_option.gtsTx = false;
 	info.m_option.indirectTx = false;
 	info.m_packet = p;
-//	std::cout << (info.m_band !=0) << std::endl;
-//	std::cout << (info.m_handle != 0) << std::endl;
-//	std::cout << (info.m_msduSize != 0) << std::endl;
-//	std::cout << (info.m_packet !=0) << std::endl;
 
 	m_dataService->Transmit(info);
 }
@@ -153,7 +139,6 @@ void LifiCoordAssocHandler::sendAck2() {
 	header.SetSrcAddress(m_coordAddress);
 	header.SetDstAddress(m_curDeviceAddress);
 	header.SetFramePending(true);
-
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -169,10 +154,6 @@ void LifiCoordAssocHandler::sendAck2() {
 	info.m_option.gtsTx = false;
 	info.m_option.indirectTx = false;
 	info.m_packet = p;
-//	std::cout << (info.m_band !=0) << std::endl;
-//	std::cout << (info.m_handle != 0) << std::endl;
-//	std::cout << (info.m_msduSize != 0) << std::endl;
-//	std::cout << (info.m_packet !=0) << std::endl;
 
 	m_dataService->Transmit(info);
 }
@@ -182,7 +163,6 @@ void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 {
 	NS_LOG_FUNCTION (this << devAddress << allocAssocShortAddr << status);
 	AssocResponseComm rescom;
-//	Mac16Address address = Mac16Address::ConvertFrom(allocAssocShortAddr);
 	rescom.SetShortAddr(allocAssocShortAddr);
 	rescom.SetAssocStatus(status);//not set capability negotiation response
 	std::cout << rescom.GetAssocStatus() << std::endl;
@@ -209,13 +189,6 @@ void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 	transInfo.m_packetInfo.m_option.indirectTx = true;
 	transInfo.m_listener = this;
 
-//	LifiMacHeader headerer;
-//	transInfo.m_packetInfo.m_packet->RemoveHeader(headerer);
-//	AssocResponseComm response = AssocResponseComm::Construct(transInfo.m_packetInfo.m_packet);
-//	std::cout << response.GetAssocStatus() << std::endl;
-//	std::cout << response.GetShortAddr() << std::endl;
-//	m_temp->AddTransaction(transInfo);
-//	m_coordImpl->m_transcHandler->AddTransaction(p);
 	m_impl->AddTransactionPacket(transInfo);//transctionHandler need the info of this packet and return it.
 }
 
@@ -242,7 +215,6 @@ void LifiCoordAssocHandler::onReceiveDataRequest(uint32_t timestamp, Ptr<Packet>
 	m_dstAddrMode = header.GetDstAddressMode();
 	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	m_vpanId = header.GetDstVPANId();
-
 	m_AckState = SEND_ACK2;
 
 	TranceiverTask task;
@@ -282,14 +254,8 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 //		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
 	}else{
 		sendAck2();
-//		uint8_t mcsid = m_impl->GetLifiMac()->GetPlmeSapProvider()->PlmeGetRequset<uint8_t>(PHY_MCSID);
-//		double dataRateKbps = LifiPhy::GetRate(mcsid);
-//		Time AcktxDuration = NanoSeconds(((double)m_AckPacketSize*8)/(dataRateKbps*1000)*1e9);
-//		Simulator::Schedule(AcktxDuration, &LifiCoordAssocHandler::getTransctionPacket, this, m_curDeviceAddress);
 		m_impl->PetchTransactionPacket(m_curDeviceAddress);
-
 	}
-
 }
 
 void LifiCoordAssocHandler::TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack)
@@ -311,7 +277,7 @@ void LifiCoordAssocHandler::onTxResultNotification(MacOpStatus status, PacketInf
 		   || status == NO_ACK
 		   || status == CHANNEL_ACCESS_FAILURE);
 	if(info.m_isAck){
-		// we can do retransmission in the future.
+		// we can do retransmission here in the future.
 		m_dataService->Release();
 		m_dataService = 0;
 	}
@@ -321,10 +287,14 @@ void LifiCoordAssocHandler::onTxResultNotification(MacOpStatus status, PacketInf
 //										 m_dstAddrMode, m_coordAddress, status);
 	}
 	reset();
-//	m_dataService->Release();
-//	m_dataService = 0;
-//	reset();
+}
 
+void LifiCoordAssocHandler::reset() {
+	NS_LOG_FUNCTION(this);
+	m_srcAddrMode = ERROR;
+	m_dstAddrMode = ERROR;
+	m_vpanId = 0;
+	m_curDeviceAddress = Mac64Address ("ff:ff:ff:ff:ff:ff:ff:ff");
 }
 
 void LifiCoordAssocHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {
@@ -335,14 +305,6 @@ void LifiCoordAssocHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {
 void LifiCoordAssocHandler::getTransctionPacket(Mac64Address devAddress) {
 	NS_LOG_FUNCTION(this);
 	m_impl->PetchTransactionPacket(m_curDeviceAddress);
-}
-
-void LifiCoordAssocHandler::reset() {
-	NS_LOG_FUNCTION(this);
-	m_srcAddrMode = ERROR;
-	m_dstAddrMode = ERROR;
-	m_vpanId = 0;
-	m_curDeviceAddress = Mac64Address ("ff:ff:ff:ff:ff:ff:ff:ff");
 }
 
 } /* namespace ns3 */

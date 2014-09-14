@@ -78,7 +78,7 @@ public:
 
 	void RxEnable (bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
 
-	void ScanChannel (ScanType scanType, uint8_t scanChannels, uint32_t scanDuration);
+	void ScanChannel (ScanType scanType, uint32_t scanDuration);
 
 	void StartVPAN (uint8_t vpanId, LogicChannelId channel, uint32_t startTime,
 			uint32_t bcnOrder, uint32_t supframeOrder, bool vpanCoord);

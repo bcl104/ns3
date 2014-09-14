@@ -19,6 +19,7 @@ NS_OBJECT_ENSURE_REGISTERED(LifiMacDevImpl);
 
 LifiMacDevImpl::LifiMacDevImpl()
 				: m_trxHandler (new LifiDevTrxHandler),
+				  m_channelScanHandler (new LifiChannelScanHandler),
 				  m_devAssocHandler (new LifiDevAssocHandler),
 				  m_dataDevHandler (new LifiDataDevHandler),
 				  m_disassocDevHandler (new LifiDisassocDevHandler),
@@ -27,6 +28,12 @@ LifiMacDevImpl::LifiMacDevImpl()
 	NS_LOG_FUNCTION (this);
 	m_trxHandler->SetLifiMacImpl(this);
 	m_trxHandler->SetMacPibAttributes(&m_attributes);
+
+	m_channelScanHandler->SetLifiMacImpl(this);
+	m_channelScanHandler->SetMacPibAttributes(&m_attributes);
+	m_channelScanHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiChannelScanHandler::GetTypeId(),
+							  GetPointer (m_channelScanHandler));
 
 	m_devAssocHandler->SetLifiMacImpl(this);
 	m_devAssocHandler->SetMacPibAttributes(&m_attributes);
@@ -118,9 +125,9 @@ void LifiMacDevImpl::RxEnable(bool deferPermit, uint32_t rxOnTime,
 	NS_LOG_FUNCTION (this);
 }
 
-void LifiMacDevImpl::Scan(ScanType scanType, uint8_t channel,
-		uint32_t scanDuration) {
+void LifiMacDevImpl::Scan(ScanType scanType, uint32_t scanDuration) {
 	NS_LOG_FUNCTION (this);
+	m_channelScanHandler->StartChannelScan(scanType, scanDuration);
 }
 
 void LifiMacDevImpl::SendData(AddrMode srcAddrMode, AddrMode dstAddrMode,

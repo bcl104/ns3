@@ -14,6 +14,7 @@ namespace ns3 {
 NS_OBJECT_ENSURE_REGISTERED (LifiGtsHandler);
 
 LifiGtsHandler::LifiGtsHandler() {
+	NS_LOG_FUNCTION(this);
 }
 
 LifiGtsHandler::~LifiGtsHandler() {

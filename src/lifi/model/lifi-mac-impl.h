@@ -132,7 +132,7 @@ public:
 	 *	\param	channel		Logic channel identifier of the channel on which the device attempt to scan.
 	 *	\param	scanDuration	The time spent in each channel in optical clock.
 	 * */
-	virtual void Scan(ScanType scanType, uint8_t channel, uint32_t scanDuration);
+	virtual void Scan(ScanType scanType, uint32_t scanDuration);
 
 	/*
 	 * 	This method pass a msdu to the tx buffer.

@@ -10,9 +10,11 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 
-#define MAC_FILTER_ALL 0xffff
+#define MAC_SCAN_VPANID 0xffff
 #define MAX_PENDING_ADDRESS 7
 #define MAX_GTS_DESCRIPTOR 7
+#define MAX_BEACON_PER_CHANNEL 5
+#define MAX_SCAN_DURATION 14
 
 namespace ns3 {
 

@@ -156,27 +156,37 @@ void LifiDataCoordHandler::SendToCCA() {
 void LifiDataCoordHandler::TxResultNotification(MacOpStatus status,
 			          PacketInfo info, Ptr<Packet> ack) {
 	if (CheckTrigger(LifiDataCoordHandler::TxResultNotification))
-		{
-			NS_LOG_FUNCTION (this << (uint32_t) status);
-			if (!m_txRstNotification.IsNull())
-				m_txRstNotification (status, info, ack);
-			else
-				NS_LOG_ERROR ("m_txRstNotification is null.");
-		}
-		else{
-			NS_LOG_ERROR("Ignore LifiDataCoordHandler::onTxRuesult");
-		}
+	{
+		NS_LOG_FUNCTION (this << (uint32_t) status);
+		if (!m_txRstNotification.IsNull())
+			m_txRstNotification (status, info, ack);
+		else
+			NS_LOG_ERROR ("m_txRstNotification is null.");
+	}
+	else{
+		NS_LOG_ERROR("Ignore LifiDataCoordHandler::onTxRuesult");
+	}
 }
 
 void LifiDataCoordHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
-	if (CheckTrigger(LifiDataCoordHandler::ReceiveData))
-	{
-		NS_LOG_FUNCTION (this << timestamp);
+	if(CheckTrigger(LifiDataCoordHandler::ReceiveData)){
+		NS_LOG_FUNCTION(this << timestamp << msdu);
 		onReceiveData(timestamp, msdu);
+	}else{
+		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
 	}
-	else{
-		NS_LOG_ERROR("Ignore LifiDataCoordHandler::onReceiveData");
-	}
+//	if(CheckTrigger(LifiDataCoordHandler::ReceiveData)){
+//		NS_LOG_FUNCTION(this << timestamp << msdu);
+//		LifiMacHeader header;
+//		msdu->PeekHeader(header);
+//		if(header.GetDstVPANId() == m_attributes->macVPANId){
+//			onReceiveData(timestamp, msdu);
+//		}else{
+//			NS_LOG_ERROR("Not this VPAN packet,Ignore LifiDataDevHandler::ReceiveData.");
+//		}
+//	}else{
+//		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
+//	}
 }
 
 void LifiDataCoordHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
@@ -211,7 +221,7 @@ void LifiDataCoordHandler::AllocNotification (Ptr<DataService> service){
 	if(CheckTrigger(LifiDataCoordHandler::AllocNotification)){
 		onAllocNotification(service);
 	}else{
-		NS_LOG_ERROR("igore LifiDataCoordHandler::AllocNotification.");
+		NS_LOG_ERROR("Igore LifiDataCoordHandler::AllocNotification.");
 	}
 }
 

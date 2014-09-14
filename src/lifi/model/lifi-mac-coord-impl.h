@@ -16,7 +16,7 @@
 #include "lifi-disassoc-handler.h"
 #include "lifi-gts-coord-handler.h"
 #include "lifi-disassoc-coord-handler.h"
-
+#include "lifi-channel-scan-handler.h"
 
 namespace ns3 {
 
@@ -48,7 +48,7 @@ public:
 	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
-	virtual void Scan(ScanType scanType, LogicChannelId channel, uint32_t scanDuration);
+	virtual void Scan(ScanType scanType, uint32_t scanDuration);
 	virtual void SendData(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId,
 							Address dstAddr, uint32_t msduLength, Ptr<Packet> msdu,
 							uint8_t msduHanle, TxOption option, DataRateId rate, bool burstMode);
@@ -94,7 +94,7 @@ private:
 	GtsList m_gtsList;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;
-
+	Ptr<LifiChannelScanHandler> m_channelScanHandler;
 	Ptr<LifiCoordAssocHandler> m_coordAssocHandler;
 	Ptr<LifiTransactionHandler> m_transcHandler;
 	Ptr<LifiDataCoordHandler> m_dataCoordHandler;

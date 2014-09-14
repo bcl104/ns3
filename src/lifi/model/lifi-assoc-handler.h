@@ -15,52 +15,29 @@
 namespace ns3
 {
 
-//class DataService;
-//class LifiMacImpl;
-//class PlmeSapProvider;
-//class LifiMacPibAttribute;
-//class MlmeSapUser;
-
 class LifiAssocHandler: public LifiMacHandler, public TrxHandlerListener
 {
 public:
 	LifiAssocHandler();
-
 	virtual ~LifiAssocHandler();
-
 	static TypeId GetTypeId ();
-
 	virtual void AllocNotification (Ptr<DataService> service);
-
-	virtual void TxResultNotification (MacOpStatus status, Ptr<Packet> ack);
+	virtual void TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 
 	void SetLifiMacImpl (LifiMacImpl* impl);
-
 	Ptr<LifiMacImpl> GetLifiMacImpl () const;
 
 	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
-
 	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
 
 	void SetDataService (Ptr<DataService> service);
-
 	Ptr<DataService> GetDataService () const;
 
 	void SetLifiMacPibAttribute (Ptr<LifiMacPibAttribute> pib);
-
 	Ptr<LifiMacPibAttribute> GetLifiMacPibAttribute () const;
 
 	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
-
 	Ptr<MlmeSapUser> GetMlmeSapUser () const;
-
-
-//protected:
-//	DataService* m_dataService;
-//	LifiMacImpl* m_impl;
-//	PlmeSapProvider* m_provider;
-//	LifiMacPibAttribute* m_attributes;
-//	MlmeSapUser* m_user;
 };
 
 } /* namespace ns3 */

@@ -431,6 +431,8 @@ int main(){
 	LogComponentEnable("LifiGtsCoordHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiGtsHandler", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiGtsHandler", LOG_PREFIX_TIME);
+	LogComponentEnable("LifiChannelScanHandler", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiChannelScanHandler", LOG_PREFIX_TIME);
 //	LogComponentEnable("Timer", LOG_LEVEL_FUNCTION);
 //	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
@@ -438,7 +440,7 @@ int main(){
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
 	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
-	_test.GetLifiMacRx()->Reset();
+//	_test.GetLifiMacRx()->Reset();
 //	TxOption op;
 //	op.ackTx = false;
 //	op.indirectTx = false;
@@ -455,14 +457,14 @@ int main(){
 //							   PHY_III_24_00_MBPS,
 //							   false);
 
-//	CapabilityInfo info;
-//	info.CoordCapabi = true;
-//	info.SecCapabi = false;
-//	info.TrafficSup = false;
-//	info.batteryInfo = 0x02;
-//	info.powerSource = true;
-//	_test.GetLifiMacRx()->Associate(CHANNEL1, EXTENDED, 0x01,
-//									Mac64Address ("00:00:00:00:00:00:00:01"), info);
+	CapabilityInfo info;
+	info.CoordCapabi = true;
+	info.SecCapabi = false;
+	info.TrafficSup = false;
+	info.batteryInfo = 0x02;
+	info.powerSource = true;
+	_test.GetLifiMacRx()->Associate(CHANNEL1, EXTENDED, 0x01,
+									Mac64Address ("00:00:00:00:00:00:00:01"), info);
 
 //	TxOption op;
 //	op.ackTx = true;
@@ -482,9 +484,11 @@ int main(){
 //	character.gtsLength = 3;
 //	_test.GetLifiMacRx()->GtsRequest(character, Mac64Address ("00:00:00:00:00:00:00:01"));
 
-	GTSCharacteristics character;
-	character.gtsLength = 3;
-	_test.GetLifiMacTx()->GtsRequest(character, Mac16Address ("55:55"));
+//	GTSCharacteristics character;
+//	character.gtsLength = 3;
+//	_test.GetLifiMacTx()->GtsRequest(character, Mac16Address ("55:55"));
+
+//	_test.GetLifiMacRx()->ScanChannel(ACTIVE_SCAN, 10);
 
 	Simulator::Stop(Seconds(8));
 	Simulator::Run ();

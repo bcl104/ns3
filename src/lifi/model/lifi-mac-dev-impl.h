@@ -53,7 +53,7 @@ public:
 	virtual void Receive(uint32_t size, Ptr<Packet> p, uint8_t quality);
 	virtual void Reset();
 	virtual void RxEnable(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration);
-	virtual void Scan(ScanType scanType, uint8_t channel, uint32_t scanDuration);
+	virtual void Scan(ScanType scanType, uint32_t scanDuration);
 
 	virtual void SendData(AddrMode srcAddrMode, AddrMode dstAddrMode, uint16_t dstVPANId, Address dstAddr,
 						  uint32_t size, Ptr<Packet> msdu, uint8_t handle, TxOption option,
@@ -80,8 +80,8 @@ public:
 protected:
 
 	Ptr<LifiTrxHandler> m_trxHandler;
-	Ptr<LifiAssocHandler> m_assocHandler;
 	Ptr<LifiChannelScanHandler> m_channelScanHandler;
+	Ptr<LifiAssocHandler> m_assocHandler;
 //	Ptr<LifiDisassocHandler> m_disassocHandler;
 //	Ptr<LifiBeaconHandler> m_beaconHandler;
 	Ptr<LifiGtsHandler> m_gtsHandler;

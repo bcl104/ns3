@@ -29,6 +29,7 @@ public:
 protected:
 	void SendToCCA();
 	void SendToGtsTransaction();
+	void onReceiveData (uint32_t timestamp, Ptr<Packet> p);
 	void onAllocNotification (Ptr<DataService> service);
 	void onTxResultNotification1 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	void onTxResultNotification2 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);

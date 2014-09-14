@@ -41,7 +41,7 @@ public:
 
 	virtual void MlmeRxEnableRequest(bool deferPermit, uint32_t rxOnTime, uint32_t rxOnDuration) = 0;
 
-	virtual void MlmeScanRequest(ScanType scanType, LogicChannelId scanChannels, uint32_t scanDuration) = 0;
+	virtual void MlmeScanRequest(ScanType scanType, uint32_t scanDuration) = 0;
 
 	template <class T>
 	void MlmeSetRequest(MacPIBAttributeId id, uint32_t index, T values)
@@ -113,9 +113,9 @@ public:
 		m_mac->RxEnable (deferPermit, rxOnTime, rxOnDuration);
 	}
 
-	virtual void MlmeScanRequest(ScanType scanType, LogicChannelId channel, uint32_t scanDuration)
+	virtual void MlmeScanRequest(ScanType scanType, uint32_t scanDuration)
 	{
-		m_mac->ScanChannel (scanType, channel, scanDuration);
+		m_mac->ScanChannel (scanType, scanDuration);
 	}
 
 	virtual void MlmeStartRequest(uint8_t vpanId, LogicChannelId channel, uint32_t startTime,

@@ -71,8 +71,8 @@ void LifiMacImpl::RxEnable(bool deferPermit, uint32_t rxOnTime,
 		uint32_t rxOnDuration) {
 }
 
-void LifiMacImpl::Scan(ScanType scanType, uint8_t channel,
-		uint32_t scanDuration) {
+void LifiMacImpl::Scan(ScanType scanType, uint32_t scanDuration) {
+
 }
 
 void LifiMacImpl::SendData(AddrMode srcAddrMode, AddrMode dstAddrMode,

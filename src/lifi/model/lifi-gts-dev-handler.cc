@@ -105,10 +105,14 @@ void LifiGtsDevHandler::SendGtsRequest(){
 }
 
 void LifiGtsDevHandler::ReceiveBeacon(uint32_t timestamp, Ptr<Packet> p){
-	if (CheckTrigger(LifiGtsDevHandler::ReceiveBeacon))
-	{
-		NS_LOG_FUNCTION (this << timestamp << p);
-		onReceiveBeacon(timestamp, p);
+	if (CheckTrigger(LifiGtsDevHandler::ReceiveBeacon)){
+		//must be associated ,than it can use the GTS!
+		if((m_attributes->macShortAddress != 0xffff) && (m_attributes->macShortAddress != 0xfffe)){
+			NS_LOG_FUNCTION (this << timestamp << p);
+			onReceiveBeacon(timestamp, p);
+		}else{
+			NS_LOG_ERROR("Ignore LifiGtsDevHandler::ReceiveBeacon");
+		}
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiGtsDevHandler::ReceiveBeacon");

@@ -50,11 +50,11 @@ void LifiGtsCoordHandler::StartGtsDealloc(GTSCharacteristics gtsCharacter, Addre
 
 	GtsDesInfos::iterator it = std::find_if(m_gtsDesInfo.begin(), m_gtsDesInfo.end(), tempGtsDesInfo);
 	if(it != m_gtsDesInfo.end()){
-		m_gtsDesInfo.erase(it);
+		it = m_gtsDesInfo.erase(it);
 		m_curStartSlot = 15;
-		for(GtsDesInfos::iterator it = m_gtsDesInfo.begin(); it != m_gtsDesInfo.end(); it ++){
-			(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
-			m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
+		for(GtsDesInfos::iterator iter = m_gtsDesInfo.begin(); iter != m_gtsDesInfo.end(); iter ++){
+			(*iter).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLenth;
+			m_curStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLenth;
 		}
 		m_gtsDesInfo.push_back(tempGtsDesInfo);
 		Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);

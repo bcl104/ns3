@@ -115,10 +115,10 @@ void LifiMac::RxEnable(bool deferPermit, uint32_t rxOnTime,	uint32_t rxOnDuratio
 	m_lifiMacImpl->RxEnable(deferPermit, rxOnTime, rxOnDuration);
 }
 
-void LifiMac::ScanChannel(ScanType scanType, uint8_t scanChannels, uint32_t scanDuration) {
-	NS_LOG_FUNCTION (this << (uint32_t)scanType << (uint32_t)scanChannels << scanDuration);
+void LifiMac::ScanChannel(ScanType scanType, uint32_t scanDuration) {
+	NS_LOG_FUNCTION (this << (uint32_t)scanType << scanDuration);
 
-	m_lifiMacImpl->Scan(scanType, scanChannels, scanDuration);
+	m_lifiMacImpl->Scan(scanType, scanDuration);
 }
 
 void LifiMac::StartVPAN(uint8_t vpanId, LogicChannelId channel, uint32_t startTime,	uint32_t bcnOrder,

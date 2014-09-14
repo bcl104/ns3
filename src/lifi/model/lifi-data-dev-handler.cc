@@ -174,6 +174,27 @@ void LifiDataDevHandler::TxResultNotification(MacOpStatus status,
 }
 
 void LifiDataDevHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
+	if(CheckTrigger(LifiDataDevHandler::ReceiveData)){
+		NS_LOG_FUNCTION(this << timestamp << msdu);
+			onReceiveData(timestamp, msdu);
+	}else{
+		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
+	}
+//	if(CheckTrigger(LifiDataDevHandler::ReceiveData)){
+//		NS_LOG_FUNCTION(this << timestamp << msdu);
+//		LifiMacHeader header;
+//		msdu->PeekHeader(header);
+//		if(header.GetDstVPANId() == m_attributes->macVPANId){
+//			onReceiveData(timestamp, msdu);
+//		}else{
+//			NS_LOG_ERROR("Not this VPAN packet,Ignore LifiDataDevHandler::ReceiveData.");
+//		}
+//	}else{
+//		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
+//	}
+}
+
+void LifiDataDevHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 	NS_LOG_FUNCTION(this);
 	LifiMacHeader header;
 	msdu->PeekHeader(header);
@@ -199,8 +220,7 @@ void LifiDataDevHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 		m_trxHandler->ServiceRequest(task);
 		EnableTrigger(LifiDataDevHandler::AllocNotification);
 	}
-//	m_user->MlmeDataIndication(m_dataIndicaDes);
-
+//	    m_user->MlmeDataIndication(m_dataIndicaDes);
 }
 
 void LifiDataDevHandler::onTxResultNotification1(MacOpStatus status,

@@ -14,13 +14,10 @@ namespace ns3
 {
 
 NS_OBJECT_ENSURE_REGISTERED(LifiAssocHandler);
-LifiAssocHandler::LifiAssocHandler()
-{
-
+LifiAssocHandler::LifiAssocHandler(){
 }
 
-LifiAssocHandler::~LifiAssocHandler()
-{
+LifiAssocHandler::~LifiAssocHandler(){
 }
 
 TypeId LifiAssocHandler::GetTypeId()
@@ -31,12 +28,10 @@ TypeId LifiAssocHandler::GetTypeId()
 	return tid;
 }
 
-void LifiAssocHandler::AllocNotification(Ptr<DataService> service)
-{
+void LifiAssocHandler::AllocNotification(Ptr<DataService> service){
 }
 
-void LifiAssocHandler::TxResultNotification(MacOpStatus status, Ptr<Packet> ack)
-{
+void LifiAssocHandler::TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack){
 }
 
 void LifiAssocHandler::SetLifiMacImpl(LifiMacImpl* impl) {
@@ -88,7 +83,5 @@ Ptr<MlmeSapUser> LifiAssocHandler::GetMlmeSapUser() const {
 	NS_LOG_FUNCTION(this);
 	return m_user;
 }
-
-
 
 } /* namespace ns3 */

@@ -69,6 +69,8 @@ public:
 	uint8_t* GetPayload (uint32_t *size);
 	void SetPayload (uint8_t *data, uint32_t size);
 
+	uint32_t GetPaylaodSize();
+
 	uint8_t GetShortAddressCount () const;
 
 	uint8_t GetExtendedAddressCount () const;

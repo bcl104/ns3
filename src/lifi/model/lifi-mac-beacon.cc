@@ -241,6 +241,10 @@ void LifiMacBeacon::SetPayload(uint8_t* data, uint32_t size) {
 	m_bcnPayloadSize = size;
 }
 
+uint32_t LifiMacBeacon::GetPaylaodSize(){
+	return m_bcnPayloadSize;
+}
+
 uint8_t LifiMacBeacon::GetShortAddressCount() const {
 	return m_shortAddrsCount;
 }

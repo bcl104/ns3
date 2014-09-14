@@ -106,12 +106,29 @@ void LifiDisassocDevHandler::SendDisassocCCA(){
 void LifiDisassocDevHandler::ReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu){
 	if (CheckTrigger(LifiDisassocDevHandler::ReceiveBeacon))
 	{
-		NS_LOG_FUNCTION (this << timestamp << msdu);
-		onReceiveBeacon(timestamp, msdu);
+		//must be associated ,than it can be disassociated!
+		if((m_attributes->macShortAddress != 0xffff) && (m_attributes->macShortAddress != 0xfffe)){
+			NS_LOG_FUNCTION (this << timestamp << msdu);
+			onReceiveBeacon(timestamp, msdu);
+		}else{
+			NS_LOG_ERROR("Ignore LifiDisassocDevHandler::ReceiveBeacon");
+		}
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiDisassocDevHandler::ReceiveBeacon");
 	}
+//	if(CheckTrigger(LifiDisassocDevHandler::ReceiveBeacon)){
+//		NS_LOG_FUNCTION(this << timestamp << msdu);
+//		LifiMacHeader header;
+//		msdu->PeekHeader(header);
+//		if(header.GetDstVPANId() == m_attributes->macVPANId){
+//			onReceiveBeacon(timestamp, msdu);
+//		}else{
+//			NS_LOG_ERROR("Not this VPAN packet,Ignore LifiDisassocDevHandler::ReceiveBeacon.");
+//		}
+//	}else{
+//		NS_LOG_ERROR("Ignore LifiDisassocDevHandler::ReceiveBeacon");
+//	}
 }
 
 void LifiDisassocDevHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p)
