@@ -45,8 +45,6 @@ protected:
 	Callback<void, Ptr<DataService> > m_allocNotification;
 
 	DisassocDescriptor m_disassocDes;
-	LogicChannelId m_curChannel;
-	Address m_DeviceAddress;
 	Address m_CoordAddress;
 	DisassocReason m_disassocReason;
 	Ptr<LifiTrxHandler> m_trxHandler;

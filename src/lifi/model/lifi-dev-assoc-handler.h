@@ -23,7 +23,7 @@ public:
 	LifiDevAssocHandler(DataService* service, LifiMacImpl* impl, PlmeSapProvider* p, LifiMacPibAttribute* a, MlmeSapUser* user);
 	virtual ~LifiDevAssocHandler();
 	static TypeId GetTypeId ();
-	void Start(VPANDescriptor &vpandescri);
+	void StartAssoc(VPANDescriptor &vpandescri);
 
 	void SetTrxHandler (Ptr<LifiTrxHandler> trxHandler);
 

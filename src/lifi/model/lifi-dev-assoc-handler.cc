@@ -55,7 +55,7 @@ TypeId LifiDevAssocHandler::GetTypeId() {
 	return tid;
 }
 
-void LifiDevAssocHandler::Start(VPANDescriptor &vpandescri){
+void LifiDevAssocHandler::StartAssoc(VPANDescriptor &vpandescri){
 	NS_LOG_FUNCTION (this << m_run);
 	NS_ASSERT (!m_run);
 	m_run = true;
@@ -83,7 +83,7 @@ void LifiDevAssocHandler::SendAssocRequest() {
 	PacketInfo info;
 	info.m_band = m_curChannel;
 	info.m_bust = false;
-	info.m_handle = 0x11;
+	info.m_handle = 0x31;
 	info.m_force = false;
 	info.m_listener = this;
 	info.m_isAck = false;
@@ -132,8 +132,7 @@ void LifiDevAssocHandler::onTxResultNotification1(MacOpStatus status,
 		}else {
 			m_timer.SetFunction(&LifiDevAssocHandler::SendDataRequest, this);
 			int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
-			uint32_t resWaitTime = m_impl->GetLifiMacPibAttribute().macResponseWaitTime
-					             * LifiMac::aBaseSlotDuration * LifiMac::aNumSuperframeSlots;
+			uint32_t resWaitTime = m_attributes->macResponseWaitTime * LifiMac::aBaseSlotDuration * LifiMac::aNumSuperframeSlots;
 			m_timer.Schedule(NanoSeconds(op * resWaitTime));
 		}
 	}else
@@ -185,6 +184,7 @@ void LifiDevAssocHandler::SendDataRequest(){
 
 	PacketInfo info;
 	info.m_band = m_curChannel;
+	info.m_handle = 0x33;
 	info.m_bust = false;
 	info.m_force = false;
 	info.m_isAck = false;
@@ -240,8 +240,7 @@ void LifiDevAssocHandler::ReceiveAssocResponse (uint32_t timestamp, Ptr<Packet> 
 	}
 }
 
-void LifiDevAssocHandler::onReceiveAssocResponse(uint32_t timestamp,
-		Ptr<Packet> p)
+void LifiDevAssocHandler::onReceiveAssocResponse(uint32_t timestamp, Ptr<Packet> p)
 {
 	NS_LOG_FUNCTION (this << timestamp << p);
 
@@ -323,7 +322,7 @@ void LifiDevAssocHandler::SendAck(){
 
 	PacketInfo info;
 	info.m_band = m_curChannel;
-	info.m_handle = 4;
+	info.m_handle = 21;
 	info.m_bust = false;
 	info.m_force = true;
 	info.m_listener = this;
@@ -377,6 +376,7 @@ void LifiDevAssocHandler::EndAssoc(MacOpStatus status){
 //		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), NO_DATA, NO_COLOR_STABI);
 	}else if (status == MAC_SUCCESS)
 	{
+		m_trxHandler->GetPlmeSapProvider()->PlmeSetRequest(PHY_CURRENT_CHANNEL, m_curChannel);
 //		m_user->MlmeAssociateConfirm(m_allocAddr, MAC_SUCCESS, NO_COLOR_STABI);
 	}else
 	{
@@ -393,11 +393,11 @@ void LifiDevAssocHandler::Reset()
 	NS_LOG_FUNCTION (this);
 	if (!m_run)
 	{
-		m_VPANId = 0;
+		m_VPANId = 0xff;
 		m_allocAddr = Mac16Address("ff:ff");
-		m_curChannel = (LogicChannelId)0;
+		m_curChannel = CHANNEL_UNAVAILABLE;
 		m_trackBeacon = false;
-		m_txRstNotification.Nullify();
+//		m_txRstNotification.Nullify();
 	}
 }
 

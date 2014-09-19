@@ -14,8 +14,6 @@
 
 namespace ns3 {
 
-
-
 typedef std::vector<GtsDescriptor> GtsDescriptors;
 
 class LifiGtsHandler : public LifiMacHandler, public TrxHandlerListener
@@ -24,17 +22,11 @@ class LifiGtsHandler : public LifiMacHandler, public TrxHandlerListener
 public:
 	LifiGtsHandler();
 	virtual ~LifiGtsHandler();
-
 	static TypeId GetTypeId ();
-
 	bool GetGtsPermission ();
-
 	uint8_t GetGtsCount ();
-
 	uint8_t GetGtsDirMask ();
-
 	GtsDescriptors GetGtsDescritors () const;
-
 	void AllocNotification (Ptr<DataService> service);
 	void TxResultNotification (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	virtual void ReportTransmission(MacOpStatus status);
@@ -61,10 +53,6 @@ public:
 
 	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
 	Ptr<MlmeSapUser> GetMlmeSapUser () const;
-
-//protected:
-//	DataService* m_dataService;
-//	LifiMacImpl* m_impl;
 
 private:
 	GtsDescriptors m_descriptors;

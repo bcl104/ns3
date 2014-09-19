@@ -49,16 +49,13 @@ protected:
 
 	GTSCharacteristics m_gtsRequestCharacter;
 	GTSCharacteristics m_gtsBeaconCharacter;
-
 	Address m_dstAddress;
-	LogicChannelId m_curChannel;
 	GtsList m_beaconGtsList;
-	Ptr<LifiTrxHandler> m_trxHandler;
 	bool m_gtsTransmitState;
-
 	GtsTransactions m_gtsTransactions;
 	GtsTransactionInfo m_curGtsTransmit;
 	GtsTransactions::iterator m_curGtsTransIterator;
+	Ptr<LifiTrxHandler> m_trxHandler;
 };
 
 }

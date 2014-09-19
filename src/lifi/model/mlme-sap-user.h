@@ -25,7 +25,7 @@ public:
 	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capNigoResponse) = 0;
 	virtual void MlmeAssociateIndication(Mac64Address devAddr, CapabilityInfo capInfo) = 0;
 	virtual void MlmeBeaconNotify(uint8_t bsn, VPANDescriptor vpanDiscriptor, PendAddrSpec pendAddrSpec, AddrList addrList, uint32_t payloadSize, uint8_t* payload) = 0;
-	virtual void MlmeCommStatusIndication(uint16_t vpanId, AddrMode srcAddrMode, Address srcAddr, AddrMode dsAddrMode, Address dstAddr, MacOpStatus status) = 0;
+	virtual void MlmeCommStatusIndication(uint16_t vpanId, AddrMode srcAddrMode, Address srcAddr, AddrMode dstAddrMode, Address dstAddr, MacOpStatus status) = 0;
 	virtual void MlmeDisassociateConfirm(MacOpStatus status, AddrMode devAddrMode, uint16_t devVPANId, Address devAddr) = 0;
 	virtual void MlmeDisassociateIndication(Mac64Address devAddr, DisassocReason disassociateReason) = 0;
 	virtual void MlmeGtsConfirm(GTSCharacteristics characteristics, MacOpStatus status) = 0;
@@ -49,10 +49,19 @@ public:
 		m_sscs = sscs;
 	}
 
-	virtual ~MlmeSpecificSapUser ();
+	virtual ~MlmeSpecificSapUser (){};
 
-	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status,
-										MacOpStatus capNigoResponse)
+	virtual void MlmeDataConfirm(uint8_t msduHandle, MacOpStatus status, uint32_t timestamp)
+	{
+		m_sscs->DataConfirm (msduHandle, status, timestamp);
+	}
+
+	virtual void MlmeDataIndication(DataIndicaDescriptor dataDesc)
+	{
+		m_sscs->DataIndication(dataDesc);
+	}
+
+	virtual void MlmeAssociateConfirm(Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capNigoResponse)
 	{
 		m_sscs->AssociateConfirm (assocShortAddr, status, capNigoResponse);
 	}
@@ -66,24 +75,22 @@ public:
 									PendAddrSpec pendAddrSpec, AddrList addrList,
 									uint32_t size, uint8_t *payload)
 	{
-		m_sscs->BeaconNotification (bsn, vpanDiscriptor, pendAddrSpec, addrList, size, payload);
+		m_sscs->BeaconNotify (bsn, vpanDiscriptor, pendAddrSpec, addrList, size, payload);
 	}
 
-	virtual void MlmeCommStatusIndication(uint16_t vpanId, TypeId srcAddrMode, Address srcAddr,
-											TypeId dstAddrMode, Address dstAddr, MacOpStatus status)
+	virtual void MlmeCommStatusIndication(uint16_t vpanId, AddrMode srcAddrMode, Address srcAddr, AddrMode dstAddrMode, Address dstAddr, MacOpStatus status)
 	{
 		m_sscs->CommStatusIndication (vpanId, srcAddrMode, srcAddr, dstAddrMode, dstAddr, status);
 	}
 
-	virtual void MlmeDisassociateConfirm(MacOpStatus status, TypeId devAddrMode, uint16_t devVPANId,
-											Address devAddr)
+	virtual void MlmeDisassociateConfirm(MacOpStatus status, AddrMode devAddrMode, uint16_t devVPANId, Address devAddr)
 	{
 		m_sscs->DisassociateConfirm (status, devAddrMode, devVPANId, devAddr);
 	}
 
-	virtual void MlmeDisassociateIndication(Mac64Address devAddr, MacOpStatus reason)
+	virtual void MlmeDisassociateIndication(Mac64Address devAddr, DisassocReason disassociateReason)
 	{
-		m_sscs->DisassociateIndication (devAddr, reason);
+		m_sscs->DisassociateIndication (devAddr, disassociateReason);
 	}
 
 	virtual void MlmeGtsConfirm(GTSCharacteristics characteristics, MacOpStatus status)
@@ -110,10 +117,10 @@ public:
 	{
 		NS_ASSERT_MSG(false, "MlmeRxEnableConfirm should not be invoked.");
 	}
-	virtual void MlmeScanConfirm(MacOpStatus status, ScanType scanType, uint8_t unscanChannels,
-									uint32_t size, VpanDescriptors descriptors)
+
+	virtual void MlmeScanConfirm(MacOpStatus status, ScanType scanType, uint8_t unscanChannels, uint32_t resultListSize, VpanDescriptors &descriptors)
 	{
-		m_sscs->ScanConfirm (status, scanType, unscanChannels, size, descriptors);
+		m_sscs->ScanConfirm (status, scanType, unscanChannels, resultListSize, descriptors);
 	}
 
 	virtual void MlmeSetConfirm(MacOpStatus ststus, MacPIBAttributeId id, uint32_t index)

@@ -87,7 +87,7 @@ void LifiCoordAssocHandler::onReceiveAssocRequest(uint32_t timestamp, Ptr<Packet
 	m_coordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
 									//local device associate to local coordinator.
-	m_vpanId = header.GetDstVPANId();
+	m_vpanId = m_attributes->macVPANId;
  	m_AckState = SEND_ACK1;
 
 	TranceiverTask task;
@@ -214,7 +214,7 @@ void LifiCoordAssocHandler::onReceiveDataRequest(uint32_t timestamp, Ptr<Packet>
 	m_srcAddrMode = header.GetSrcAddressMode();
 	m_dstAddrMode = header.GetDstAddressMode();
 	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
-	m_vpanId = header.GetDstVPANId();
+	m_vpanId = m_attributes->macVPANId;
 	m_AckState = SEND_ACK2;
 
 	TranceiverTask task;
@@ -249,7 +249,8 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 	EnableTrigger(LifiCoordAssocHandler::TxResultNotification);
 	if(m_AckState == SEND_ACK1){
 		sendAck1();//rewrite the info of the device.
-		MlmeAssocResponse(m_curDeviceAddress, Mac16Address("12:34"), MAC_SUCCESS);
+////    MlmeAssocResponse shall be invoked by the upper layer when it allocated shortAddress.
+//		MlmeAssocResponse(m_curDeviceAddress, Mac16Address("12:34"), MAC_SUCCESS);
 		EnableTrigger(LifiCoordAssocHandler::ReceiveDataRequest);
 //		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
 	}else{
@@ -293,7 +294,6 @@ void LifiCoordAssocHandler::reset() {
 	NS_LOG_FUNCTION(this);
 	m_srcAddrMode = ERROR;
 	m_dstAddrMode = ERROR;
-	m_vpanId = 0;
 	m_curDeviceAddress = Mac64Address ("ff:ff:ff:ff:ff:ff:ff:ff");
 }
 

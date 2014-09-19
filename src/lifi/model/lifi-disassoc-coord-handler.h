@@ -42,8 +42,6 @@ protected:
 	Callback<void, Ptr<DataService> > m_allocNotification;
 
 	DisassocDescriptor m_disassocDes;
-	LogicChannelId m_curChannel;
-	Address m_CoordAddress;
 	Address m_curDeviceAddress_R;
 	Address m_curDeviceAddress_T;
 	DisassocReason m_disassocReason;

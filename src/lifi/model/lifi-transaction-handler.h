@@ -19,70 +19,45 @@
 namespace ns3
 {
 
-//class LifiTrxHandler;
-
 class LifiTransactionHandler : public LifiMacHandler, public TrxHandlerListener
 {
 public:
 	friend class LifiCoordAssocHandler;
 	LifiTransactionHandler();
-
 	virtual ~LifiTransactionHandler();
-
 	static TypeId GetTypeId ();
-
 	void AddTransaction (TransactionInfo& transInfo);
-
 	void PetchTransaction (Mac64Address DevAddress);
-
 	void DelTransaction (Mac64Address DevAddress, MacOpStatus status, Ptr<Packet> ack);
-
 	AddrList GetPendingAddress ();
-
 	virtual void TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
-
 	virtual void AllocNotification (Ptr<DataService> service);
 
 	void SetLifiMacImpl (LifiMacImpl* impl);
-
 	Ptr<LifiMacImpl> GetLifiMacImpl () const;
 
 	void SetPlmeSapProvider (Ptr<PlmeSapProvider> provider);
-
 	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
 
 	void SetDataService (Ptr<DataService> service);
-
 	Ptr<DataService> GetDataService () const;
 
 	void SetLifiMacPibAttribute (Ptr<LifiMacPibAttribute> pib);
-
 	Ptr<LifiMacPibAttribute> GetLifiMacPibAttribute () const;
 
 	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
-
 	Ptr<MlmeSapUser> GetMlmeSapUser () const;
 
 	void SetTrxHandler (Ptr<LifiTrxHandler> trxHandler);
 
 private:
-
 	static uint8_t AllocHandle ();
-
 	void onAddTransaction (TransactionInfo& transInfo);
-
 	void onPetchTransaction (Mac64Address DevAddress);
-
-//	void DoDelTransaction (uint8_t handle);
-
 	void SendTransaction();
-
 	void TimeOutTransaction(Mac64Address DevAddress, MacOpStatus status, Ptr<Packet> ack);
-
 	void onAllocNotification (Ptr<DataService> service);
-
 	void onTxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
-
 	void onDelTransaction (Mac64Address DevAddress, MacOpStatus status, Ptr<Packet> ack);
 
 	Transactions m_transactions;
@@ -93,10 +68,7 @@ private:
 	TransactionInfo m_curTranmitTransactionInfo;
 	Transactions::iterator m_curTransactionIterator;
 	std::pair<Mac64Address, TransactionInfo> m_curTransactionPair;
-
 	Ptr<LifiTrxHandler> m_trxHandler;
-//	Ptr<DataService> m_service;
-//	MlmeSapUser* m_user;
 };
 
 } /* namespace ns3 */

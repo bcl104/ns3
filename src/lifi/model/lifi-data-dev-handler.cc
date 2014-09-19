@@ -17,7 +17,6 @@ NS_OBJECT_ENSURE_REGISTERED (LifiDataDevHandler);
 
 LifiDataDevHandler::LifiDataDevHandler() {
 	NS_LOG_FUNCTION (this);
-	m_curChannel = CHANNEL1;
 	AddTrigger(LifiDataDevHandler::TxResultNotification, false);
 	AddTrigger(LifiDataDevHandler::AllocNotification, false);
 }
@@ -48,7 +47,6 @@ void LifiDataDevHandler::SendToCCA() {
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_DATA);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-//	std::cout << srcAddress << std::endl;
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
 	header.SetDstVPANId(m_dataDesc.DstVPANId);
@@ -56,7 +54,7 @@ void LifiDataDevHandler::SendToCCA() {
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
+	info.m_band = m_trxHandler->GetChannelId();
 	info.m_bust = false;
 	info.m_handle = m_dataDesc.MsduHandle;
 	info.m_force = false;
@@ -73,7 +71,6 @@ void LifiDataDevHandler::SendToCCA() {
 	EnableTrigger(LifiDataDevHandler::TxResultNotification);
 	ReplaceTriggerCallback (m_txRstNotification,
 							LifiDataDevHandler::onTxResultNotification1);
-
 }
 
 void LifiDataDevHandler::SendToGtsTransaction(){
@@ -82,7 +79,6 @@ void LifiDataDevHandler::SendToGtsTransaction(){
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_DATA);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-//	std::cout << srcAddress << std::endl;
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
 	header.SetDstVPANId(m_dataDesc.DstVPANId);
@@ -91,7 +87,7 @@ void LifiDataDevHandler::SendToGtsTransaction(){
 
 	GtsTransactionInfo gtsTransInfo;
 	gtsTransInfo.m_ShortAddress = m_attributes->macShortAddress;
-	gtsTransInfo.m_packetInfo.m_band = m_curChannel;
+	gtsTransInfo.m_packetInfo.m_band = m_trxHandler->GetChannelId();
 	gtsTransInfo.m_packetInfo.m_packet = p;
 	gtsTransInfo.m_packetInfo.m_listener = this;
 	gtsTransInfo.m_packetInfo.m_bust = false;
@@ -132,13 +128,10 @@ void LifiDataDevHandler::onAllocNotification (Ptr<DataService> service){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_receiveCoordAddr);
 	header.SetFramePending(false);
-
-	std::cout << m_impl->GetLifiMac()->GetDevice()->GetAddress() <<std::endl;
-	std::cout << m_receiveCoordAddr <<std::endl;
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
+	info.m_band = m_trxHandler->GetChannelId();
 	info.m_handle = 0x25;
 	info.m_bust = false;
 	info.m_force = true;
@@ -180,18 +173,6 @@ void LifiDataDevHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 	}else{
 		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
 	}
-//	if(CheckTrigger(LifiDataDevHandler::ReceiveData)){
-//		NS_LOG_FUNCTION(this << timestamp << msdu);
-//		LifiMacHeader header;
-//		msdu->PeekHeader(header);
-//		if(header.GetDstVPANId() == m_attributes->macVPANId){
-//			onReceiveData(timestamp, msdu);
-//		}else{
-//			NS_LOG_ERROR("Not this VPAN packet,Ignore LifiDataDevHandler::ReceiveData.");
-//		}
-//	}else{
-//		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
-//	}
 }
 
 void LifiDataDevHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
@@ -208,7 +189,6 @@ void LifiDataDevHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 	m_dataIndicaDes.TimeStamp = timestamp;
 	m_dataIndicaDes.Msdu = msdu;
 	m_dataIndicaDes.MsduLenth = msdu->GetSize();
-
 	m_receiveCoordAddr = header.GetSrcAddress();
 
 	if(header.GetAckRequest()){

@@ -72,6 +72,7 @@ public:
 
 	const Time* GetOpticalPeriod () const;
 
+	LogicChannelId GetChannelId();
 	void Reset();
 
 	virtual void Initialize (LifiMacPibAttribute* attrubutes);
@@ -212,7 +213,6 @@ protected:
 	TrxHandlerListeners m_listens;
 	TrxTasks m_tranceiverTasks;
 	DataBuffer m_raTasks;
-//	DataBuffer m_gtsTasks;
 	uint8_t capEndSlot;
 
 	TranceiverTask m_curTranceiverTask;

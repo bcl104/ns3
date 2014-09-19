@@ -13,7 +13,7 @@ namespace ns3 {
 LifiMacPibAttribute::LifiMacPibAttribute() {
 	LOAD_PIB_ATTRIBUTE (MAC_ACK_WAIT_DURATION, macAckWaitDuration, 4000);
 //	LOAD_PIB_ATTRIBUTE (MAC_ASSOC_VPAN_COORD,macAssociatedVPANCoord);
-	LOAD_PIB_ATTRIBUTE (MAC_ASSOC_PERMIT,macAssociationPermit,false);
+	LOAD_PIB_ATTRIBUTE (MAC_ASSOC_PERMIT,macAssociationPermit, true);
 	LOAD_PIB_ATTRIBUTE (MAC_AUTO_REQEST,macAutoRequest, true);
 //	LOAD_PIB_ATTRIBUTE (MAC_BEACON_ORDER,macBeaconOrder);
 //	LOAD_PIB_ATTRIBUTE (MAC_BEACON_PAYLOAD,macBeaconPayload);

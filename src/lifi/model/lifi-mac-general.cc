@@ -18,13 +18,12 @@ uint16_t GetTrxTaskPriority(TranceiverTaskId task)
 		return 1;
 	case TX_ACK:
 		return 2;
-	case TX_DATA:
 	case TX_COMMAND:
-		return 3;
 	case RX_ASSOC_RESPONSE:
-		return 4;
 	case RX_DISASSOC_NOTIFICATION:
-		return 5;
+		return 3;
+	case TX_DATA:
+		return 4;
 	default:
 		return 0;
 	}

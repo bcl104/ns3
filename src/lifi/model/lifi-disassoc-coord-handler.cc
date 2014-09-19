@@ -17,7 +17,6 @@ NS_OBJECT_ENSURE_REGISTERED (LifiDisassocCoordHandler);
 
 LifiDisassocCoordHandler::LifiDisassocCoordHandler() {
 	NS_LOG_FUNCTION(this);
-	m_curChannel = CHANNEL1;
 //	m_CoordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 //	m_impl = 0,"m_impl" is a NULL pointer,we set this parameter after the "m_impl" has been set.
 	AddTrigger(LifiDisassocCoordHandler::AllocNotification, false);
@@ -39,7 +38,6 @@ TypeId LifiDisassocCoordHandler::GetTypeId() {
 void LifiDisassocCoordHandler::StartDisassoc(DisassocDescriptor disassocDes){
 	NS_LOG_FUNCTION(this);
 	m_disassocDes = disassocDes;
-	m_CoordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	if(m_attributes->macVPANId != m_disassocDes.DeviceVPANId){
 //		m_user->MlmeDisassociateConfirm(MAC_INVALID_PARAMETER, GetCurAddressMode(m_disassocDes.DeviceAddr),
 //										m_attributes->macVPANId, m_disassocDes.DeviceAddr);
@@ -69,7 +67,7 @@ void LifiDisassocCoordHandler::SendToCCA(){
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_COMMAND);
 	header.SetDstAddress(m_disassocDes.DeviceAddr);
-	header.SetSrcAddress(m_CoordAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 
 	//the SrcAddress which gets in this way is Mac64Address?we need Mac64Address!
 
@@ -79,7 +77,7 @@ void LifiDisassocCoordHandler::SendToCCA(){
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
+	info.m_band = m_trxHandler->GetChannelId();
 	info.m_bust = false;
 	info.m_handle = 0x24;
 	info.m_force = false;
@@ -106,7 +104,7 @@ void LifiDisassocCoordHandler::SendToIndirectTransaction(){
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_COMMAND);
 	header.SetDstAddress(m_disassocDes.DeviceAddr);
-	header.SetSrcAddress(m_CoordAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 
 	//the SrcAddress which gets in this way is Mac64Address?we need Mac64Address!
 
@@ -117,7 +115,7 @@ void LifiDisassocCoordHandler::SendToIndirectTransaction(){
 
 	TransactionInfo transInfo;
 	transInfo.m_extendDevAddress = Mac64Address::ConvertFrom(m_disassocDes.DeviceAddr);
-	transInfo.m_packetInfo.m_band = m_curChannel;
+	transInfo.m_packetInfo.m_band = m_trxHandler->GetChannelId();
 	transInfo.m_packetInfo.m_packet = p;
 	transInfo.m_packetInfo.m_listener = this;
 	transInfo.m_packetInfo.m_bust = false;
@@ -150,16 +148,13 @@ void LifiDisassocCoordHandler::ReceiveDataRequest(uint32_t timestamp, Ptr<Packet
 void LifiDisassocCoordHandler::onReceiveDataRequest(uint32_t timestamp, Ptr<Packet> msdu)
 {
 	NS_LOG_FUNCTION (this << timestamp << msdu);
-	m_CoordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+
 	LifiMacHeader header;
 	msdu->PeekHeader(header);
 	NS_ASSERT (header.GetSrcAddressMode() == EXTENDED);
 	DisableTrigger(LifiDisassocCoordHandler::ReceiveDataRequest);
 	m_curDeviceAddress_T = Mac64Address::ConvertFrom(header.GetSrcAddress());
-//	m_srcAddrMode = header.GetSrcAddressMode();
-//	m_dstAddrMode = header.GetDstAddressMode();
-	NS_ASSERT(header.GetDstAddress() == m_CoordAddress);
-//	m_vpanId = header.GetDstVPANId();
+	NS_ASSERT(header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress());
 
 	TranceiverTask task;
 	task.Clear();
@@ -185,8 +180,7 @@ void LifiDisassocCoordHandler::ReceiveDisassocNotification(uint32_t timestamp, P
 
 void LifiDisassocCoordHandler::onReceiveDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu){
 	NS_LOG_FUNCTION(this);
-	m_CoordAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-//	std::cout << m_CoordAddress << std::endl;
+
 	LifiMacHeader header;
 	Ptr<Packet> tempPacket = msdu->Copy();
 	tempPacket->RemoveHeader(header);
@@ -251,14 +245,14 @@ void LifiDisassocCoordHandler::SendAck1(){
 	Ptr<Packet> p = ack.GetPacket();
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_ACK);
-	header.SetSrcAddress(m_CoordAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_curDeviceAddress_R);
 	header.SetFramePending(false);
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
-	info.m_handle = 4;
+	info.m_band = m_trxHandler->GetChannelId();
+	info.m_handle = 0x27;
 	info.m_bust = false;
 	info.m_force = true;
 	info.m_listener = this;
@@ -281,14 +275,14 @@ void LifiDisassocCoordHandler::SendAck2(){
 	Ptr<Packet> p = ack.GetPacket();
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_ACK);
-	header.SetSrcAddress(m_CoordAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_curDeviceAddress_T);
 	header.SetFramePending(true);
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
-	info.m_handle = 4;
+	info.m_band = m_trxHandler->GetChannelId();
+	info.m_handle = 0x28;
 	info.m_bust = false;
 	info.m_force = true;
 	info.m_listener = this;

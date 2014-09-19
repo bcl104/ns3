@@ -7,12 +7,6 @@
 
 #ifndef LIFI_DATA_DEV_HANDLER_H_
 #define LIFI_DATA_DEV_HANDLER_H_
-//#include "ns3/core-module.h"
-//#include "lifi-mac-general.h"
-//#include "op-status-callback.h"
-//#include "data-service.h"
-//#include "lifi-mac-impl.h"
-//#include "lifi-mac-handler.h"
 #include "lifi-trx-handler.h"
 #include "lifi-data-handler.h"
 
@@ -39,21 +33,14 @@ protected:
 	void onAllocNotification (Ptr<DataService> service);
 	void onTxResultNotification1 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	void onTxResultNotification2 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
-//	void onTxResultNotification1 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
-//	void onTxResultNotification2 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
-//	void onTxResultNotification3 (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 
 	Callback<void, MacOpStatus, PacketInfo, Ptr<Packet> > m_txRstNotification;
 	DataDescriptor m_dataDesc;
 	DataIndicaDescriptor m_dataIndicaDes;
-	LogicChannelId m_curChannel;
 	Mac64Address m_curDeviceAddress;
 	Ptr<LifiTrxHandler> m_trxHandler;
-
-//	Callback<void, MacOpStatus, PacketInfo, Ptr<Packet> > m_txRstNotification;
 };
 
-};
+}
 
 #endif /* LIFI_DATA_DEV_HANDLER_H_ */
-

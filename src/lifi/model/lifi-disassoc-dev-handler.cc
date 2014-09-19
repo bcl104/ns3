@@ -10,8 +10,6 @@
 #include "lifi-mac-header.h"
 #include "lifi-mac-beacon.h"
 
-
-
 NS_LOG_COMPONENT_DEFINE ("LifiDisassocDevHandler");
 
 namespace ns3 {
@@ -20,9 +18,7 @@ NS_OBJECT_ENSURE_REGISTERED (LifiDisassocDevHandler);
 
 LifiDisassocDevHandler::LifiDisassocDevHandler() {
 	NS_LOG_FUNCTION(this);
-	m_curChannel = CHANNEL1;
 	m_receiveDisassocNotify_Indirect = false;
-//	m_DeviceAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	AddTrigger(LifiDisassocDevHandler::AllocNotification, false);
 	AddTrigger(LifiDisassocDevHandler::TxResultNotification, false);
 	AddTrigger(LifiDisassocDevHandler::ReceiveBeacon, true);
@@ -40,23 +36,15 @@ TypeId LifiDisassocDevHandler::GetTypeId() {
 }
 void LifiDisassocDevHandler::StartDisassoc(DisassocDescriptor disassocDes){
 	NS_LOG_FUNCTION(this);
-	m_DeviceAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	m_disassocDes = disassocDes;
-	std::cout << m_DeviceAddress << std::endl;
-//	std::cout << m_attributes->macVPANId << std::endl;
-	m_attributes->macVPANId = 0x01;
-	m_attributes->macCoordExtendedAddress = Mac64Address("00:00:00:00:00:00:00:01");
+	NS_ASSERT(m_attributes->macVPANId != 0xffff);
+//	m_attributes->macCoordExtendedAddress = Mac64Address("00:00:00:00:00:00:00:01");
 ////    here the "m_attributes->macVPANId" is not initialized because we test it when this device is not associated!
 ////	we can delete this when it is associated.
 	if(m_attributes->macVPANId != m_disassocDes.DeviceVPANId){
-//		m_user->MlmeDisassociateConfirm(MAC_INVALID_PARAMETER, GetCurAddressMode(m_DeviceAddress),
-//										m_attributes->macVPANId, m_DeviceAddress);
+//		m_user->MlmeDisassociateConfirm(MAC_INVALID_PARAMETER, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+//										m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	}else{
-//		if((Mac64Address::IsMatchingType(m_disassocDes.DeviceAddr)
-//		     &&(m_attributes->macCoordExtendedAddress == m_disassocDes.DeviceAddr))
-//		||(Mac16Address::IsMatchingType(m_disassocDes.DeviceAddr)
-//			 &&(m_attributes->macCoordShortAddress == m_disassocDes.DeviceAddr))){
-//		}
 		if(((m_disassocDes.DeviceAddrMode == EXTENDED) && (m_attributes->macCoordExtendedAddress == m_disassocDes.DeviceAddr))
 			    ||((m_disassocDes.DeviceAddrMode == SHORT) && (m_attributes->macCoordShortAddress == m_disassocDes.DeviceAddr)))
 		{//allow associating with the coordinator but not allocate the short address .
@@ -77,7 +65,7 @@ void LifiDisassocDevHandler::SendDisassocCCA(){
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_COMMAND);
 	header.SetDstAddress(m_disassocDes.DeviceAddr);
-	header.SetSrcAddress(m_DeviceAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	//the SrcAddress which gets in this way is Mac64Address? we need Mac64Address!
 	header.SetAckRequest(true);
 	header.SetDstVPANId(m_attributes->macVPANId);
@@ -85,10 +73,10 @@ void LifiDisassocDevHandler::SendDisassocCCA(){
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
+	info.m_band = m_trxHandler->GetChannelId();
 	info.m_bust = false;
 	info.m_force = false;
-	info.m_handle = 0x24;
+	info.m_handle = 0x34;
 	info.m_isAck = false;
 	info.m_listener = this;
 	info.m_msduSize = p->GetSize();
@@ -117,25 +105,11 @@ void LifiDisassocDevHandler::ReceiveBeacon (uint32_t timestamp, Ptr<Packet> msdu
 	else{
 		NS_LOG_ERROR("Ignore LifiDisassocDevHandler::ReceiveBeacon");
 	}
-//	if(CheckTrigger(LifiDisassocDevHandler::ReceiveBeacon)){
-//		NS_LOG_FUNCTION(this << timestamp << msdu);
-//		LifiMacHeader header;
-//		msdu->PeekHeader(header);
-//		if(header.GetDstVPANId() == m_attributes->macVPANId){
-//			onReceiveBeacon(timestamp, msdu);
-//		}else{
-//			NS_LOG_ERROR("Not this VPAN packet,Ignore LifiDisassocDevHandler::ReceiveBeacon.");
-//		}
-//	}else{
-//		NS_LOG_ERROR("Ignore LifiDisassocDevHandler::ReceiveBeacon");
-//	}
 }
 
 void LifiDisassocDevHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p)
 {
 	NS_LOG_FUNCTION (this << timestamp << p);
-	m_DeviceAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-	std::cout << m_DeviceAddress << std::endl;
 
 	LifiMacHeader header;
 	Ptr<Packet> tempPacket = p->Copy();
@@ -143,7 +117,7 @@ void LifiDisassocDevHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p)
 	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
 	m_CoordAddress = header.GetSrcAddress();
 	LifiMacBeacon beacon = LifiMacBeacon::Construct(tempPacket);
-	if (beacon.CheckPendingAddress(m_DeviceAddress))
+	if (beacon.CheckPendingAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress()))
 	{
 		DisableTrigger(LifiDisassocDevHandler::ReceiveBeacon);
 		SendDataRequest();
@@ -156,13 +130,13 @@ void LifiDisassocDevHandler::SendDataRequest(){
 	Ptr<Packet> p = comm.GetPacket();
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_COMMAND);
-	header.SetSrcAddress(m_DeviceAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_CoordAddress);
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
-	info.m_handle = 0x66;
+	info.m_band = m_trxHandler->GetChannelId();
+	info.m_handle = 0x36;
 	info.m_bust = false;
 	info.m_force = false;
 	info.m_isAck = false;
@@ -238,8 +212,6 @@ void LifiDisassocDevHandler::ReceiveDisassocNotification(uint32_t timestamp, Ptr
 
 void LifiDisassocDevHandler::onReceiveDisassocNotification(uint32_t timestamp, Ptr<Packet> msdu){
 	NS_LOG_FUNCTION(this);
-	m_DeviceAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
-	m_attributes->macCoordExtendedAddress = Mac64Address("00:00:00:00:00:00:00:01");
 
 	LifiMacHeader header;
 	Ptr<Packet> tempPacket = msdu->Copy();
@@ -253,8 +225,6 @@ void LifiDisassocDevHandler::onReceiveDisassocNotification(uint32_t timestamp, P
 		m_dataService->Release();
 		m_dataService = 0;
 	}
-//	std::cout << header.GetSrcAddress() << std::endl;
-//	std::cout << m_attributes->macCoordExtendedAddress << std::endl;
 	if(header.GetSrcAddress() == m_attributes->macCoordExtendedAddress){
 		TranceiverTask task;
 		task.Clear();
@@ -275,14 +245,14 @@ void LifiDisassocDevHandler::SendAck(){
 	Ptr<Packet> p = ack.GetPacket();
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_ACK);
-	header.SetSrcAddress(m_DeviceAddress);
+	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_CoordAddress);
 	header.SetFramePending(false);
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
-	info.m_handle = 4;
+	info.m_band = m_trxHandler->GetChannelId();
+	info.m_handle = 24;
 	info.m_bust = false;
 	info.m_force = true;
 	info.m_listener = this;
@@ -306,13 +276,13 @@ void LifiDisassocDevHandler::onTxResultNotification1(MacOpStatus status, PacketI
 			 ||(status == NO_ACK)
 			 ||(status == MAC_SUCCESS));
 	if(status == NO_ACK || status == MAC_SUCCESS){
-	//	m_user->MlmeDisassociateConfirm(MAC_SUCCESS, GetCurAddressMode(m_DeviceAddress),
-	//									m_attributes->macVPANId, m_DeviceAddress);
+	//	m_user->MlmeDisassociateConfirm(MAC_SUCCESS, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+	//									m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 		Reset();
 	}else
 	{
-	//	m_user->MlmeDisassociateConfirm(status, GetCurAddressMode(m_DeviceAddress),
-	//									m_attributes->macVPANId, m_DeviceAddress);
+	//	m_user->MlmeDisassociateConfirm(status, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+	//									m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	}
 }
 
@@ -349,7 +319,7 @@ void LifiDisassocDevHandler::onTxResultNotification3(MacOpStatus status, PacketI
 	m_dataService->Release();
 	m_dataService = 0;
 	Reset();
-//	m_user->MlmeDisassociateIndication(Mac64Address::ConvertFrom(m_DeviceAddress), COORD);
+//	m_user->MlmeDisassociateIndication(Mac64Address::ConvertFrom(m_impl->GetLifiMac()->GetDevice()->GetAddress()), COORD);
 }
 
 void LifiDisassocDevHandler::Reset(){

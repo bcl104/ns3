@@ -18,7 +18,6 @@ namespace ns3{
 NS_OBJECT_ENSURE_REGISTERED (LifiGtsDevHandler);
 
 LifiGtsDevHandler::LifiGtsDevHandler() {
-	m_curChannel = CHANNEL1;
 	m_gtsTransmitState = 1;
 	AddTrigger(LifiGtsDevHandler::AllocNotification, false);
 	AddTrigger(LifiGtsDevHandler::TxResultNotification, false);
@@ -52,8 +51,8 @@ void LifiGtsDevHandler::StartGtsRequest(GTSCharacteristics gtsCharacter, Address
 	m_gtsRequestCharacter = gtsCharacter;
 	m_dstAddress = dstAddr;
 ////	VPAN initialization  has the info of the dstAddrMode?
-	m_attributes->macShortAddress = 0x5555;
-	m_attributes->macVPANId = 0x01;
+//	m_attributes->macShortAddress = 0x5555;
+//	m_attributes->macVPANId = 0x01;
 ////set the shortAddress ,macVPANId temporary because it is not associated now.
 	if((m_attributes->macShortAddress != 0xffff)
 	 &&(m_attributes->macShortAddress != 0xfffe)){
@@ -86,10 +85,10 @@ void LifiGtsDevHandler::SendGtsRequest(){
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
+	info.m_band = m_trxHandler->GetChannelId();
 	info.m_bust = false;
 	info.m_force = false;
-	info.m_handle = 0x44;
+	info.m_handle = 0x47;
 	info.m_isAck = false;
 	info.m_listener = this;
 	info.m_msduSize = p->GetSize();
@@ -322,8 +321,8 @@ void LifiGtsDevHandler::SendAck(){
 	p->AddHeader(header);
 
 	PacketInfo info;
-	info.m_band = m_curChannel;
-	info.m_handle = 4;
+	info.m_band = m_trxHandler->GetChannelId();
+	info.m_handle = 0x29;
 	info.m_bust = false;
 	info.m_force = true;
 	info.m_listener = this;

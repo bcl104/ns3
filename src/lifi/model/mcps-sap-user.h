@@ -38,11 +38,11 @@ public:
 		m_sscs = sscs;
 	}
 
-	virtual ~McpsSpecificSapUser();
+	virtual ~McpsSpecificSapUser(){};
 
 	virtual void McpsDataConfirm(uint8_t handle, MacOpStatus status, uint32_t timestamp)
 	{
-		m_sscs->DataConfirm (handle, status, timestamp);
+		m_sscs->DataConfirmMcps (handle, status, timestamp);
 	}
 
 	virtual void McpsDataIndication(TypeId srcAddrMode, uint16_t srcVPANId, Address srcAddr,
@@ -50,12 +50,12 @@ public:
 									Ptr<Packet> msdu, uint8_t mpduLinkQuality, uint8_t dsn,
 									uint32_t timestamp, DataRateId dataRate, bool burstMode)
 	{
-		m_sscs->DataIndication (srcAddrMode, srcVPANId, srcAddr, dstAddrMode, dstAddr, msduLength,
+		m_sscs->DataIndicationMcps (srcAddrMode, srcVPANId, srcAddr, dstAddrMode, dstAddr, msduLength,
 								msdu, mpduLinkQuality, dsn, timestamp, dataRate, burstMode);
 	}
 	virtual void McpsPurgeConfirm(uint8_t handle, MacOpStatus status)
 	{
-		m_sscs->PurgeConfirm (handle, status);
+		m_sscs->PurgeConfirmMcps (handle, status);
 	}
 private:
 	McpsSpecificSapUser ();

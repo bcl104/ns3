@@ -92,6 +92,4 @@ Ptr<MlmeSapUser> LifiDataHandler::GetMlmeSapUser() const {
 	return m_user;
 }
 
-
-
 } /* namespace ns3 */

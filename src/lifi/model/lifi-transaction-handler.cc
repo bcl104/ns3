@@ -55,7 +55,6 @@ void LifiTransactionHandler::AddTransaction(TransactionInfo& transInfo)
 void LifiTransactionHandler::onAddTransaction(TransactionInfo& transInfo) {
 	NS_LOG_FUNCTION(this);
 
-//	std::pair<Mac64Address, TransactionInfo> TransaPair;
 	m_curTransactionPair.first = transInfo.m_extendDevAddress;
 	m_curTransactionPair.second = transInfo;
 	m_curTransactionPair.second.m_listener = this;
@@ -63,18 +62,9 @@ void LifiTransactionHandler::onAddTransaction(TransactionInfo& transInfo) {
 	uint32_t transPerTimes = transPer * LifiMac::aBaseSuperframeDuration * pow(2, m_attributes->macBeaconOrder);
 	int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
 	Time delay = NanoSeconds(transPerTimes * op);
-//	Ptr<Packet> temp = Create<Packet>();
 	Ptr<Packet> temp = 0;
 	EventId id = Simulator::Schedule(delay, &LifiTransactionHandler::TimeOutTransaction, this,
 				 	 	 	 	 	 transInfo.m_extendDevAddress, TRANSACTION_EXPIRED, temp);
-//	m_curTransactionPair.second.m_eventId = Simulator::Schedule(NanoSeconds(transPerTime * m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds()),
-//						            		&LifiTransactionHandler::TimeOutTransaction, this, transInfo.m_extendDevAddress, TRANSACTION_EXPIRED, 0);
-//	NS_ASSERT(!transInfo.m_timer.IsRunning());
-//	m_curTransactionPair.second.m_timer.SetFunction(&LifiTransactionHandler::TimeOutTransaction, this);
-//	m_curTransactionPair.second.m_timer.SetArguments(transInfo.m_extendDevAddress, TRANSACTION_EXPIRED, 0);
-//	uint32_t transPerTime = m_impl->GetLifiMacPibAttribute().macTransactionPersistenceTime;
-//	m_curTransactionPair.second.m_timer.Schedule(NanoSeconds(transPerTime * m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds()));
-
 	m_transactions.push_back(m_curTransactionPair);
 	m_transationNumbers ++;
 }
@@ -106,9 +96,6 @@ void LifiTransactionHandler::onPetchTransaction(Mac64Address DevAddress) {
 					break;
 				}
 			}
-//    	Transactions::iterator it = std::find_if(m_transactions.begin(),
-//    			               m_transactions.begin() + MAX_PENDING_ADDRESS, DevAddress);
-//        SendTransaction(*it);
     }else{
     	for(Transactions::iterator it = m_transactions.begin();
 			it != m_transactions.end(); it++)
@@ -174,9 +161,6 @@ void LifiTransactionHandler::TxResultNotification(MacOpStatus status, PacketInfo
 void LifiTransactionHandler::onTxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack) {
 	NS_LOG_FUNCTION(this);
 	NS_ASSERT(status == MAC_SUCCESS || status == CHANNEL_ACCESS_FAILURE || status == NO_ACK);
-//	if(status == MAC_SUCCESS || status == NO_ACK){
-//		m_transactions.erase(m_curTransactionIterator);
-//	}
 	//here is no primitive to the upper layer.we need to notify the handler which invoked this handler.
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
 							m_curTransactionInfo.m_packetInfo.m_listener,
@@ -240,7 +224,6 @@ void LifiTransactionHandler::onDelTransaction(Mac64Address DevAddress, MacOpStat
 				}
 			}
 	}
-//	if(m_transactions.)
 }
 
 AddrList LifiTransactionHandler::GetPendingAddress() {
@@ -266,7 +249,6 @@ AddrList LifiTransactionHandler::GetPendingAddress() {
 
 void LifiTransactionHandler::TimeOutTransaction(Mac64Address DevAddress, MacOpStatus status, Ptr<Packet> ack) {
 	NS_LOG_FUNCTION(this);
-//	NS_ASSERT(m_transactions.front().second.m_timer.IsExpired());
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
 							(*m_transactions.begin()).second.m_listener,
 							status, (*m_transactions.begin()).second.m_packetInfo, ack);

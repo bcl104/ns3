@@ -38,6 +38,7 @@ class LifiMacPibAttribute : public LifiPIBAttribute
 	friend class LifiGtsCoordHandler;
 	friend class LifiDataDevHandler;
 	friend class LifiDataCoordHandler;
+	friend class LifiCoordAssocHandler;
 
 public:
 	LifiMacPibAttribute();

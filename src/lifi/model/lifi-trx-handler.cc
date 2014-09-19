@@ -232,6 +232,10 @@ const Time* LifiTrxHandler::GetOpticalPeriod() const
 	return m_opticalPeriod;
 }
 
+LogicChannelId LifiTrxHandler::GetChannelId(){
+	return GetPlmeSapProvider()->PlmeGetRequset<LogicChannelId>(PHY_CURRENT_CHANNEL);
+}
+
 void LifiTrxHandler::ClearCurTask()
 {
 	NS_LOG_FUNCTION (this);
@@ -273,60 +277,65 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 	NS_LOG_FUNCTION (this << timestamp <<p);
 	LifiMacHeader header;
 	p->PeekHeader(header);
-	if (header.GetFrameType() == LIFI_BEACON)
-	{
-		NS_LOG_INFO(this << " receive beacon frame.");
-//		BuildSuperframeStruct(p);
-		Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
-	}else if (header.GetFrameType() == LIFI_DATA)
-	{
-		NS_LOG_INFO(this << " receive data frame.");
-		Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
-	}else if (header.GetFrameType() == LIFI_ACK)
-	{
-		NS_LOG_INFO(this << " receive ack frame.");
-		onReceiveAck(timestamp, p);
-	}else if (header.GetFrameType() == LIFI_COMMAND)
-	{
-		NS_LOG_INFO(this << " receive command frame.");
-		LifiMacHeader temp;
-		p->RemoveHeader(temp);
-		CommId commId = (CommId)0;
-		p->CopyData((uint8_t*)(&commId), 1);
-		p->AddHeader(temp);
-		switch (commId)
+	if((m_attributes->macVPANId == 0xffff)
+	 ||((m_attributes->macVPANId != 0xffff)&&(m_attributes->macVPANId == header.GetDstVPANId()))){
+		if (header.GetFrameType() == LIFI_BEACON)
 		{
-		case ASSOC_REQUEST:
-			Broadcast(TrxHandlerListener::ReceiveAssocRequest, timestamp, p);
-			break;
-		case ASSOC_RESPONSE:
-			Broadcast(TrxHandlerListener::ReceiveAssocResponse, timestamp, p);
-			break;
-		case DISASSOC_NOTIFICATION:
-			Broadcast(TrxHandlerListener::ReceiveDisassocNotification, timestamp, p);
-			break;
-		case DATA_REQUEST:
-			Broadcast(TrxHandlerListener::ReceiveDataRequest, timestamp, p);
-			break;
-		case BEACON_REQUEST:
-			Broadcast(TrxHandlerListener::ReceiveBeaconRequest, timestamp, p);
-			break;
-		case GTS_REQUEST:
-			Broadcast(TrxHandlerListener::ReceiveGtsRequest, timestamp, p);
-			break;
-		case GTS_RESPONSE:
-			Broadcast(TrxHandlerListener::ReceiveGtsResponse, timestamp, p);
-			break;
-		case INFORMANTION_ELEMENT:
-			NS_FATAL_ERROR("INFORMANTION_ELEMENT not realized.");
-			break;
-		default:
-			NS_FATAL_ERROR("Command frame type error: Unsupported type.");
-			break;
+			NS_LOG_INFO(this << " receive beacon frame.");
+	//		BuildSuperframeStruct(p);
+			Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
+		}else if (header.GetFrameType() == LIFI_DATA)
+		{
+			NS_LOG_INFO(this << " receive data frame.");
+			Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
+		}else if (header.GetFrameType() == LIFI_ACK)
+		{
+			NS_LOG_INFO(this << " receive ack frame.");
+			onReceiveAck(timestamp, p);
+		}else if (header.GetFrameType() == LIFI_COMMAND)
+		{
+			NS_LOG_INFO(this << " receive command frame.");
+			LifiMacHeader temp;
+			p->RemoveHeader(temp);
+			CommId commId = (CommId)0;
+			p->CopyData((uint8_t*)(&commId), 1);
+			p->AddHeader(temp);
+			switch (commId)
+			{
+			case ASSOC_REQUEST:
+				Broadcast(TrxHandlerListener::ReceiveAssocRequest, timestamp, p);
+				break;
+			case ASSOC_RESPONSE:
+				Broadcast(TrxHandlerListener::ReceiveAssocResponse, timestamp, p);
+				break;
+			case DISASSOC_NOTIFICATION:
+				Broadcast(TrxHandlerListener::ReceiveDisassocNotification, timestamp, p);
+				break;
+			case DATA_REQUEST:
+				Broadcast(TrxHandlerListener::ReceiveDataRequest, timestamp, p);
+				break;
+			case BEACON_REQUEST:
+				Broadcast(TrxHandlerListener::ReceiveBeaconRequest, timestamp, p);
+				break;
+			case GTS_REQUEST:
+				Broadcast(TrxHandlerListener::ReceiveGtsRequest, timestamp, p);
+				break;
+			case GTS_RESPONSE:
+				Broadcast(TrxHandlerListener::ReceiveGtsResponse, timestamp, p);
+				break;
+			case INFORMANTION_ELEMENT:
+				NS_FATAL_ERROR("INFORMANTION_ELEMENT not realized.");
+				break;
+			default:
+				NS_FATAL_ERROR("Command frame type error: Unsupported type.");
+				break;
+			}
+		}else
+		{
+			NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
 		}
-	}else
-	{
-		NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
+	}else{
+		NS_LOG_ERROR("Not the packet of this VPAN !");
 	}
 }
 

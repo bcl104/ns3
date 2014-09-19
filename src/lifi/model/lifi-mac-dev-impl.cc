@@ -79,7 +79,7 @@ void LifiMacDevImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
 	vpanDesr.coordAddrMode = coordAddrMode;
 	vpanDesr.coordVPANId = coordVPANId;
 	vpanDesr.logicChannel = channel;
-	m_devAssocHandler->Start(vpanDesr);
+	m_devAssocHandler->StartAssoc(vpanDesr);
 
 }
 

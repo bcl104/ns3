@@ -61,15 +61,12 @@ protected:
 	uint16_t m_deviceAddress;
 	uint16_t m_curStartSlot;
 	Mac16Address m_allocGtsDevAddr;
-	LogicChannelId m_curChannel;
-	Ptr<LifiTrxHandler> m_trxHandler;
-
 	bool m_gtsTransmitState;
 	Address m_dataAddr;
-
 	GtsTransactions::iterator m_curGtsTransIterator;
 	GtsTransactions m_gtsTransactions;
 	GtsTransactionInfo m_curGtsTransmit;
+	Ptr<LifiTrxHandler> m_trxHandler;
 };
 
 }

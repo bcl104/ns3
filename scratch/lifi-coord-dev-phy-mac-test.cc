@@ -10,8 +10,13 @@
 #include "ns3/lifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/propagation-delay-model.h"
+//#include "src/lifi/test/lifi-node.h"
+//#include "src/lifi/test/lifi-node-coord.h"
+
 NS_LOG_COMPONENT_DEFINE("LifiCoordDevPhyMacTest");
+
 using namespace ns3;
+
 class SinglePhyTest {
 public:
 	SinglePhyTest();
@@ -439,7 +444,10 @@ int main(){
 //	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
-	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
+	LifiNodeCoord Coord;
+	Coord.Start(0x01, CHANNEL1, 0, 8, 8, true);
+
+//	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
 //	_test.GetLifiMacRx()->Reset();
 //	TxOption op;
 //	op.ackTx = false;
@@ -493,6 +501,5 @@ int main(){
 	Simulator::Stop(Seconds(8));
 	Simulator::Run ();
 	Simulator::Destroy();
-
 	return 0;
 }
