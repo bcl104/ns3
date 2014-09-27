@@ -21,7 +21,7 @@ public:
 	MlmeSapProvider();
 	virtual ~MlmeSapProvider();
 
-	virtual void MlmeAssocaiteResponse(Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status, MacOpStatus capNegoResponse) = 0;
+	virtual void MlmeAssocaiteResponse(Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capNegoResponse) = 0;
 
 	virtual void MlmeAssociateRequest(LogicChannelId logicChannel, AddrMode coorAddrMode, uint16_t coorVPANId, Mac64Address coordAddr, CapabilityInfo capInfo) = 0;
 
@@ -76,7 +76,7 @@ public:
 	}
 
 	virtual void MlmeAssocaiteResponse(Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status,
-								MacOpStatus capNegoResponse)
+									   MacColorStabCapab capNegoResponse)
 	{
 		m_mac->AssociateResponse (devAddr, assocShortAddr, status, capNegoResponse);
 	}

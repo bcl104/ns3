@@ -42,8 +42,8 @@ void LifiGtsCoordHandler::StartGtsDealloc(GTSCharacteristics gtsCharacter, Addre
 
 	Mac16Address tempAddr;
 	tempAddr = Mac16Address::ConvertFrom(dstAddr);
-	tempAddr.CopyTo((uint8_t*)&tempGtsDesInfo.gtsDescriptor.deviceShortAddr);
-	tempGtsDesInfo.gtsDescriptor.gtsLenth = gtsCharacter.gtsLength;
+	tempAddr.CopyTo((uint8_t*)(&tempGtsDesInfo.gtsDescriptor.deviceShortAddr));
+	tempGtsDesInfo.gtsDescriptor.gtsLength = gtsCharacter.gtsLength;
 	tempGtsDesInfo.gtsDescriptor.gtsStartSlot = 0;
 	tempGtsDesInfo.gtsDirection = gtsCharacter.gtsDirection;
 
@@ -52,12 +52,12 @@ void LifiGtsCoordHandler::StartGtsDealloc(GTSCharacteristics gtsCharacter, Addre
 		it = m_gtsDesInfo.erase(it);
 		m_curStartSlot = 15;
 		for(GtsDesInfos::iterator iter = m_gtsDesInfo.begin(); iter != m_gtsDesInfo.end(); iter ++){
-			(*iter).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLenth;
-			m_curStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLenth;
+			(*iter).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
+			m_curStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
 		}
 		m_gtsDesInfo.push_back(tempGtsDesInfo);
-		Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-		coordImpl->SetCFPLenth(15 - m_curStartSlot);
+//		Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+//		coordImpl->SetCFPLenth(15 - m_curStartSlot);
 	}
 //		must <= MAX_GTS_DESCRIPTOR
 //		m_user->MlmeGtsConfirm(gtsCharacter, MAC_SUCCESS);
@@ -91,17 +91,17 @@ void LifiGtsCoordHandler::onReceiveGtsRequest(uint32_t timestamp, Ptr<Packet> p)
 //	m_gtsDeviceCharacter is used in the indication primitive.
 
 	if(m_gtsDeviceCharacter.charType == ALLOCATION){
-		NS_ASSERT(m_gtsDeviceCharacter.gtsLength <= 16-LifiMac::aMinCapLength);
+		NS_ASSERT(m_gtsDeviceCharacter.gtsLength <= 16 - LifiMac::aMinCapLength);
 		if(m_gtsDeviceCharacter.gtsLength <= m_curStartSlot - LifiMac::aMinCapLength){
 			if(m_gtsDesInfo.size() <= MAX_GTS_DESCRIPTOR){
 				GTSDesInfo tempGtsDesInfo;
 				tempGtsDesInfo.gtsDescriptor.gtsStartSlot = m_curStartSlot - m_gtsDeviceCharacter.gtsLength;
 				m_curStartSlot = m_curStartSlot - m_gtsDeviceCharacter.gtsLength;
-				m_allocGtsDevAddr.CopyTo((uint8_t*)&tempGtsDesInfo.gtsDescriptor.deviceShortAddr);
-				tempGtsDesInfo.gtsDescriptor.gtsLenth = m_gtsDeviceCharacter.gtsLength;
+				m_allocGtsDevAddr.CopyTo((uint8_t*)(&tempGtsDesInfo.gtsDescriptor.deviceShortAddr));
+				tempGtsDesInfo.gtsDescriptor.gtsLength = m_gtsDeviceCharacter.gtsLength;
 				m_gtsDesInfo.push_back(tempGtsDesInfo);
-				Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-				coordImpl->SetCFPLenth(15 - m_curStartSlot);
+//				Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+//				coordImpl->SetCFPLenth(15 - m_curStartSlot);
 
 				TranceiverTask task;
 				task.Clear();
@@ -122,14 +122,14 @@ void LifiGtsCoordHandler::onReceiveGtsRequest(uint32_t timestamp, Ptr<Packet> p)
 				GTSDesInfo tempGtsDesInfo;
 				tempGtsDesInfo.gtsDescriptor.gtsStartSlot = 0;
 				m_allocGtsDevAddr.CopyTo((uint8_t*)&tempGtsDesInfo.gtsDescriptor.deviceShortAddr);
-				tempGtsDesInfo.gtsDescriptor.gtsLenth = 16;
+				tempGtsDesInfo.gtsDescriptor.gtsLength = 16;
 				m_gtsDesInfo.push_back(tempGtsDesInfo);
 			}
 		}
 	}else if(m_gtsDeviceCharacter.charType == DEALLOCATION){
 		GTSDesInfo tempGtsDesInfo;
 		m_allocGtsDevAddr.CopyTo((uint8_t*)&tempGtsDesInfo.gtsDescriptor.deviceShortAddr);
-		tempGtsDesInfo.gtsDescriptor.gtsLenth = m_gtsDeviceCharacter.gtsLength;
+		tempGtsDesInfo.gtsDescriptor.gtsLength = m_gtsDeviceCharacter.gtsLength;
 		tempGtsDesInfo.gtsDirection = (GTSDirection)gtsRequest.GetDirection();
 
 		GtsDesInfos::iterator it = std::find_if(m_gtsDesInfo.begin(), m_gtsDesInfo.end(), tempGtsDesInfo);
@@ -137,10 +137,10 @@ void LifiGtsCoordHandler::onReceiveGtsRequest(uint32_t timestamp, Ptr<Packet> p)
 				m_gtsDesInfo.erase(it);
 				m_curStartSlot = 15;
 				for(GtsDesInfos::iterator it = m_gtsDesInfo.begin(); it != m_gtsDesInfo.end(); it ++){
-					(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
-					m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
-					Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-					coordImpl->SetCFPLenth(15 - m_curStartSlot);
+					(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
+					m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
+//					Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+//					coordImpl->SetCFPLenth(15 - m_curStartSlot);
 				}
 				TranceiverTask task;
 				task.Clear();
@@ -184,11 +184,13 @@ void LifiGtsCoordHandler::onAllocNotification2 (Ptr<DataService> service){
 	m_dataService = service;
 	DisableTrigger(LifiGtsCoordHandler::AllocNotification);
 
-	GtsTransactions::iterator gts_beg = m_gtsTransactions.lower_bound(m_attributes->macShortAddress);
-	GtsTransactions::iterator gts_end = m_gtsTransactions.upper_bound(m_attributes->macShortAddress);
+	GtsTransactions::iterator gts_beg = m_gtsTransactions.lower_bound(m_deviceAddress);
+	GtsTransactions::iterator gts_end = m_gtsTransactions.upper_bound(m_deviceAddress);
 	if(gts_beg != gts_end){
-		m_curGtsTransmit = gts_beg->second;
-		m_curGtsTransIterator = gts_beg;
+		m_curGts = gts_beg->second;
+		m_curGtsIterator = gts_beg;
+		m_curGtsTransmit = m_curGts;
+		m_curGtsTransmit.m_packetInfo.m_listener = m_curGts.m_listener;
 		m_dataService->Transmit(m_curGtsTransmit.m_packetInfo);
 
 		EnableTrigger(LifiGtsCoordHandler::TxResultNotification);
@@ -196,6 +198,8 @@ void LifiGtsCoordHandler::onAllocNotification2 (Ptr<DataService> service){
 								LifiGtsCoordHandler::onTxResultNotification2);
 	}else{
 		NS_LOG_ERROR("there is no packet for this device.");
+		m_dataService->Release();
+		m_dataService = 0;
 	}
 }
 
@@ -221,6 +225,7 @@ void LifiGtsCoordHandler::SendAck(){
 
 	header.SetDstAddress(m_allocGtsDevAddr);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 
@@ -254,6 +259,7 @@ void LifiGtsCoordHandler::SendAck2(){
 
 	header.SetDstAddress(m_dataAddr);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -265,7 +271,7 @@ void LifiGtsCoordHandler::SendAck2(){
 	info.m_isAck = true;
 	info.m_msduSize = p->GetSize();
 	info.m_option.ackTx = false;
-	info.m_option.gtsTx = false;
+	info.m_option.gtsTx = true;
 	info.m_option.indirectTx = false;
 	info.m_packet = p;
 	m_dataService->Transmit(info);
@@ -321,8 +327,10 @@ void LifiGtsCoordHandler::CloseGtsDataReceive() {
 void LifiGtsCoordHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> p) {
 	if (CheckTrigger(LifiGtsCoordHandler::ReceiveData))
 	{
-		NS_LOG_FUNCTION (this << timestamp << p);
-		onReceiveData(timestamp, p);
+		if(m_trxHandler->IsCfpDuration()){
+			NS_LOG_FUNCTION (this << timestamp << p);
+			onReceiveData(timestamp, p);
+		}
 	}
 	else{
 		NS_LOG_ERROR("Ignore LifiGtsCoordHandler::ReceiveData");
@@ -337,6 +345,17 @@ void LifiGtsCoordHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> p) {
 	m_dataAddr = header.GetSrcAddress();
 	NS_ASSERT (header.GetFrameType() == LIFI_DATA);
 	//pass this packet to the upper layer.
+
+	m_dataIndicaDes.DstAddrMode = header.GetDstAddressMode();
+	m_dataIndicaDes.SrcAddrMode = header.GetSrcAddressMode();
+	m_dataIndicaDes.DstVPANId = header.GetDstVPANId();
+	m_dataIndicaDes.SrcVPANId = header.GetSrcVPANId();
+	m_dataIndicaDes.DstAddr = header.GetDstAddress();
+	m_dataIndicaDes.SrcAddr = header.GetSrcAddress();
+	m_dataIndicaDes.DSN = header.GetSequenceNumber();
+	m_dataIndicaDes.TimeStamp = timestamp;
+	m_dataIndicaDes.Msdu = p;
+	m_dataIndicaDes.MsduLenth = p->GetSize();
 
 	TranceiverTask task;
 	task.Clear();
@@ -356,7 +375,7 @@ void LifiGtsCoordHandler::onTxResultNotification1 (MacOpStatus status, PacketInf
 	m_dataService->Release();
 	m_dataService = 0;
 	if(status == MAC_SUCCESS){
-//		m_user->MlmeGtsIndication(m_allocGtsDevAddr, m_gtsDeviceCharacter);
+		m_user->MlmeGtsIndication(m_allocGtsDevAddr, m_gtsDeviceCharacter);
 	}
 }
 
@@ -364,9 +383,9 @@ void LifiGtsCoordHandler::onTxResultNotification2 (MacOpStatus status, PacketInf
 	NS_LOG_FUNCTION(this << status);
 	NS_ASSERT(status == MAC_SUCCESS || status == CHANNEL_ACCESS_FAILURE || status == NO_ACK);
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
-							m_curGtsTransmit.m_packetInfo.m_listener,
-							status, m_curGtsTransmit.m_packetInfo, ack);
-	m_gtsTransactions.erase(m_curGtsTransIterator);
+							m_curGts.m_packetInfo.m_listener,
+							status, m_curGts.m_packetInfo, ack);
+	m_gtsTransactions.erase(m_curGtsIterator);
 	m_dataService->Release();
 	m_dataService = 0;
 	if(m_gtsTransmitState)
@@ -378,8 +397,10 @@ void LifiGtsCoordHandler::onTxResultNotification3 (MacOpStatus status, PacketInf
 	NS_ASSERT(status == MAC_SUCCESS
 			||status == CHANNEL_ACCESS_FAILURE);
 	if(status == MAC_SUCCESS){
-//		m_user->MlmeGtsIndication(m_dataAddr, m_gtsDeviceCharacter);
+		m_user->MlmeDataIndication(m_dataIndicaDes);
 	}
+	m_dataService->Release();
+	m_dataService = 0;
 }
 
 
@@ -398,10 +419,8 @@ GtsList LifiGtsCoordHandler::GetGtsDescList(){
 			std::cout << m_gtsDesInfo.size() << std::endl;
 			m_curStartSlot = 15;
 			for(GtsDesInfos::iterator it = m_gtsDesInfo.begin(); it != m_gtsDesInfo.end(); it ++){
-				(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
-				m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLenth;
-//				Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-//				coordImpl->SetCFPLenth(16 - m_curStartSlot);
+				(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
+				m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
 
 //				we do not need those codes for this beacon.
 			}
@@ -411,6 +430,8 @@ GtsList LifiGtsCoordHandler::GetGtsDescList(){
 //		if ((it = m_gtsDesInfo.erase(it)) != m_gtsDesInfo.end())
 //			it++;
 	}
+	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+	coordImpl->SetCFPLenth(15 - m_curStartSlot);
 	return m_gtsList;
 }
 

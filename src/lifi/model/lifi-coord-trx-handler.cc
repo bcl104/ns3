@@ -199,9 +199,15 @@ void LifiCoordTrxHandler::ContentionFreePeriodEnd()
 void LifiCoordTrxHandler::StartOneGts(uint16_t shortAddr, GTSDirection gtsDirec){
 	NS_LOG_FUNCTION(this);
 	m_curGtsCount ++;
-	if(gtsDirec == (GTSDirection)SuperframeStrcut::TX_tranceiver){
+////gtsDirec is only point at Device(仅仅针对Device而言，对Device来说是Transmit_GTS,对Coord来说就是Receive_GTS)
+//	if(gtsDirec == (GTSDirection)SuperframeStrcut::TX_tranceiver){
+//		m_impl->SetGtsTransmitArgument(shortAddr, true);
+//	}else if(gtsDirec == (GTSDirection)SuperframeStrcut::RX_tranceiver){
+//		m_impl->OpenGtsDataReceive(shortAddr);
+//	}
+	if(gtsDirec == (GTSDirection)SuperframeStrcut::RX_tranceiver){
 		m_impl->SetGtsTransmitArgument(shortAddr, true);
-	}else if(gtsDirec == (GTSDirection)SuperframeStrcut::RX_tranceiver){
+	}else if(gtsDirec == (GTSDirection)SuperframeStrcut::TX_tranceiver){
 		m_impl->OpenGtsDataReceive(shortAddr);
 	}
 }

@@ -37,6 +37,7 @@ TypeId LifiDataCoordHandler::GetTypeId() {
 void LifiDataCoordHandler::StartTransmit(DataDescriptor DataDesc){
 	NS_LOG_FUNCTION(this);
 	m_dataDesc = DataDesc;
+	NS_ASSERT(m_dataDesc.DstVPANId = m_attributes->macVPANId);
 	if(m_dataDesc.Options.gtsTx == true)
 		SendToGtsTransaction();
 	else if(m_dataDesc.Options.indirectTx == true)
@@ -51,7 +52,7 @@ void LifiDataCoordHandler::SendToGtsTransaction() {
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
-	header.SetDstVPANId(m_dataDesc.DstVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	header.SetAckRequest(m_dataDesc.Options.ackTx);
 	p->AddHeader(header);
 
@@ -83,7 +84,7 @@ void LifiDataCoordHandler::SendToIndirectTransaction() {
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
-	header.SetDstVPANId(m_dataDesc.DstVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	header.SetAckRequest(m_dataDesc.Options.ackTx);
 	p->AddHeader(header);
 
@@ -120,7 +121,7 @@ void LifiDataCoordHandler::SendToCCA() {
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
-	header.SetDstVPANId(m_dataDesc.DstVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	header.SetAckRequest(m_dataDesc.Options.ackTx);
 	p->AddHeader(header);
 
@@ -165,8 +166,10 @@ void LifiDataCoordHandler::TxResultNotification(MacOpStatus status,
 
 void LifiDataCoordHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 	if(CheckTrigger(LifiDataCoordHandler::ReceiveData)){
-		NS_LOG_FUNCTION(this << timestamp << msdu);
-		onReceiveData(timestamp, msdu);
+		if(!(m_trxHandler->IsCfpDuration())){
+			NS_LOG_FUNCTION(this << timestamp << msdu);
+			onReceiveData(timestamp, msdu);
+		}
 	}else{
 		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
 	}
@@ -221,6 +224,7 @@ void LifiDataCoordHandler::onAllocNotification (Ptr<DataService> service){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_dataIndicaDes.SrcAddr);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 
 	p->AddHeader(header);
 
@@ -253,7 +257,7 @@ void LifiDataCoordHandler::onTxResultNotification1(MacOpStatus status,
 	m_dataService->Release();
 	m_dataService = 0;
 
-//	m_user->MlmeDataIndication(m_dataIndicaDes);
+	m_user->MlmeDataIndication(m_dataIndicaDes);
 
 	EnableTrigger(LifiDataCoordHandler::TxResultNotification);
 }
@@ -268,7 +272,7 @@ void LifiDataCoordHandler::onTxResultNotification2(MacOpStatus status,
 			 ||(status == TRANSACTION_EXPIRED)
 			 ||(status == MAC_SUCCESS));
 
-//	m_user->MlmeDataConfirm(info.m_handle, status, 0);
+	m_user->MlmeDataConfirm(info.m_handle, status, 0);
 
 	EnableTrigger(LifiDataCoordHandler::TxResultNotification);
 }

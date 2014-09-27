@@ -19,6 +19,7 @@ NS_OBJECT_ENSURE_REGISTERED (LifiGtsDevHandler);
 
 LifiGtsDevHandler::LifiGtsDevHandler() {
 	m_gtsTransmitState = 1;
+	m_gtsPeriodTimes = 0;
 	AddTrigger(LifiGtsDevHandler::AllocNotification, false);
 	AddTrigger(LifiGtsDevHandler::TxResultNotification, false);
 	AddTrigger(LifiGtsDevHandler::ReceiveBeacon, true);
@@ -58,7 +59,7 @@ void LifiGtsDevHandler::StartGtsRequest(GTSCharacteristics gtsCharacter, Address
 	 &&(m_attributes->macShortAddress != 0xfffe)){
 		SendGtsRequest();
 	}else{
-//		m_user->MlmeGtsConfirm(m_gtsRequestCharacter, NO_SHORT_ADDRESS);
+		m_user->MlmeGtsConfirm(m_gtsRequestCharacter, NO_SHORT_ADDRESS);
 	}
 
 }
@@ -76,6 +77,7 @@ void LifiGtsDevHandler::SendGtsRequest(){
 	header.SetFramePending(false);
 	header.SetAckRequest(true);
 	header.SetSrcVPANId(m_attributes->macVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 
 	Mac16Address tempSrcAddr;
 	tempSrcAddr.CopyFrom((uint8_t*) (&(m_attributes->macShortAddress)));
@@ -88,7 +90,7 @@ void LifiGtsDevHandler::SendGtsRequest(){
 	info.m_band = m_trxHandler->GetChannelId();
 	info.m_bust = false;
 	info.m_force = false;
-	info.m_handle = 0x47;
+	info.m_handle = 0x44;
 	info.m_isAck = false;
 	info.m_listener = this;
 	info.m_msduSize = p->GetSize();
@@ -133,34 +135,41 @@ void LifiGtsDevHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p){
 		tempDes = beacon.GetGtsDescriptor(m_attributes->macShortAddress);
 		NS_ASSERT(tempDes.deviceShortAddr != 0);
 		if(tempDes.gtsStartSlot != 0){
-				m_gtsBeaconCharacter.gtsLength = tempDes.gtsLenth;
+				m_gtsBeaconCharacter.gtsLength = tempDes.gtsLength;
 				m_gtsBeaconCharacter.gtsDirection = (GTSDirection)beacon.GetGtsDirection(m_attributes->macShortAddress);
 				if(m_gtsRequestCharacter == m_gtsBeaconCharacter){
 					SetGtsDirection(m_gtsBeaconCharacter.gtsDirection);
-					SetGtsOffset(tempDes.gtsStartSlot, tempDes.gtsLenth, beacon.GetGtsDescripCount());
+					SetGtsOffset(tempDes.gtsStartSlot, tempDes.gtsLength, beacon.GetGtsDescripCount());
 
-//					m_user->MlmeGtsConfirm(m_gtsRequestCharacter, MAC_SUCCESS);
+					m_user->MlmeGtsConfirm(m_gtsRequestCharacter, MAC_SUCCESS);
 				}
 				else {
-//					m_user->MlmeGtsConfirm(m_gtsRequestCharacter, MAC_INVALID_PARAMETER);
+					m_user->MlmeGtsConfirm(m_gtsRequestCharacter, MAC_INVALID_PARAMETER);
 				}
 			}
 		else{
-			if(m_gtsRequestCharacter.gtsLength != 0){
-//			m_user->MlmeGtsConfirm(m_gtsRequestCharacter, DENIED);
+			if(m_gtsRequestCharacter.gtsLength == 16){
+				m_user->MlmeGtsConfirm(m_gtsRequestCharacter, DENIED);
 			}else{
 				GTSCharacteristics tempChar;
-				tempChar.gtsLength = tempDes.gtsLenth;
+				tempChar.gtsLength = tempDes.gtsLength;
 				tempChar.charType = DEALLOCATION;
 				tempChar.gtsDirection = (GTSDirection)beacon.GetGtsDirection(m_attributes->macShortAddress);
-//				m_user->MlmeGtsIndication(m_attributes->macShortAddress, tempChar);
+				Mac16Address tempShortAddr;
+				tempShortAddr.CopyFrom((uint8_t*)&(m_attributes->macShortAddress));
+				m_user->MlmeGtsIndication(tempShortAddr, tempChar);
 ////				how to clear the GTS information?
+				DeleteGtsDuration();
 			}
 		}
 
 	}
 	else {
-//		m_user->MlmeGtsConfirm(m_gtsRequestCharacter, NO_DATA);
+		m_gtsPeriodTimes ++;
+		if (m_gtsPeriodTimes >= 5){
+			m_gtsPeriodTimes = 0;
+			m_user->MlmeGtsConfirm(m_gtsRequestCharacter, NO_DATA);
+		}
 	}
 }
 
@@ -181,18 +190,23 @@ void LifiGtsDevHandler::onAllocNotification1 (Ptr<DataService> service){
 	NS_LOG_FUNCTION (this << service);
 	NS_ASSERT (service != 0);
 	m_dataService = service;
+	std::cout << m_gtsTransactions.size() << std::endl;
 	DisableTrigger(LifiGtsDevHandler::AllocNotification);
 	GtsTransactions::iterator gts_beg = m_gtsTransactions.lower_bound(m_attributes->macShortAddress);
 	GtsTransactions::iterator gts_end = m_gtsTransactions.upper_bound(m_attributes->macShortAddress);
 	if(gts_beg != gts_end){
-		m_curGtsTransmit = gts_beg->second;
-		m_curGtsTransIterator = gts_beg;
+		m_curGts = gts_beg->second;
+		m_curGtsIterator = gts_beg;
+		m_curGtsTransmit = m_curGts;
+		m_curGtsTransmit.m_packetInfo.m_listener = m_curGts.m_listener;
 		m_dataService->Transmit(m_curGtsTransmit.m_packetInfo);
 	EnableTrigger(LifiGtsDevHandler::TxResultNotification);
 	ReplaceTriggerCallback (m_txRstNotification,
 							LifiGtsDevHandler::onTxResultNotification2);
 	}else {
 		NS_LOG_ERROR("there is no packet for this device.");
+		m_dataService->Release();
+		m_dataService = 0;
 	}
 
 }
@@ -231,10 +245,11 @@ void LifiGtsDevHandler::onTxResultNotification1 (MacOpStatus status, PacketInfo 
 		EnableTrigger(LifiGtsDevHandler::ReceiveBeacon);
 ////          how to process the GTS?
 		}else if(m_gtsRequestCharacter.charType == DEALLOCATION){
-//			m_user->MlmeGtsConfirm(m_gtsCharacter, status);
+			m_user->MlmeGtsConfirm(m_gtsRequestCharacter, status);
+			DisableTrigger(LifiGtsDevHandler::ReceiveBeacon);
 		}
 	}else{
-//		m_user->MlmeGtsConfirm(m_gtsCharacter, status);
+		m_user->MlmeGtsConfirm(m_gtsRequestCharacter, status);
 	}
 }
 
@@ -242,9 +257,9 @@ void LifiGtsDevHandler::onTxResultNotification2 (MacOpStatus status, PacketInfo 
 	NS_LOG_FUNCTION(this << status);
 	NS_ASSERT(status == MAC_SUCCESS || status == CHANNEL_ACCESS_FAILURE || status == NO_ACK);
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
-							m_curGtsTransmit.m_packetInfo.m_listener,
-							status, m_curGtsTransmit.m_packetInfo, ack);
-	m_gtsTransactions.erase(m_curGtsTransIterator);
+							m_curGts.m_packetInfo.m_listener,
+							status, m_curGts.m_packetInfo, ack);
+	m_gtsTransactions.erase(m_curGtsIterator);
 	m_dataService->Release();
 	m_dataService = 0;
 	if(m_gtsTransmitState)
@@ -318,6 +333,7 @@ void LifiGtsDevHandler::SendAck(){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_dstAddress);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -329,7 +345,7 @@ void LifiGtsDevHandler::SendAck(){
 	info.m_isAck = true;
 	info.m_msduSize = p->GetSize();
 	info.m_option.ackTx = false;
-	info.m_option.gtsTx = false;
+	info.m_option.gtsTx = true;
 	info.m_option.indirectTx = false;
 	info.m_packet = p;
 	m_dataService->Transmit(info);
@@ -346,6 +362,11 @@ void LifiGtsDevHandler::SetGtsOffset(uint8_t startSlot, uint8_t gtsLength, uint8
 void LifiGtsDevHandler::SetGtsDirection(GTSDirection direction){
 	NS_LOG_FUNCTION(this);
 	m_trxHandler->SetGtsTrxState(direction);
+}
+
+void LifiGtsDevHandler::DeleteGtsDuration(){
+	NS_LOG_FUNCTION(this);
+	m_trxHandler->DeleteGtsDuration();
 }
 
 void LifiGtsDevHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {

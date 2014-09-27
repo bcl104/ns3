@@ -18,6 +18,7 @@
 
 namespace ns3{
 
+class LifiMac;
 class LifiNode : public Object {
 
 friend class McpsSpecificSapUser<LifiNode>;
@@ -56,6 +57,16 @@ public:
 									uint32_t timestamp, DataRateId dataRate, bool burstMode);
 	virtual void PurgeConfirmMcps(uint8_t msduHandle, MacOpStatus status);
 
+	virtual void SendData(SendDataInfo dataInfo);
+	virtual void GtsRequest(GTSCharacteristics characteristics, Address dstAddr);
+	virtual void DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
+								Address devAddr, DisassocReason reason, bool txIndirect);
+
+	void SetMlmeSapProvider (Ptr<MlmeSapProvider> p);
+	void SetMcpsSapProvider (Ptr<McpsSapProvider> p);
+	Ptr<MlmeSapUser> GetMlmeSapUser ();
+	Ptr<McpsSapUser> GetMcpsSapUser ();
+	void SetLifiMac (Ptr<LifiMac> p);
 protected:
 
 	Ptr<McpsSapProvider> m_mcpsSapProvider;

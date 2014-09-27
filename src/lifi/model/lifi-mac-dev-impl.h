@@ -21,6 +21,7 @@
 #include "lifi-data-dev-handler.h"
 #include "lifi-disassoc-dev-handler.h"
 #include "lifi-gts-dev-handler.h"
+#include "lifi-transaction-handler.h"
 
 namespace ns3 {
 
@@ -68,7 +69,7 @@ public:
 
 	virtual void SetMlmeSapUser (Ptr<MlmeSapUser> u);
 
-	virtual void SetMcpsSapUser (Ptr<McpsSapUser> u);
+	virtual void SetMcpsSapUser (Ptr<McpsSapUser> m);
 
 	virtual void AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo);
 
@@ -84,10 +85,11 @@ protected:
 	Ptr<LifiAssocHandler> m_assocHandler;
 //	Ptr<LifiDisassocHandler> m_disassocHandler;
 //	Ptr<LifiBeaconHandler> m_beaconHandler;
-	Ptr<LifiGtsHandler> m_gtsHandler;
+//	Ptr<LifiGtsHandler> m_gtsHandler;
 
 	Ptr<LifiDevAssocHandler> m_devAssocHandler;
 	Ptr<LifiDataDevHandler> m_dataDevHandler;
+	Ptr<LifiTransactionHandler>  m_transcHandler;
 	Ptr<LifiDisassocDevHandler> m_disassocDevHandler;
 	Ptr<LifiGtsDevHandler> m_gtsDevHandler;
 

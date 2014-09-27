@@ -362,29 +362,29 @@ struct  GtsDescriptor{
 public:
 	uint16_t deviceShortAddr;
 	uint8_t gtsStartSlot;
-	uint8_t gtsLenth;
+	uint8_t gtsLength;
 
 	GtsDescriptor ()
 	{
 		deviceShortAddr = 0;
 		gtsStartSlot = 0;
-		gtsLenth = 0;
+		gtsLength = 0;
 	}
 
 	GtsDescriptor (uint16_t address, uint8_t slot, uint8_t lenth)
 	{
 		deviceShortAddr = address;
 		gtsStartSlot = slot;
-		gtsLenth = lenth;
+		gtsLength = lenth;
 	}
 	bool operator== (GtsDescriptor& d)
 		{
-			return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLenth == gtsLenth)/* && (d.gtsStartSlot = gtsStartSlot)*/);
+			return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLength == gtsLength)/* && (d.gtsStartSlot = gtsStartSlot)*/);
 		}
 
 	bool operator() (GtsDescriptor& d)
 	{
-		return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLenth == gtsLenth) /*&& (d.gtsStartSlot == gtsStartSlot)*/);
+		return ((d.deviceShortAddr == deviceShortAddr) && (d.gtsLength == gtsLength) /*&& (d.gtsStartSlot == gtsStartSlot)*/);
 	}
 
 };
@@ -497,6 +497,20 @@ struct GtsTransactionInfo
 	PacketInfo m_packetInfo;
 	TrxHandlerListener* m_listener;
 	EventId m_eventId;
+};
+
+struct SendDataInfo{
+public:
+	AddrMode srcAddrMode;
+	AddrMode dstAddrMode;
+	uint16_t dstVPANId;
+	Address dstAddr;
+	uint32_t msduLength;
+	Ptr<Packet> msdu;
+	uint8_t msduHandle;
+	TxOption txOption;
+	DataRateId rate;
+	bool burstMode;
 };
 
 typedef std::multimap<uint16_t, GtsTransactionInfo> GtsTransactions;

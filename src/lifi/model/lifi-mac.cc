@@ -78,7 +78,7 @@ void LifiMac::Purge(uint8_t handle) {
 }
 
 void LifiMac::AssociateResponse(Mac64Address devAddr,Mac16Address assocShortAddr, MacOpStatus status,
-		MacOpStatus capNegoResponse) {
+								MacColorStabCapab capNegoResponse) {
 	NS_LOG_FUNCTION (this << devAddr << assocShortAddr << (uint32_t)status << (uint32_t)capNegoResponse);
 	m_lifiMacImpl->AssociateResponse(devAddr, assocShortAddr, status, capNegoResponse);
 }
@@ -130,8 +130,10 @@ void LifiMac::StartVPAN(uint8_t vpanId, LogicChannelId channel, uint32_t startTi
 	m_lifiMacImpl = CreateObject<LifiMacCoordImpl> ();
 	m_lifiMacImpl->SetOpticalPeriod(op);
 	m_lifiMacImpl->SetLifiMac(this);
-//	NS_ASSERT (m_mlmeSapUser != 0);
-//	NS_ASSERT (m_mcpsSapUser != 0);
+	m_mlmeSapUser = m_sscs->GetMlmeSapUser();
+	m_mcpsSapUser = m_sscs->GetMcpsSapUser();
+	NS_ASSERT (m_mlmeSapUser != 0);
+	NS_ASSERT (m_mcpsSapUser != 0);
 	NS_ASSERT (m_pdSapProvider != 0);
 	NS_ASSERT (m_plmeSapProvider != 0);
 	m_lifiMacImpl->SetPdSapProvider(m_pdSapProvider);
@@ -199,7 +201,7 @@ const Ptr<MlmeSapProvider>& LifiMac::GetMlmeSapProvider() const {
 }
 
 void LifiMac::SetMlmeSapUser(const Ptr<MlmeSapUser>& mlmeSapUser) {
-	m_mlmeSapUser = mlmeSapUser;
+//	m_mlmeSapUser = mlmeSapUser;
 	m_lifiMacImpl->SetMlmeSapUser(mlmeSapUser);
 }
 
@@ -234,6 +236,10 @@ void LifiMac::SetOpticalPeriod(const Time* oc)
 const Time* LifiMac::GetOpticalPeriod() const
 {
 	return m_opticalPeriod;
+}
+
+void LifiMac::SetLifiNode(Ptr<LifiNode> sscs){
+	m_sscs = sscs;
 }
 
 } // ns3 name space

@@ -110,6 +110,7 @@ void LifiCoordAssocHandler::sendAck1() {
 	header.SetSrcAddress(m_coordAddress);
 	header.SetDstAddress(m_curDeviceAddress);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -139,6 +140,7 @@ void LifiCoordAssocHandler::sendAck2() {
 	header.SetSrcAddress(m_coordAddress);
 	header.SetDstAddress(m_curDeviceAddress);
 	header.SetFramePending(true);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -159,13 +161,12 @@ void LifiCoordAssocHandler::sendAck2() {
 }
 
 void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
-		Mac16Address allocAssocShortAddr, MacOpStatus status)
+		Mac16Address allocAssocShortAddr, MacOpStatus status, MacColorStabCapab capResponse)
 {
 	NS_LOG_FUNCTION (this << devAddress << allocAssocShortAddr << status);
 	AssocResponseComm rescom;
 	rescom.SetShortAddr(allocAssocShortAddr);
 	rescom.SetAssocStatus(status);//not set capability negotiation response
-	std::cout << rescom.GetAssocStatus() << std::endl;
 	Ptr<Packet> p = rescom.GetPacket();
 
 	LifiMacHeader header;
@@ -174,6 +175,7 @@ void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 	header.SetDstAddress(m_curDeviceAddress);
 	header.SetSrcAddress(m_coordAddress);
 	//how to get its extendedAddress/shortAddress.
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	TransactionInfo transInfo;
@@ -207,6 +209,7 @@ void LifiCoordAssocHandler::ReceiveDataRequest(uint32_t timestamp, Ptr<Packet> m
 void LifiCoordAssocHandler::onReceiveDataRequest(uint32_t timestamp, Ptr<Packet> msdu)
 {
 	NS_LOG_FUNCTION (this << timestamp << msdu);
+	DisableTrigger(LifiCoordAssocHandler::ReceiveDataRequest);
 	LifiMacHeader header;
 	msdu->PeekHeader(header);
 	NS_ASSERT (header.GetSrcAddressMode() == EXTENDED);
@@ -252,7 +255,7 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 ////    MlmeAssocResponse shall be invoked by the upper layer when it allocated shortAddress.
 //		MlmeAssocResponse(m_curDeviceAddress, Mac16Address("12:34"), MAC_SUCCESS);
 		EnableTrigger(LifiCoordAssocHandler::ReceiveDataRequest);
-//		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
+		m_user->MlmeAssociateIndication(m_curDeviceAddress, m_capInfo);
 	}else{
 		sendAck2();
 		m_impl->PetchTransactionPacket(m_curDeviceAddress);
@@ -284,8 +287,8 @@ void LifiCoordAssocHandler::onTxResultNotification(MacOpStatus status, PacketInf
 	}
 	else{
 		DisableTrigger(LifiCoordAssocHandler::TxResultNotification);
-//		m_user->MlmeCommStatusIndication(m_vpanId, m_srcAddrMode, m_curDeviceAddress,
-//										 m_dstAddrMode, m_coordAddress, status);
+		m_user->MlmeCommStatusIndication(m_vpanId, m_srcAddrMode, m_curDeviceAddress,
+										 m_dstAddrMode, m_coordAddress, status);
 	}
 	reset();
 }

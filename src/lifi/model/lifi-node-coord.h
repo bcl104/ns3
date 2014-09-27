@@ -18,8 +18,8 @@ public:
 	LifiNodeCoord();
 	virtual ~LifiNodeCoord();
 	static TypeId GetTypeId ();
-	void Start(uint8_t vpanId, LogicChannelId channel, uint32_t startTime,	uint32_t bcnOrder,
-			   uint32_t supframeOrder, bool vpanCoord);
+	virtual void Start(uint8_t vpanId, LogicChannelId channel, uint32_t startTime,	uint32_t bcnOrder,
+					   uint32_t supframeOrder, bool vpanCoord);
 
 	virtual void DataConfirm(uint8_t msduHandle, MacOpStatus status, uint32_t timestamp);
 	virtual void DataIndication(DataIndicaDescriptor dataDesc);
@@ -45,6 +45,11 @@ public:
 									Ptr<Packet> msdu, uint8_t mpduLinkQuality, uint8_t dsn,
 									uint32_t timestamp, DataRateId dataRate, bool burstMode);
 	virtual void PurgeConfirmMcps(uint8_t msduHandle, MacOpStatus status);
+
+	virtual void SendData(SendDataInfo dataInfo);
+	virtual void GtsRequest(GTSCharacteristics characteristics, Address dstAddr);
+	virtual void DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
+							    Address devAddr, DisassocReason reason, bool txIndirect);
 
 protected:
 	Ptr<LifiNode> m_sscs;

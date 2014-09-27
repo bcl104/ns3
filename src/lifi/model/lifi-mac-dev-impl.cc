@@ -22,6 +22,7 @@ LifiMacDevImpl::LifiMacDevImpl()
 				  m_channelScanHandler (new LifiChannelScanHandler),
 				  m_devAssocHandler (new LifiDevAssocHandler),
 				  m_dataDevHandler (new LifiDataDevHandler),
+				  m_transcHandler (new LifiTransactionHandler),
 				  m_disassocDevHandler (new LifiDisassocDevHandler),
 				  m_gtsDevHandler (new LifiGtsDevHandler)
 {
@@ -46,6 +47,12 @@ LifiMacDevImpl::LifiMacDevImpl()
 	m_dataDevHandler->SetTrxHandler(m_trxHandler);
 	m_trxHandler->AddListener(LifiDataDevHandler::GetTypeId(),
 								  GetPointer (m_dataDevHandler));
+
+	m_transcHandler->SetLifiMacImpl(this);
+	m_transcHandler->SetMacPibAttributes(&m_attributes);
+	m_transcHandler->SetTrxHandler(m_trxHandler);
+	m_trxHandler->AddListener(LifiTransactionHandler::GetTypeId(),
+							  GetPointer (m_transcHandler));
 
 	m_disassocDevHandler->SetLifiMacImpl(this);
 	m_disassocDevHandler->SetMacPibAttributes(&m_attributes);
@@ -171,15 +178,22 @@ void LifiMacDevImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
 
 void LifiMacDevImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
 {
+	m_trxHandler->SetMlmeSapUser(u);
+	m_channelScanHandler->SetMlmeSapUser(u);
+    m_devAssocHandler->SetMlmeSapUser(u);
+    m_dataDevHandler->SetMlmeSapUser(u);
+    m_disassocDevHandler->SetMlmeSapUser(u);
+    m_gtsDevHandler->SetMlmeSapUser(u);
 }
 
-void LifiMacDevImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
+void LifiMacDevImpl::SetMcpsSapUser(Ptr<McpsSapUser> m)
 {
+	m_trxHandler->SetMcpsSapUser(m);
 }
 
 void LifiMacDevImpl::AddGtsTransactionPacket (GtsTransactionInfo& gtsTransInfo){
 	NS_LOG_FUNCTION(this);
-	m_gtsHandler->AddGtsTransaction(gtsTransInfo);
+	m_gtsDevHandler->AddGtsTransaction(gtsTransInfo);
 }
 
 void LifiMacDevImpl::SetGtsTransmitArgument (uint16_t shortAddr, bool transmitState){

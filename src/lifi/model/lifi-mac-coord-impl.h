@@ -40,7 +40,7 @@ public:
 //	virtual void Associate(LogicChannelId channel, AddrMode coordAddrMode,
 //						   uint16_t coordVPANId, Address coordAddr, CapabilityInfo info);
 	virtual void AssociateResponse(Mac64Address devAddr, Mac16Address assocShortAddr,
-									MacOpStatus status, MacOpStatus capResponse);
+									MacOpStatus status, MacColorStabCapab capResponse);
 	virtual void Disassociate(AddrMode devAddrMode, uint16_t devVPANId, Address devAddr,
 									DisassocReason reason, bool txIndirect);
 	virtual void GtsRequest(GTSCharacteristics characteristic, Address dstAddr);
@@ -93,7 +93,6 @@ private:
 	uint32_t m_gtsSlotCount;
 	GtsList m_gtsList;
 	Ptr<LifiCoordTrxHandler> m_trxHandler;
-	Ptr<LifiGtsHandler> m_gtsHandler;
 	Ptr<LifiChannelScanHandler> m_channelScanHandler;
 	Ptr<LifiCoordAssocHandler> m_coordAssocHandler;
 	Ptr<LifiTransactionHandler> m_transcHandler;

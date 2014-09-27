@@ -37,8 +37,7 @@ void LifiMacImpl::Disassociate(AddrMode devAddrMode, uint16_t devVPANId,
 }
 
 void LifiMacImpl::AssociateResponse(Mac64Address devAddr,
-		Mac16Address assocShortAddr, MacOpStatus status,
-		MacOpStatus capResponse) {
+		Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capResponse) {
 	NS_FATAL_ERROR("LifiMacImpl::AssociateResponse can not be invoked.");
 }
 

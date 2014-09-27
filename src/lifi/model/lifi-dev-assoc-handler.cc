@@ -77,6 +77,7 @@ void LifiDevAssocHandler::SendAssocRequest() {
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_coordAddr);
+	header.SetDstVPANId(m_VPANId);
 	header.SetAckRequest(true);
 	p->AddHeader(header);
 
@@ -180,6 +181,7 @@ void LifiDevAssocHandler::SendDataRequest(){
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_coordAddr);
+	header.SetDstVPANId(m_VPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -318,6 +320,7 @@ void LifiDevAssocHandler::SendAck(){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_coordAddr);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_VPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -367,20 +370,21 @@ void LifiDevAssocHandler::EndAssoc(MacOpStatus status){
 
 	if (status == CHANNEL_ACCESS_FAILURE)
 	{
-//		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), CHANNEL_ACCESS_FAILURE, NO_COLOR_STABI);
+		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), CHANNEL_ACCESS_FAILURE, NO_COLOR_STABI);
 	}else if (status == NO_ACK)
 	{
-//		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), NO_ACK, NO_COLOR_STABI);
+		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), NO_ACK, NO_COLOR_STABI);
 	}else if (status == NO_DATA)
 	{
-//		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), NO_DATA, NO_COLOR_STABI);
+		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), NO_DATA, NO_COLOR_STABI);
 	}else if (status == MAC_SUCCESS)
 	{
 		m_trxHandler->GetPlmeSapProvider()->PlmeSetRequest(PHY_CURRENT_CHANNEL, m_curChannel);
-//		m_user->MlmeAssociateConfirm(m_allocAddr, MAC_SUCCESS, NO_COLOR_STABI);
+		m_attributes->macVPANId = m_VPANId;
+		m_user->MlmeAssociateConfirm(m_allocAddr, MAC_SUCCESS, NO_COLOR_STABI);
 	}else
 	{
-//		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), DENIED, NO_COLOR_STABI);
+		m_user->MlmeAssociateConfirm(Mac16Address("ff:ff"), DENIED, NO_COLOR_STABI);
 	}
 	m_run = false;
 	m_service->Release();

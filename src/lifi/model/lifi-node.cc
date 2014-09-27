@@ -112,4 +112,36 @@ void LifiNode::DataIndicationMcps(TypeId srcAddrMode, uint16_t srcVPANId,
 void LifiNode::PurgeConfirmMcps(uint8_t msduHandle, MacOpStatus status) {
 }
 
+void LifiNode::SendData(SendDataInfo dataInfo){
+
+}
+
+void LifiNode::GtsRequest(GTSCharacteristics characteristics, Address dstAddr){
+
+}
+
+void LifiNode::DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
+							  Address devAddr, DisassocReason reason, bool txIndirect){
+
+}
+
+void LifiNode::SetMlmeSapProvider (Ptr<MlmeSapProvider> p){
+	m_mlmeSapProvider = p;
+}
+
+void LifiNode::SetMcpsSapProvider (Ptr<McpsSapProvider> p){
+	m_mcpsSapProvider = p;
+}
+
+Ptr<MlmeSapUser> LifiNode::GetMlmeSapUser (){
+	return m_mlmeSapUser;
+}
+Ptr<McpsSapUser> LifiNode::GetMcpsSapUser (){
+	return m_mcpsSapUser;
+}
+
+void LifiNode::SetLifiMac (Ptr<LifiMac> p){
+	m_lifiMac = p;
+}
+
 }

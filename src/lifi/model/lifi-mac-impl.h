@@ -75,7 +75,7 @@ public:
 	 * 	\param capResponse The coordinator indicates who will send color compensation information.
 	 * */
 	virtual void AssociateResponse(Mac64Address devAddr, Mac16Address assocShortAddr,
-									MacOpStatus status, MacOpStatus capResponse);
+									MacOpStatus status, MacColorStabCapab capResponse);
 
 	/*
 	 * 	This method allows a device to send a request to the coordinator to allocate a new GTS or to

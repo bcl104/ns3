@@ -106,23 +106,34 @@ void LifiDevTrxHandler::SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uin
 		uint32_t gtsStart = (1 + startSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 		uint32_t gtsEnd = (1 + startSlot + gtsLength) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 		Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
-		Time gtsStartTime = NanoSeconds(gtsStart * op.GetNanoSeconds() -1);
-		Time gtsEndTime = NanoSeconds(gtsEnd * op.GetNanoSeconds() -1);
-		m_superframeStruct.m_gtsStart.SetDelay(gtsStartTime);
-		m_superframeStruct.m_gtsEnd.SetDelay(gtsEndTime);
-		m_superframeStruct.m_gtsStart.SetFunction(&LifiDevTrxHandler::GtsTransmitStart, this);
-		m_superframeStruct.m_gtsEnd.SetFunction(&LifiDevTrxHandler::GtsTransmitEnd, this);
+		Time gtsStartTime = NanoSeconds(gtsStart * op.GetNanoSeconds() + 1);
+		Time gtsEndTime = NanoSeconds(gtsEnd * op.GetNanoSeconds() - 1);
+		m_superframeStruct.m_gtsStartDev.SetDelay(gtsStartTime);
+		m_superframeStruct.m_gtsEndDev.SetDelay(gtsEndTime);
+		m_superframeStruct.m_gtsStartDev.SetFunction(&LifiDevTrxHandler::GtsTransmitStart, this);
+		m_superframeStruct.m_gtsEndDev.SetFunction(&LifiDevTrxHandler::GtsTransmitEnd, this);
 
-		if(startSlot == capEndSlot - 1){
-			m_superframeStruct.m_gtsEnd.Schedule();
+		if(startSlot == capEndSlot){
+			m_superframeStruct.m_gtsEndDev.Schedule();
 			m_gtsIsCapEnd = true;
 		}
 		if(startSlot + gtsLength == 15){
-			m_superframeStruct.m_gtsStart.Schedule();
+			m_superframeStruct.m_gtsStartDev.Schedule();
 			m_gtsIsCfpEnd = true;
-		}
+		}else if((startSlot != capEndSlot) && (startSlot + gtsLength != 15)){
+			m_superframeStruct.m_gtsStartDev.Schedule();
+			m_superframeStruct.m_gtsEndDev.Schedule();
+			}
 	}
 }
+
+void LifiDevTrxHandler::DeleteGtsDuration(){
+	m_gtsIsCapEnd = false;
+	m_gtsIsCfpEnd = false;
+	m_superframeStruct.m_gtsStartDev.Cancel();
+	m_superframeStruct.m_gtsEndDev.Cancel();
+}
+
 void LifiDevTrxHandler::SetGtsTrxState(GTSDirection direction){
 	NS_LOG_FUNCTION(this);
 	if(direction == Transmit_GTS)

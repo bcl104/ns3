@@ -64,6 +64,14 @@ public:
 
 	Ptr<PlmeSapProvider> GetPlmeSapProvider () const;
 
+	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
+
+	Ptr<MlmeSapUser> GetMlmeSapUser () const;
+
+	void SetMcpsSapUser (Ptr<McpsSapUser> mcps);
+
+	Ptr<McpsSapUser> GetMcpsSapUser () const;
+
 	void SetPdSapProvider (Ptr<PdSapProvider> provider);
 
 	Ptr<PdSapProvider> GetPdSapProvider () const;
@@ -105,8 +113,9 @@ public:
 	}
 
 	virtual void SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount);
+	virtual void DeleteGtsDuration();
 	virtual void SetGtsTrxState(GTSDirection direction);
-
+	bool IsCfpDuration();
 protected:
 	// Interface for upper layer handler.
 	bool Transmit(PacketInfo& info);
@@ -184,8 +193,8 @@ protected:
 		bool m_contentionFreePeriod;
 		bool m_inactivePortion;
 		Timer m_capEnd;
-		Timer m_gtsStart;
-		Timer m_gtsEnd;
+		Timer m_gtsStartDev;
+		Timer m_gtsEndDev;
 		Timer m_cfpEnd;
 		Timer m_supframeEnd;
 		enum {

@@ -23,6 +23,7 @@ public:
 	static TypeId GetTypeId ();
 	virtual void ReceiveBeacon (uint32_t timestamp, Ptr<Packet> p);
 	virtual void SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount);
+	virtual void DeleteGtsDuration();
 	virtual void SetGtsTrxState(GTSDirection direction);
 protected:
 	void BuildSuperframeStruct (Ptr<Packet> beacon);

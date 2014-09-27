@@ -36,7 +36,6 @@ public:
 
 	virtual void SetMacPibAttributes (LifiMacPibAttribute* attrubutes);
 
-
 protected:
 
 	template <class T> void AddTrigger (T trigger, bool enable)
@@ -122,6 +121,7 @@ protected:
 	Ptr<PdSapProvider> m_pdProvider;
 	Ptr<LifiMacPibAttribute> m_attributes;
 	Ptr<MlmeSapUser> m_user;
+	Ptr<McpsSapUser> m_mcps;
 	const Time* m_opticalPeriod;
 };
 

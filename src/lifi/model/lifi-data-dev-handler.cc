@@ -19,6 +19,7 @@ LifiDataDevHandler::LifiDataDevHandler() {
 	NS_LOG_FUNCTION (this);
 	AddTrigger(LifiDataDevHandler::TxResultNotification, false);
 	AddTrigger(LifiDataDevHandler::AllocNotification, false);
+	AddTrigger(LifiDataDevHandler::ReceiveData, true);
 }
 
 LifiDataDevHandler::~LifiDataDevHandler() {
@@ -35,6 +36,7 @@ TypeId LifiDataDevHandler::GetTypeId() {
 void LifiDataDevHandler::StartTransmit(DataDescriptor DataDesc){
 	NS_LOG_FUNCTION(this);
 	m_dataDesc = DataDesc;
+	NS_ASSERT(m_dataDesc.DstVPANId = m_attributes->macVPANId);
 	NS_ASSERT(m_dataDesc.Options.indirectTx == false);
 	if(m_dataDesc.Options.gtsTx == true)
 			SendToGtsTransaction();
@@ -49,7 +51,7 @@ void LifiDataDevHandler::SendToCCA() {
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
-	header.SetDstVPANId(m_dataDesc.DstVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	header.SetAckRequest(m_dataDesc.Options.ackTx);
 	p->AddHeader(header);
 
@@ -70,7 +72,7 @@ void LifiDataDevHandler::SendToCCA() {
 
 	EnableTrigger(LifiDataDevHandler::TxResultNotification);
 	ReplaceTriggerCallback (m_txRstNotification,
-							LifiDataDevHandler::onTxResultNotification1);
+							LifiDataDevHandler::onTxResultNotification2);
 }
 
 void LifiDataDevHandler::SendToGtsTransaction(){
@@ -81,7 +83,7 @@ void LifiDataDevHandler::SendToGtsTransaction(){
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
-	header.SetDstVPANId(m_dataDesc.DstVPANId);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	header.SetAckRequest(m_dataDesc.Options.ackTx);
 	p->AddHeader(header);
 
@@ -128,6 +130,7 @@ void LifiDataDevHandler::onAllocNotification (Ptr<DataService> service){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_receiveCoordAddr);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -168,8 +171,10 @@ void LifiDataDevHandler::TxResultNotification(MacOpStatus status,
 
 void LifiDataDevHandler::ReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 	if(CheckTrigger(LifiDataDevHandler::ReceiveData)){
-		NS_LOG_FUNCTION(this << timestamp << msdu);
+		if(!(m_trxHandler->IsCfpDuration())){
+			NS_LOG_FUNCTION(this << timestamp << msdu);
 			onReceiveData(timestamp, msdu);
+		}
 	}else{
 		NS_LOG_ERROR("Ignore LifiDataDevHandler::ReceiveData");
 	}
@@ -200,7 +205,6 @@ void LifiDataDevHandler::onReceiveData(uint32_t timestamp, Ptr<Packet> msdu){
 		m_trxHandler->ServiceRequest(task);
 		EnableTrigger(LifiDataDevHandler::AllocNotification);
 	}
-//	    m_user->MlmeDataIndication(m_dataIndicaDes);
 }
 
 void LifiDataDevHandler::onTxResultNotification1(MacOpStatus status,
@@ -209,11 +213,13 @@ void LifiDataDevHandler::onTxResultNotification1(MacOpStatus status,
 	DisableTrigger(LifiDataDevHandler::TxResultNotification);
 	NS_ASSERT ((status == CHANNEL_ACCESS_FAILURE)
 			 ||(status == MAC_SUCCESS));
-//	m_user->MlmeDataConfirm(info.m_handle, status, 0);
+	m_user->MlmeDataIndication(m_dataIndicaDes);
 	m_dataService->Release();
 	m_dataService = 0;
 
 	EnableTrigger(LifiDataHandler::TxResultNotification);
+	ReplaceTriggerCallback (m_txRstNotification,
+							LifiDataDevHandler::onTxResultNotification2);
 }
 
 void LifiDataDevHandler::onTxResultNotification2 (MacOpStatus status,
@@ -223,7 +229,7 @@ void LifiDataDevHandler::onTxResultNotification2 (MacOpStatus status,
 	NS_ASSERT ((status == CHANNEL_ACCESS_FAILURE)
 			 ||(status == NO_ACK)
 			 ||(status == MAC_SUCCESS));
-//	m_user->MlmeDataConfirm(info.m_handle, status, 0);
+	m_user->MlmeDataConfirm(info.m_handle, status, 0);
 
 	EnableTrigger(LifiDataHandler::TxResultNotification);
 }

@@ -12,13 +12,14 @@
 #include "pd-sap-user.h"
 #include "plme-sap-provider.h"
 #include "plme-sap-user.h"
+#include "lifi-node.h"
 
 namespace ns3 {
 
 class LifiPhy;
 class LifiMacImpl;
 class LifiNetDevice;
-
+class LifiNode;
 
 class LifiMac : public Object
 {
@@ -62,7 +63,7 @@ public:
 	void Purge (uint8_t handle);
 
 	void AssociateResponse (Mac64Address devAddr, Mac16Address assocShortAddr, MacOpStatus status,
-								MacOpStatus capNegoResponse);
+							MacColorStabCapab capNegoResponse);
 
 	void Associate (LogicChannelId channel, AddrMode coorAddrMode, uint16_t coorVPANId,
 										Mac64Address coordAddr, CapabilityInfo capInfo);
@@ -121,6 +122,8 @@ public:
 
 	const Time* GetOpticalPeriod () const;
 
+	void SetLifiNode(Ptr<LifiNode> sscs);
+
 protected:
 	void DoDataConfirm(PhyOpStatus status);
 	void DoReceive(uint32_t size, Ptr<Packet> p, uint8_t quality);
@@ -137,6 +140,7 @@ protected:
 	Ptr<PdSapUser> m_pdSapUser;
 	Ptr<PlmeSapProvider> m_plmeSapProvider;
 	Ptr<PlmeSapUser> m_plmeSapUser;
+	Ptr<LifiNode> m_sscs;
 
 	const Time* m_opticalPeriod;
 

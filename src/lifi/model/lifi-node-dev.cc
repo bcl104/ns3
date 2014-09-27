@@ -23,6 +23,12 @@ TypeId LifiNodeDev::GetTypeId() {
 }
 
 void LifiNodeDev::Start() {
+	m_mlmeSapProvider->MlmeResetRequest();
+}
+
+void LifiNodeDev::StartAssoc(LogicChannelId channel, AddrMode coordAddrMode,
+							 uint16_t coordVPANId, Mac64Address coordAddr, CapabilityInfo info){
+	m_mlmeSapProvider->MlmeAssociateRequest(channel, coordAddrMode, coordVPANId, coordAddr, info);
 }
 
 void LifiNodeDev::DataConfirm(uint8_t msduHandle, MacOpStatus status,
@@ -35,6 +41,17 @@ void LifiNodeDev::DataIndication(DataIndicaDescriptor dataDesc){
 
 void LifiNodeDev::AssociateConfirm(Mac16Address assocShortAddr,
 		MacOpStatus status, MacColorStabCapab capNigoResponse) {
+//	uint16_t tempShortAddr ;
+//	assocShortAddr.CopyTo((uint8_t*)&tempShortAddr);
+//	if((tempShortAddr != 0xffff) && (tempShortAddr != 0xfffe)){
+//		TxOption op;
+//		op.ackTx = true;
+//		op.indirectTx = false;
+//		op.gtsTx = false;
+//		m_mcpsSapProvider->McpsDataRequest(SHORT, EXTENDED, 0x01,
+//										   Mac64Address ("00:00:00:00:00:00:00:01"), 10, Create<Packet> (10),
+//										   45, op, PHY_III_24_00_MBPS, false);
+//	}
 }
 
 void LifiNodeDev::AssociateIndication(Mac64Address devAddr,
@@ -105,7 +122,18 @@ void LifiNodeDev::DataIndicationMcps(TypeId srcAddrMode, uint16_t srcVPANId,
 void LifiNodeDev::PurgeConfirmMcps(uint8_t msduHandle, MacOpStatus status) {
 }
 
+void LifiNodeDev::SendData(SendDataInfo dataInfo){
+	m_mcpsSapProvider->McpsDataRequest(dataInfo.srcAddrMode, dataInfo.dstAddrMode, dataInfo.dstVPANId, dataInfo.dstAddr,dataInfo.msduLength,
+									   dataInfo.msdu, dataInfo.msduHandle, dataInfo.txOption, dataInfo.rate, dataInfo.burstMode);
 }
 
+void LifiNodeDev::GtsRequest(GTSCharacteristics characteristics, Address dstAddr){
+	m_mlmeSapProvider->MlmeGtsRequest(characteristics, dstAddr);
+}
 
+void LifiNodeDev::DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
+							     Address devAddr, DisassocReason reason, bool txIndirect){
+	m_mlmeSapProvider->MlmeDisassociateRequest(devAddrMode, devVPANId, devAddr, reason, txIndirect);
+}
 
+}

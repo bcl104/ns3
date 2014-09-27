@@ -84,8 +84,8 @@ TypeId LifiMacCoordImpl::GetTypeId() {
 //}
 
 void LifiMacCoordImpl::AssociateResponse(Mac64Address devAddr,
-		Mac16Address assocShortAddr, MacOpStatus status, MacOpStatus capResponse) {
-
+			Mac16Address assocShortAddr, MacOpStatus status, MacColorStabCapab capResponse) {
+	m_coordAssocHandler->MlmeAssocResponse(devAddr, assocShortAddr, status, capResponse);
 }
 
 void LifiMacCoordImpl::GtsRequest(GTSCharacteristics characteristic, Address dstAddr){
@@ -224,6 +224,14 @@ void LifiMacCoordImpl::SetPlmeSapProvider(Ptr<PlmeSapProvider> p)
 
 void LifiMacCoordImpl::SetMlmeSapUser(Ptr<MlmeSapUser> u)
 {
+	m_trxHandler->SetMlmeSapUser(u);
+	m_channelScanHandler->SetMlmeSapUser(u);
+	m_coordAssocHandler->SetMlmeSapUser(u);
+    m_transcHandler->SetMlmeSapUser(u);
+    m_dataCoordHandler->SetMlmeSapUser(u);
+    m_disassocCoordHandler->SetMlmeSapUser(u);
+    m_gtsCoordHandler->SetMlmeSapUser(u);
+
 }
 
 void LifiMacCoordImpl::DataConfirm(PhyOpStatus status)
@@ -234,12 +242,13 @@ void LifiMacCoordImpl::DataConfirm(PhyOpStatus status)
 
 void LifiMacCoordImpl::SetMcpsSapUser(Ptr<McpsSapUser> u)
 {
+	m_trxHandler->SetMcpsSapUser(u);
 }
 
 void LifiMacCoordImpl::AddGtsTransactionPacket(GtsTransactionInfo& gtsTransInfo)
 {
 	NS_LOG_FUNCTION(this);
-	m_gtsHandler->AddGtsTransaction(gtsTransInfo);
+	m_gtsCoordHandler->AddGtsTransaction(gtsTransInfo);
 }
 
 void LifiMacCoordImpl::AddTransactionPacket(TransactionInfo& transInfo)

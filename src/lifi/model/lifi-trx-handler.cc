@@ -210,6 +210,16 @@ Ptr<PlmeSapProvider> LifiTrxHandler::GetPlmeSapProvider() const
 	return m_plmeProvider;
 }
 
+void LifiTrxHandler::SetMlmeSapUser (Ptr<MlmeSapUser> user){
+	NS_LOG_FUNCTION (this << user);
+	m_user = user;
+}
+
+void LifiTrxHandler::SetMcpsSapUser (Ptr<McpsSapUser> mcps){
+	NS_LOG_FUNCTION (this << mcps);
+	m_mcps = mcps;
+}
+
 void LifiTrxHandler::SetPdSapProvider(Ptr<PdSapProvider> provider)
 {
 	NS_LOG_FUNCTION (this << provider);
@@ -277,6 +287,7 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 	NS_LOG_FUNCTION (this << timestamp <<p);
 	LifiMacHeader header;
 	p->PeekHeader(header);
+	std::cout << m_attributes->macVPANId << std::endl;
 	if((m_attributes->macVPANId == 0xffff)
 	 ||((m_attributes->macVPANId != 0xffff)&&(m_attributes->macVPANId == header.GetDstVPANId()))){
 		if (header.GetFrameType() == LIFI_BEACON)
@@ -335,6 +346,7 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 			NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
 		}
 	}else{
+		std::cout << header.GetDstVPANId() << std::endl;
 		NS_LOG_ERROR("Not the packet of this VPAN !");
 	}
 }
@@ -431,8 +443,8 @@ bool LifiTrxHandler::DoTransmitData() {
 	 * */
 	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
 	double dataRateKbps = LifiPhy::GetRate(mcsid);
-	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
-	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
+//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+//	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
 	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
 								->GetSize()*8)/(dataRateKbps*1000)*1e9);
 	Time ackWaitTime;
@@ -455,8 +467,9 @@ bool LifiTrxHandler::DoTransmitData() {
 	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
 	{
 		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
-		enough = (m_superframeStruct.m_gtsEnd.GetDelayLeft() > (txDuration+ackWaitTime));
-//		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+		std::cout << m_superframeStruct.m_cfpEnd.GetDelayLeft() << std::endl;
+//		enough = (m_superframeStruct.m_gtsEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
 	}else
 	{
 		NS_FATAL_ERROR("Error transmit timing.");
@@ -590,6 +603,10 @@ void LifiTrxHandler::SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_
 
 }
 
+void LifiTrxHandler::DeleteGtsDuration(){
+
+}
+
 void LifiTrxHandler::SetGtsTrxState(GTSDirection direction){
 
 }
@@ -614,8 +631,8 @@ LifiTrxHandler::SuperframeStrcut::SuperframeStrcut()
 				  m_contentionFreePeriod (false),
 				  m_inactivePortion (false),
 				  m_capEnd (Timer::CANCEL_ON_DESTROY),
-				  m_gtsStart(Timer::CANCEL_ON_DESTROY),
-				  m_gtsEnd(Timer::CANCEL_ON_DESTROY),
+				  m_gtsStartDev(Timer::CANCEL_ON_DESTROY),
+				  m_gtsEndDev(Timer::CANCEL_ON_DESTROY),
 				  m_cfpEnd (Timer::CANCEL_ON_DESTROY),
 				  m_supframeEnd (Timer::CANCEL_ON_DESTROY),
 				  m_state (DEFAULT)
@@ -720,6 +737,13 @@ void LifiTrxHandler::SuperframeEnd()
 	EnableTrigger(LifiTrxHandler::ReceivePacket);
 	m_superframeStruct.m_synchronized = false;
 	m_superframeStruct.m_state = SuperframeStrcut::DEFAULT;
+}
+
+bool LifiTrxHandler::IsCfpDuration(){
+	if(m_superframeStruct.m_state == SuperframeStrcut::CFP)
+		return true;
+	else
+		return false;
 }
 
 } /* namespace ns3 */

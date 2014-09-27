@@ -64,7 +64,7 @@ void LifiGtsHandler::AddGtsTransaction(GtsTransactionInfo& gtsTransInfo){
 	m_curGtsTransaction = gtsTransInfo;
 	m_curGtsTransaction.m_listener = this;
 	m_gtsTransactions.insert(std::pair<uint16_t, GtsTransactionInfo>(gtsTransInfo.m_ShortAddress, m_curGtsTransaction));
-
+	std::cout << m_gtsTransactions.size() << std::endl;
 }
 
 void LifiGtsHandler::SetGtsOffset(uint8_t startSlot, uint8_t gtsLength){

@@ -42,8 +42,8 @@ void LifiDisassocDevHandler::StartDisassoc(DisassocDescriptor disassocDes){
 ////    here the "m_attributes->macVPANId" is not initialized because we test it when this device is not associated!
 ////	we can delete this when it is associated.
 	if(m_attributes->macVPANId != m_disassocDes.DeviceVPANId){
-//		m_user->MlmeDisassociateConfirm(MAC_INVALID_PARAMETER, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
-//										m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
+		m_user->MlmeDisassociateConfirm(MAC_INVALID_PARAMETER, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+										m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	}else{
 		if(((m_disassocDes.DeviceAddrMode == EXTENDED) && (m_attributes->macCoordExtendedAddress == m_disassocDes.DeviceAddr))
 			    ||((m_disassocDes.DeviceAddrMode == SHORT) && (m_attributes->macCoordShortAddress == m_disassocDes.DeviceAddr)))
@@ -132,6 +132,7 @@ void LifiDisassocDevHandler::SendDataRequest(){
 	header.SetFrameType(LIFI_COMMAND);
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_CoordAddress);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -248,6 +249,7 @@ void LifiDisassocDevHandler::SendAck(){
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	header.SetDstAddress(m_CoordAddress);
 	header.SetFramePending(false);
+	header.SetDstVPANId(m_attributes->macVPANId);
 	p->AddHeader(header);
 
 	PacketInfo info;
@@ -276,13 +278,13 @@ void LifiDisassocDevHandler::onTxResultNotification1(MacOpStatus status, PacketI
 			 ||(status == NO_ACK)
 			 ||(status == MAC_SUCCESS));
 	if(status == NO_ACK || status == MAC_SUCCESS){
-	//	m_user->MlmeDisassociateConfirm(MAC_SUCCESS, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
-	//									m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
+		m_user->MlmeDisassociateConfirm(MAC_SUCCESS, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+										m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 		Reset();
 	}else
 	{
-	//	m_user->MlmeDisassociateConfirm(status, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
-	//									m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
+		m_user->MlmeDisassociateConfirm(status, GetCurAddressMode(m_impl->GetLifiMac()->GetDevice()->GetAddress()),
+										m_attributes->macVPANId, m_impl->GetLifiMac()->GetDevice()->GetAddress());
 	}
 }
 
@@ -319,7 +321,7 @@ void LifiDisassocDevHandler::onTxResultNotification3(MacOpStatus status, PacketI
 	m_dataService->Release();
 	m_dataService = 0;
 	Reset();
-//	m_user->MlmeDisassociateIndication(Mac64Address::ConvertFrom(m_impl->GetLifiMac()->GetDevice()->GetAddress()), COORD);
+	m_user->MlmeDisassociateIndication(Mac64Address::ConvertFrom(m_impl->GetLifiMac()->GetDevice()->GetAddress()), COORD);
 }
 
 void LifiDisassocDevHandler::Reset(){

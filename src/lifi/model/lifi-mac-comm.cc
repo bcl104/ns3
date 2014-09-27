@@ -195,6 +195,7 @@ void AssocResponseComm::SetShortAddr(Mac16Address shortaddr){
 //	NS_ASSERT(shortaddr != 0xffff && shortaddr != 0xfffe);
 //	m_shortAddr = shortaddr;
 	shortaddr.CopyTo((uint8_t*)&m_shortAddr);
+	std::cout << m_shortAddr << std::endl;
 
 }
 
@@ -584,7 +585,7 @@ void AssocResponseComm::Deserialize(const uint8_t *data, uint32_t size) {
 	NS_ASSERT (ASSOC_RESPONSE == m_commId);
 	data += 2;
 	m_shortAddr = *data++ ;
-	m_shortAddr = (m_shortAddr<<8)|(*data);
+	m_shortAddr = (m_shortAddr)|(*data << 8);
 	data++;
 	m_assocStatus =(MacOpStatus)(*data);
 	data++;

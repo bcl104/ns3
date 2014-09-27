@@ -293,7 +293,7 @@ uint32_t LifiMacBeacon::WriteTo(Buffer::Iterator &it, GtsList descrip) {
 	while (i != descrip.end())
 	{
 		it.WriteU16((*i).deviceShortAddr);
-		it.WriteU8((((*i).gtsStartSlot) & 0x0f) | ((((*i).gtsLenth) & 0x0f) << 4));
+		it.WriteU8((((*i).gtsStartSlot) & 0x0f) | ((((*i).gtsLength) & 0x0f) << 4));
 		i ++;
 		written ++;
 	}

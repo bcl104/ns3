@@ -63,9 +63,10 @@ protected:
 	Mac16Address m_allocGtsDevAddr;
 	bool m_gtsTransmitState;
 	Address m_dataAddr;
-	GtsTransactions::iterator m_curGtsTransIterator;
-	GtsTransactions m_gtsTransactions;
+	GtsTransactions::iterator m_curGtsIterator;
+	GtsTransactionInfo m_curGts;
 	GtsTransactionInfo m_curGtsTransmit;
+	DataIndicaDescriptor m_dataIndicaDes;
 	Ptr<LifiTrxHandler> m_trxHandler;
 };
 

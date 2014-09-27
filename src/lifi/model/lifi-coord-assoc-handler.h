@@ -31,7 +31,7 @@ public:
 	virtual void ReceiveDataRequest (uint32_t timestamp, Ptr<Packet> msdu);
 	virtual void TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	void MlmeAssocResponse(Mac64Address devAddress, Mac16Address allocAssocShortAddr,
-			               MacOpStatus status);
+			               MacOpStatus status, MacColorStabCapab capResponse);
 	void SetTrxHandler (Ptr<LifiTrxHandler> trxHandler);
 
 private:

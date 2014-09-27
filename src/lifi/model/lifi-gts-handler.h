@@ -54,7 +54,7 @@ public:
 	void SetMlmeSapUser (Ptr<MlmeSapUser> user);
 	Ptr<MlmeSapUser> GetMlmeSapUser () const;
 
-private:
+protected:
 	GtsDescriptors m_descriptors;
 	GtsTransactions m_gtsTransactions;
 	GtsTransactionInfo m_curGtsTransaction;

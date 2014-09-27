@@ -11,7 +11,9 @@
 namespace ns3{
 
 LifiNodeCoord::LifiNodeCoord() {
-
+//	m_mlmeSapUser = Create<MlmeSpecificSapUser <LifiNode> >(this);
+//	m_mcpsSapUser = Create<McpsSpecificSapUser <LifiNode> >(this);
+//	m_lifiMac = CreateObject<LifiMac> ();
 }
 
 LifiNodeCoord::~LifiNodeCoord() {
@@ -26,7 +28,7 @@ TypeId LifiNodeCoord::GetTypeId() {
 
 void LifiNodeCoord::Start(uint8_t vpanId, LogicChannelId channel, uint32_t startTime,	uint32_t bcnOrder,
 						uint32_t supframeOrder, bool vpanCoord) {
-	m_lifiMac->StartVPAN(vpanId, channel, startTime, bcnOrder, supframeOrder, vpanCoord);
+	m_mlmeSapProvider->MlmeStartRequest(vpanId, channel, startTime, bcnOrder, supframeOrder, vpanCoord);
 }
 
 void LifiNodeCoord::DataConfirm(uint8_t msduHandle, MacOpStatus status,
@@ -43,6 +45,7 @@ void LifiNodeCoord::AssociateConfirm(Mac16Address assocShortAddr,
 
 void LifiNodeCoord::AssociateIndication(Mac64Address devAddr,
 		CapabilityInfo capInfo) {
+	m_mlmeSapProvider->MlmeAssocaiteResponse(devAddr, Mac16Address("12:34"), MAC_SUCCESS, NO_COLOR_STABI);
 }
 
 void LifiNodeCoord::BeaconNotify(uint8_t bsn, VPANDescriptor vpanDiscriptor,
@@ -107,6 +110,20 @@ void LifiNodeCoord::DataIndicationMcps(TypeId srcAddrMode, uint16_t srcVPANId,
 }
 
 void LifiNodeCoord::PurgeConfirmMcps(uint8_t msduHandle, MacOpStatus status) {
+}
+
+void LifiNodeCoord::SendData(SendDataInfo dataInfo){
+	m_mcpsSapProvider->McpsDataRequest(dataInfo.srcAddrMode, dataInfo.dstAddrMode, dataInfo.dstVPANId, dataInfo.dstAddr,dataInfo.msduLength,
+							    	   dataInfo.msdu, dataInfo.msduHandle, dataInfo.txOption, dataInfo.rate, dataInfo.burstMode);
+}
+
+void LifiNodeCoord::GtsRequest(GTSCharacteristics characteristics, Address dstAddr){
+	m_mlmeSapProvider->MlmeGtsRequest(characteristics, dstAddr);
+}
+
+void LifiNodeCoord::DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
+							     Address devAddr, DisassocReason reason, bool txIndirect){
+	m_mlmeSapProvider->MlmeDisassociateRequest(devAddrMode, devVPANId, devAddr, reason, txIndirect);
 }
 
 }

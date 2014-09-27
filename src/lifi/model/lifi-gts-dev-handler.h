@@ -36,6 +36,7 @@ protected:
 	void SendAck();
 	void SetGtsOffset(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount);
 	void SetGtsDirection(GTSDirection direction);
+	void DeleteGtsDuration();
 	void onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p);
 	void onReceiveData (uint32_t timestamp, Ptr<Packet> p);
 	void onAllocNotification1 (Ptr<DataService> service);
@@ -50,11 +51,12 @@ protected:
 	GTSCharacteristics m_gtsRequestCharacter;
 	GTSCharacteristics m_gtsBeaconCharacter;
 	Address m_dstAddress;
+	uint8_t m_gtsPeriodTimes;
 	GtsList m_beaconGtsList;
 	bool m_gtsTransmitState;
-	GtsTransactions m_gtsTransactions;
+	GtsTransactionInfo m_curGts;
+	GtsTransactions::iterator m_curGtsIterator;
 	GtsTransactionInfo m_curGtsTransmit;
-	GtsTransactions::iterator m_curGtsTransIterator;
 	Ptr<LifiTrxHandler> m_trxHandler;
 };
 
