@@ -91,16 +91,18 @@ void LifiCoordTrxHandler::TxResultNotification(MacOpStatus status, PacketInfo in
 		Time op = *(m_impl->GetLifiMac()->GetOpticalPeriod());
 
 		for(GtsList::reverse_iterator it = m_superframGtsList.rbegin(); it != m_superframGtsList.rend(); it ++){
-//			std::cout << m_superframGtsList.size() << std::endl;
+			std::cout << m_superframGtsList.size() << std::endl;
+			GtsStructure m_curGtsTimer;
 			m_curGtsTimer.shortAddr = (*it).deviceShortAddr;
 			m_curGtsTimer.gtsdirc = (GTSDirection)beacon.GetGtsDirection((*it).deviceShortAddr);
 			uint32_t curGts = (1+(*it).gtsStartSlot) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
 			Time curGtsStart = NanoSeconds(curGts * op.GetNanoSeconds());
-			m_curGtsTimer.gtsStartTime.SetFunction(&LifiCoordTrxHandler::StartOneGts, this);
-			m_curGtsTimer.gtsStartTime.SetArguments(m_curGtsTimer.shortAddr, m_curGtsTimer.gtsdirc);
-			m_curGtsTimer.gtsStartTime.SetDelay(curGtsStart);
-			if(it != m_superframGtsList.rend() - 1)
-				m_curGtsTimer.gtsStartTime.Schedule();
+			(*m_curGtsTimer.gtsStartTime).SetFunction(&LifiCoordTrxHandler::StartOneGts, this);
+			(*m_curGtsTimer.gtsStartTime).SetArguments(m_curGtsTimer.shortAddr, m_curGtsTimer.gtsdirc);
+			(*m_curGtsTimer.gtsStartTime).SetDelay(curGtsStart);
+			if(it != m_superframGtsList.rbegin())
+				(*m_curGtsTimer.gtsStartTime).Schedule();
+			std::cout << (*m_curGtsTimer.gtsStartTime).GetDelayLeft() << std::endl;
 			m_gtsTimerList.push_back(m_curGtsTimer);
 		}
 	}
@@ -116,6 +118,7 @@ void LifiCoordTrxHandler::BeaconStart()
 	m_superframeStruct.m_synchronized = true;
 	m_superframeStruct.m_state = SuperframeStrcut::BEACON;
 	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+	coordImpl->SetGTSCount();
 	uint32_t bcnIntval = LifiMac::aBaseSuperframeDuration * pow(2, m_attributes->macBeaconOrder);
 	uint32_t superframDur = LifiMac::aBaseSuperframeDuration * pow (2, m_attributes->macSuperframeOrder);
 	uint32_t capDur = (16 - coordImpl->m_gtsSlotCount) * LifiMac::aBaseSlotDuration * pow (2, m_attributes->macSuperframeOrder);
@@ -155,7 +158,7 @@ void LifiCoordTrxHandler::TransmitBeacon()
 //	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::BEACON);
 	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
 	Ptr<Packet> beacon = coordImpl->ConstructBeacon();
-	NS_ASSERT (!m_curTransmission.IsAvailable());
+	NS_ASSERT (!m_curTransmission.IsAvailable());std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	m_curTransmission.Reset();
 	m_curTransmission.m_info.m_band = CHANNEL1;
 	m_curTransmission.m_info.m_bust = false;
@@ -188,6 +191,7 @@ void LifiCoordTrxHandler::ContentionFreePeriodEnd()
 	}else if((*it).gtsdirc == (GTSDirection)SuperframeStrcut::RX_tranceiver){
 		m_impl->CloseGtsDataReceive();
 	}
+	std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	m_curTransmission.Reset();
 	m_curTranceiverTask.Clear();
 	if (m_superframeStruct.m_inactivePortion)
@@ -210,6 +214,84 @@ void LifiCoordTrxHandler::StartOneGts(uint16_t shortAddr, GTSDirection gtsDirec)
 	}else if(gtsDirec == (GTSDirection)SuperframeStrcut::TX_tranceiver){
 		m_impl->OpenGtsDataReceive(shortAddr);
 	}
+}
+
+bool LifiCoordTrxHandler::DoTransmitData() {
+	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds() << m_curTransmission.m_info.m_listener);
+
+	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
+	NS_ASSERT (m_curTransmission.IsAvailable());
+
+	/*
+	 * If check whether there is enough time before the end of CAP.
+	 * */
+	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
+	double dataRateKbps = LifiPhy::GetRate(mcsid);
+//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+//	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
+	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
+								->GetSize()*8)/(dataRateKbps*1000)*1e9);
+	Time ackWaitTime;
+	if (m_curTransmission.m_info.m_option.ackTx)
+		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
+				*m_impl->m_opticalPeriod->GetNanoSeconds());
+	else
+		ackWaitTime = NanoSeconds(0);
+
+	bool enough = false;
+
+	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
+		enough = true;
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
+	{
+		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
+		std::cout << m_superframeStruct.m_cfpEnd.GetDelayLeft() << std::endl;
+		std::cout << m_gtsTimerList.size() << std::endl;
+		GtsTimer::iterator iter = m_gtsTimerList.begin() + m_curGtsCount;
+		if(iter != m_gtsTimerList.end()){
+			std::cout << (*(*iter).gtsStartTime).GetState() << std::endl;
+			std::cout << (*(*iter).gtsStartTime).GetDelayLeft() << std::endl;
+			enough = ((*(*iter).gtsStartTime).GetDelayLeft() > (txDuration+ackWaitTime));
+		}else{
+			enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+		}
+
+	}else
+	{
+		NS_FATAL_ERROR("Error transmit timing.");
+	}
+
+	if (!enough)
+	{
+		if ((!m_curTransmission.m_info.m_option.gtsTx)
+		&& (!m_curTransmission.m_info.m_force))
+		{
+			m_suspendedTransmission = m_curTransmission;
+		}
+		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
+		m_curTransmission.Reset();
+		return false;
+	}
+
+//	std::cout << Simulator::Now() << std::endl;
+//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+	m_pdProvider->DataRequest(m_curTransmission.m_info.m_packet->GetSize(),
+							  m_curTransmission.m_info.m_packet,
+							  m_curTransmission.m_info.m_band);
+	// Enable the external trigger to onTxConfirm.
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
+
+	EnableTrigger(LifiTrxHandler::TxConfirm);
+	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+
+	return true;
 }
 
 } /* namespace ns3 */

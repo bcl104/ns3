@@ -51,7 +51,8 @@ enum MacPIBAttributeId
 	MAC_TRANSACTION_PERSISTENCE_TIME = 0x5b,
 	MAC_NUM_ACKS = 0x5d,
 	MAC_LINK_TIME_OUT = 0x5e,
-	MAC_TIME_STAMP_OFFSET = 0x6e
+	MAC_TIME_STAMP_OFFSET = 0x6e,
+	MAC_RECEIVE_PACKET_PERMIT = 0x6d
 };
 
 enum DataRateId
@@ -422,7 +423,10 @@ typedef std::vector<GtsDescriptor> GtsList;
 //};
 
 struct GtsStructure{
-	Timer gtsStartTime;
+	GtsStructure(){
+		gtsStartTime = Create<Timer> (Timer::CANCEL_ON_DESTROY);
+	}
+	Ptr<Timer> gtsStartTime;
 	uint16_t shortAddr;
 	GTSDirection gtsdirc;
 };

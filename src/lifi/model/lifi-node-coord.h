@@ -50,9 +50,9 @@ public:
 	virtual void GtsRequest(GTSCharacteristics characteristics, Address dstAddr);
 	virtual void DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
 							    Address devAddr, DisassocReason reason, bool txIndirect);
-
 protected:
 	Ptr<LifiNode> m_sscs;
+	uint16_t allocShortAddrNum;
 };
 
 }

@@ -11,6 +11,7 @@
 namespace ns3{
 
 LifiNodeCoord::LifiNodeCoord() {
+	allocShortAddrNum = 0;
 //	m_mlmeSapUser = Create<MlmeSpecificSapUser <LifiNode> >(this);
 //	m_mcpsSapUser = Create<McpsSpecificSapUser <LifiNode> >(this);
 //	m_lifiMac = CreateObject<LifiMac> ();
@@ -45,7 +46,13 @@ void LifiNodeCoord::AssociateConfirm(Mac16Address assocShortAddr,
 
 void LifiNodeCoord::AssociateIndication(Mac64Address devAddr,
 		CapabilityInfo capInfo) {
-	m_mlmeSapProvider->MlmeAssocaiteResponse(devAddr, Mac16Address("12:34"), MAC_SUCCESS, NO_COLOR_STABI);
+	allocShortAddrNum ++ ;
+	if(allocShortAddrNum == 1){
+		m_mlmeSapProvider->MlmeAssocaiteResponse(devAddr, Mac16Address("12:34"), MAC_SUCCESS, NO_COLOR_STABI);
+	}else if (allocShortAddrNum == 2){
+		m_mlmeSapProvider->MlmeAssocaiteResponse(devAddr, Mac16Address("56:78"), MAC_SUCCESS, NO_COLOR_STABI);
+	}
+
 }
 
 void LifiNodeCoord::BeaconNotify(uint8_t bsn, VPANDescriptor vpanDiscriptor,

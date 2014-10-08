@@ -60,6 +60,7 @@ public:
 	Ptr<Packet> ConstructBeacon () const;
 
 	virtual void SetCFPLenth(uint32_t gtsLenth);
+    void SetGTSCount();
 
 	virtual void SetLifiMac (Ptr<LifiMac> mac);
 

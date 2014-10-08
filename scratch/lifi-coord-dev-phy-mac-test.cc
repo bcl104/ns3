@@ -10,8 +10,6 @@
 #include "ns3/lifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/propagation-delay-model.h"
-//#include "src/lifi/test/lifi-node.h"
-//#include "src/lifi/test/lifi-node-coord.h"
 
 NS_LOG_COMPONENT_DEFINE("LifiCoordDevPhyMacTest");
 
@@ -43,7 +41,7 @@ public:
 	Ptr<LifiPhy> GetLifiPhyCca();
 	Ptr<LifiSpectrumChannel> GetLifiSpectrumChannel();
 	Ptr<RandomPropagationDelayModel> GetRandomPropagationDelayModel();
-	Ptr<LifiSpectrumPropagationLossModel> GetLifiSpectrumPropagationLossModel();\
+	Ptr<LifiSpectrumPropagationLossModel> GetLifiSpectrumPropagationLossModel();
 	Ptr<PropagationLossModel> GetPropagationLossModel();
 	Ptr<LifiSpectrumErrorModel> GetLifiSpectrumErrorModel();
 	Ptr<PlmeSapUser> GetPlmeSapUserTx();
@@ -73,6 +71,7 @@ public:
 
 	Ptr<LifiNodeCoord> GetLifiNodeCoord();
 	Ptr<LifiNodeDev> GetLifiNodeDev();
+	Ptr<LifiNodeDev> GetLifiNodeDev1();
 
 	/*
 	 * initialization:txPosition:(0,0,0)
@@ -88,6 +87,7 @@ public:
 	*/
 	void SetTxState(PhyOpStatus state);
 	void SetRxState(PhyOpStatus state);
+	void SetCcaState(PhyOpStatus state);
 	/*
 	 * initialization:TxPower 30dbm
 	*/
@@ -130,12 +130,16 @@ private:
 	Ptr<PdSapProvider> m_pdSapProviderCca;
 	Ptr<MlmeSapUser> m_mlmeSapUserTx;
 	Ptr<MlmeSapUser> m_mlmeSapUserRx;
+	Ptr<MlmeSapUser> m_mlmeSapUserCca;
 	Ptr<McpsSapUser> m_mcpsSapUserTx;
 	Ptr<McpsSapUser> m_mcpsSapUserRx;
+	Ptr<McpsSapUser> m_mcpsSapUserCca;
 	Ptr<MlmeSapProvider> m_mlmeSapProviderTx;
 	Ptr<MlmeSapProvider> m_mlmeSapProviderRx;
+	Ptr<MlmeSapProvider> m_mlmeSapProviderCca;
 	Ptr<McpsSapProvider> m_mcpsSapProviderTx;
 	Ptr<McpsSapProvider> m_mcpsSapProviderRx;
+	Ptr<McpsSapProvider> m_mcpsSapProviderCca;
 	Ptr<LifiSpectrumSignalParameters> m_lifiSpectrumSignalParametersTx;
 	Ptr<LifiSpectrumSignalParameters> m_lifiSpectrumSignalParametersRx;
 	Ptr<LifiSpectrumSignalParameters> m_lifiSpectrumSignalParametersCca;
@@ -157,8 +161,10 @@ private:
 
 	Ptr<LifiNodeCoord> m_lifiNodeCoord;
 	Ptr<LifiNodeDev> m_lifiNodeDev;
+	Ptr<LifiNodeDev> m_lifiNodeDev1;
 	LifiNodeCoord *m_MlifiNodeCoord;
 	LifiNodeDev *m_MlifiNodeDev;
+	LifiNodeDev *m_MlifiNodeDev1;
 };
 SinglePhyTest::SinglePhyTest(){
 
@@ -189,18 +195,17 @@ SinglePhyTest::SinglePhyTest(){
 
 	m_lifiNodeCoord=CreateObject<LifiNodeCoord>();
 	m_lifiNodeDev=CreateObject<LifiNodeDev>();
+	m_lifiNodeDev1=CreateObject<LifiNodeDev>();
 	m_MlifiNodeCoord=GetPointer(m_lifiNodeCoord);
 	m_MlifiNodeDev=GetPointer(m_lifiNodeDev);
+	m_MlifiNodeDev1=GetPointer(m_lifiNodeDev1);
 
 	m_randomPropagationDelayModel=CreateObject<RandomPropagationDelayModel>();
 
 	m_plmeSapUserTx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacTx);
 	m_plmeSapUserRx=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacRx);
-
-//	m_mlmeSapUserTx=Create<MlmeSpecificSapUser<LifiNode> >(m_MlifiNodeCoord);
-//	m_mlmeSapUserRx=Create<MlmeSpecificSapUser<LifiNode> >(m_MlifiNodeDev);
-
 	m_plmeSapUserCca=Create<PlmeSpecificSapUser<LifiMac> >(m_PlifiMacCca);
+
 	LifiPhy *m_PlifiPhyTx=GetPointer(m_lifiPhyTx);
 	LifiPhy *m_PlifiPhyRx=GetPointer(m_lifiPhyRx);
 	LifiPhy *m_PlifiPhyCca=GetPointer(m_lifiPhyCca);
@@ -208,15 +213,9 @@ SinglePhyTest::SinglePhyTest(){
 	m_plmeSapProviderRx=Create<PlmeSpecificSapProvider<LifiPhy> >(m_PlifiPhyRx);
 	m_plmeSapProviderCca=Create<PlmeSpecificSapProvider<LifiPhy> >(m_PlifiPhyCca);
 
-//	m_mlmeSapProviderTx=Create<MlmeSpecificSapProvider<LifiMac> >(m_PlifiMacTx);
-//	m_mlmeSapProviderRx=Create<MlmeSpecificSapProvider<LifiMac> >(m_PlifiMacRx);
-
 	m_pdSapUserTx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacTx);
 	m_pdSapUserRx=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacRx);
 	m_pdSapUserCca=Create<PdSpecificSapUser<LifiMac> >(m_PlifiMacCca);
-
-//	m_mcpsSapUserTx=Create<McpsSpecificSapUser<LifiNode> >(m_MlifiNodeCoord);
-//	m_mcpsSapUserRx=Create<McpsSpecificSapUser<LifiNode> >(m_MlifiNodeDev);
 
 	m_pdSapProviderTx=Create<PdSpecificSapProvider<LifiPhy> >(m_PlifiPhyTx);
 	m_pdSapProviderRx=Create<PdSpecificSapProvider<LifiPhy> >(m_PlifiPhyRx);
@@ -224,14 +223,7 @@ SinglePhyTest::SinglePhyTest(){
 
 	m_mcpsSapProviderTx=Create<McpsSpecificSapProvider<LifiMac> >(m_PlifiMacTx);
 	m_mcpsSapProviderRx=Create<McpsSpecificSapProvider<LifiMac> >(m_PlifiMacRx);
-
-//
-//	double centerFreq[]={500,1000,1500,2000,2500};
-//	int count=sizeof(centerFreq)/sizeof(double);
-//	std::vector<double> centerFreqs(centerFreq,centerFreq+count);
-//	Ptr<SpectrumModel> spectrumModel=Create<SpectrumModel> (centerFreqs);
-//	Ptr<SpectrumValue> spectrumValueTx=Create<SpectrumValue> (spectrumModel);
-//	Ptr<SpectrumValue> spectrumValueRx=Create<SpectrumValue> (spectrumModel);
+	m_mcpsSapProviderCca=Create<McpsSpecificSapProvider<LifiMac> >(m_PlifiMacCca);
 
 	m_lifiSpectrumSignalParametersTx=Create<LifiSpectrumSignalParameters>();
 	m_lifiSpectrumSignalParametersRx=Create<LifiSpectrumSignalParameters>();
@@ -243,8 +235,6 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiSpectrumPropagationLossModel=CreateObject<LifiSpectrumPropagationLossModel>();
 	m_lifiPropagationLossModel = CreateObject<LifiIndoorPropagationLossModel>();
 
-//	m_lifiPhyTx->SetSpectrumValue(spectrumValueTx);
-//	m_lifiPhyRx->SetSpectrumValue(spectrumValueRx);
 	m_lifiPhyTx->SetPlmeSapUser(m_plmeSapUserTx);
 	m_lifiPhyRx->SetPlmeSapUser(m_plmeSapUserRx);
 	m_lifiPhyCca->SetPlmeSapUser(m_plmeSapUserCca);
@@ -256,9 +246,11 @@ SinglePhyTest::SinglePhyTest(){
 
 	m_lifiMacTx->SetMlmeSapUser(m_lifiNodeCoord->GetMlmeSapUser());
 	m_lifiMacRx->SetMlmeSapUser(m_lifiNodeDev->GetMlmeSapUser());
+	m_lifiMacCca->SetMlmeSapUser(m_lifiNodeDev1->GetMlmeSapUser());
 
 	m_lifiMacTx->SetMcpsSapUser(m_lifiNodeCoord->GetMcpsSapUser());
 	m_lifiMacRx->SetMcpsSapUser(m_lifiNodeDev->GetMcpsSapUser());
+	m_lifiMacCca->SetMcpsSapUser(m_lifiNodeDev1->GetMcpsSapUser());
 
 
 	//ConstantPositionMobilityModel
@@ -316,26 +308,30 @@ SinglePhyTest::SinglePhyTest(){
 	m_nodeRx->AddDevice(m_lifiNetDeviceRx);
 	m_nodeCca->AddDevice(m_lifiNetDeviceCca);
 
-//	m_lifiNetlifiSpectrumm_SignalParametersTxDeviceCca->psd=spectrumValueTx;
-//	lifiSpectrumSignalParametersRx->psd=spectrumValueRx;
 	m_lifiSpectrumSignalParametersTx->txPhy=m_lifiSpectrumPhyTx;
 	m_lifiSpectrumSignalParametersRx->txPhy=m_lifiSpectrumPhyRx;
 	m_lifiSpectrumSignalParametersCca->txPhy=m_lifiSpectrumPhyCca;
 
 	m_lifiSpectrumErrroModel=CreateObject<LifiSpectrumErrorModel>();
-//	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
+////	lifiInterferenceTx->SetErrorModel(lifiSpectrumErrroModel);
 	m_lifiNodeCoord->SetMcpsSapProvider(m_lifiMacTx->GetMcpsSapProvider());
 	m_lifiNodeCoord->SetMlmeSapProvider(m_lifiMacTx->GetMlmeSapProvider());
 	m_lifiNodeDev->SetMcpsSapProvider(m_lifiMacRx->GetMcpsSapProvider());
 	m_lifiNodeDev->SetMlmeSapProvider(m_lifiMacRx->GetMlmeSapProvider());
-//	m_lifiNodeCoord->SetLifiMac(m_lifiMacTx);
+	m_lifiNodeDev1->SetMcpsSapProvider(m_lifiMacCca->GetMcpsSapProvider());
+	m_lifiNodeDev1->SetMlmeSapProvider(m_lifiMacCca->GetMlmeSapProvider());
+////	m_lifiNodeCoord->SetLifiMac(m_lifiMacTx);
 	m_lifiNodeDev->SetLifiMac(m_lifiMacRx);
+	m_lifiNodeDev1->SetLifiMac(m_lifiMacCca);
 	m_lifiMacTx->SetMlmeSapUser(m_lifiNodeCoord->GetMlmeSapUser());
 	m_lifiMacTx->SetMcpsSapUser(m_lifiNodeCoord->GetMcpsSapUser());
 	m_lifiMacRx->SetMlmeSapUser(m_lifiNodeDev->GetMlmeSapUser());
 	m_lifiMacRx->SetMcpsSapUser(m_lifiNodeDev->GetMcpsSapUser());
+	m_lifiMacCca->SetMlmeSapUser(m_lifiNodeDev1->GetMlmeSapUser());
+	m_lifiMacCca->SetMcpsSapUser(m_lifiNodeDev1->GetMcpsSapUser());
 	m_lifiMacTx->SetLifiNode(m_lifiNodeCoord);
 	m_lifiMacRx->SetLifiNode(m_lifiNodeDev);
+	m_lifiMacCca->SetLifiNode(m_lifiNodeDev1);
 
 	m_lifiMacTx->SetPdSapProvider(m_lifiPhyTx->GetPdSapProvider());
 	m_lifiMacTx->SetPlmeSapProvider(m_lifiPhyTx->GetPlmeSapProvider());
@@ -343,32 +339,26 @@ SinglePhyTest::SinglePhyTest(){
 	m_lifiMacRx->SetPdSapProvider(m_lifiPhyRx->GetPdSapProvider());
 	m_lifiMacRx->SetPlmeSapProvider(m_lifiPhyRx->GetPlmeSapProvider());
 	m_lifiMacRx->SetDevice(m_lifiNetDeviceRx);
+	m_lifiMacCca->SetPdSapProvider(m_lifiPhyCca->GetPdSapProvider());
+	m_lifiMacCca->SetPlmeSapProvider(m_lifiPhyCca->GetPlmeSapProvider());
+	m_lifiMacCca->SetDevice(m_lifiNetDeviceCca);
 	m_lifiPhyTx->SetPdSapUser(m_lifiMacTx->GetPdSapUser());
 	m_lifiPhyTx->SetPlmeSapUser(m_lifiMacTx->GetPlmeSapUser());
 	m_lifiPhyRx->SetPdSapUser(m_lifiMacRx->GetPdSapUser());
 	m_lifiPhyRx->SetPlmeSapUser(m_lifiMacRx->GetPlmeSapUser());
+	m_lifiPhyCca->SetPdSapUser(m_lifiMacCca->GetPdSapUser());
+	m_lifiPhyCca->SetPlmeSapUser(m_lifiMacCca->GetPlmeSapUser());
 	m_lifiMacTx->SetOpticalPeriod(m_lifiPhyTx->GetOpticClock());
 	m_lifiMacRx->SetOpticalPeriod(m_lifiPhyRx->GetOpticClock());
+	m_lifiMacCca->SetOpticalPeriod(m_lifiPhyCca->GetOpticClock());
 
 	m_lifiPhyTx->SetTRxState(TX_ON);
 	m_lifiPhyRx->SetTRxState(RX_ON);
+	m_lifiPhyCca->SetTRxState(RX_ON);
 	m_lifiPhyTx->SetTxPower(30);
 	m_lifiPhyRx->SetTxPower(30);
-//	m_lifiPhyTx->SetMcsId(1);
+	m_lifiPhyCca->SetTxPower(30);
 
-
-//	uint8_t *buffer=new uint8_t;
-//	*buffer = 0x18;
-//	Ptr<Packet> packet=Create<Packet>(buffer,sizeof(buffer));
-//	uint8_t *buffers = new uint8_t;
-//	packet->CopyData(buffers,100);
-//	std::cout<<"send buffers:"<<(int)*buffers<<std::endl;
-//	std::cout<<"send packet size:"<<packet->GetSize()<<std::endl;
-//	m_lifiPhyTx->Transmit(packet->GetSize(),packet,3);
-//	m_lifiPhyCca->DoCca(3);
-//	Simulator::Run ();
-//	Simulator::Stop(Seconds(50));
-//	Simulator::Destroy();
 }
 	void SinglePhyTest::SetTxPosition(double x , double y , double z){
 		NS_LOG_FUNCTION(this);
@@ -402,6 +392,11 @@ SinglePhyTest::SinglePhyTest(){
 	void SinglePhyTest::SetRxState(PhyOpStatus state){
 		NS_LOG_FUNCTION(this);
 		m_lifiPhyRx->SetTRxState(state);
+	}
+
+	void SinglePhyTest::SetCcaState(PhyOpStatus state){
+		NS_LOG_FUNCTION(this);
+		m_lifiPhyCca->SetTRxState(state);
 	}
 
 	void SinglePhyTest::SetTxPower(double txPower){
@@ -447,6 +442,10 @@ SinglePhyTest::SinglePhyTest(){
 		NS_LOG_FUNCTION(this);
 		return m_lifiMacRx;
 	}
+	Ptr<LifiMac> SinglePhyTest::GetLifiMacCca(){
+		NS_LOG_FUNCTION(this);
+		return m_lifiMacCca;
+	}
 
 	Ptr<LifiNodeCoord> SinglePhyTest::GetLifiNodeCoord(){
 		NS_LOG_FUNCTION(this);
@@ -458,15 +457,12 @@ SinglePhyTest::SinglePhyTest(){
 		return m_lifiNodeDev;
 	}
 
-	Ptr<LifiMac> SinglePhyTest::GetLifiMacCca(){
+	Ptr<LifiNodeDev> SinglePhyTest::GetLifiNodeDev1(){
 		NS_LOG_FUNCTION(this);
-		return m_lifiMacCca;
+		return m_lifiNodeDev1;
 	}
 
 int main(){
-//	char huanjing[] ="NS_LOG=*=prefix_time";
-//	std::cout << putenv(huanjing) << std::endl;
-//	std::cout<<5 <<std::endl;
 	SinglePhyTest _test;
 	LogComponentEnable("LifiMac", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiMac", LOG_PREFIX_TIME);
@@ -508,6 +504,144 @@ int main(){
 //	LogComponentEnable ("LifiSpectrumChannel", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiInterference",LOG_LEVEL_ALL);
 
+//	_test.GetLifiNodeCoord()->Start(0x01, CHANNEL2, 0, 8, 8, true);
+//	CapabilityInfo info;
+//	info.CoordCapabi = true;
+//	info.SecCapabi = false;
+//	info.TrafficSup = false;
+//	info.batteryInfo = 0x02;
+//	info.powerSource = true;
+//	_test.GetLifiNodeDev()->StartAssoc(CHANNEL2, EXTENDED, 0x01,
+//										Mac64Address ("00:00:00:00:00:00:00:01"), info);
+//	SendDataInfo dataInfo;
+//	dataInfo.srcAddrMode = SHORT;
+//	dataInfo.dstAddrMode = EXTENDED;
+//	dataInfo.dstVPANId = 0x01;
+//	dataInfo.dstAddr = Mac64Address ("00:00:00:00:00:00:00:01");
+//	dataInfo.msduLength = 10;
+//	dataInfo.msdu = Create<Packet> (10);
+//	dataInfo.msduHandle = 45;
+//	dataInfo.txOption.ackTx = true;
+//	dataInfo.txOption.indirectTx = false;
+//	dataInfo.txOption.gtsTx = false;
+//	dataInfo.rate = PHY_III_24_00_MBPS;
+//	dataInfo.burstMode = false;
+//
+//	SendDataInfo dataInfo1;
+//	dataInfo1.srcAddrMode = EXTENDED;
+//	dataInfo1.dstAddrMode = SHORT;
+//	dataInfo1.dstVPANId = 0x01;
+//	dataInfo1.dstAddr = Mac16Address ("12:34");
+//	dataInfo1.msduLength = 10;
+//	dataInfo1.msdu = Create<Packet> (10);
+//	dataInfo1.msduHandle = 46;
+//	dataInfo1.txOption.ackTx = true;
+//	dataInfo1.txOption.indirectTx = false;
+//	dataInfo1.txOption.gtsTx = false;
+//	dataInfo1.rate = PHY_III_24_00_MBPS;
+//	dataInfo1.burstMode = false;
+//
+//	SendDataInfo dataInfo2;
+//	dataInfo2.srcAddrMode = SHORT;
+//	dataInfo2.dstAddrMode = EXTENDED;
+//	dataInfo2.dstVPANId = 0x01;
+//	dataInfo2.dstAddr = Mac64Address ("00:00:00:00:00:00:00:01");
+//	dataInfo2.msduLength = 10;
+//	dataInfo2.msdu = Create<Packet> (10);
+//	dataInfo2.msduHandle = 47;
+//	dataInfo2.txOption.ackTx = true;
+//	dataInfo2.txOption.indirectTx = false;
+//	dataInfo2.txOption.gtsTx = true;
+//	dataInfo2.rate = PHY_III_24_00_MBPS;
+//	dataInfo2.burstMode = false;
+//
+//	SendDataInfo dataInfo3;
+//	dataInfo3.srcAddrMode = EXTENDED;
+//	dataInfo3.dstAddrMode = SHORT;
+//	dataInfo3.dstVPANId = 0x01;
+//	dataInfo3.dstAddr = Mac16Address ("12:34");
+//	dataInfo3.msduLength = 10;
+//	dataInfo3.msdu = Create<Packet> (10);
+//	dataInfo3.msduHandle = 48;
+//	dataInfo3.txOption.ackTx = true;
+//	dataInfo3.txOption.indirectTx = false;
+//	dataInfo3.txOption.gtsTx = true;
+//	dataInfo3.rate = PHY_III_24_00_MBPS;
+//	dataInfo3.burstMode = false;
+//
+//	GTSCharacteristics character;
+//	character.gtsLength = 3;
+//
+//	GTSCharacteristics character1;
+//	character1.gtsLength = 3;
+//	character1.charType = DEALLOCATION;
+//
+////	_test.GetLifiNodeCoord().Start(0x01, CHANNEL1, 0, 8, 8, true);
+//
+////	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
+////	_test.GetLifiMacRx()->Reset();
+////	TxOption op;
+////	op.ackTx = false;
+////	op.indirectTx = false;
+////	op.gtsTx = false;
+////
+////	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
+////							   LifiMac::GetTypeId(),
+////							   0x01,
+////							   Address(Mac16Address("ff:ff")),
+////							   1,
+////							   Create<Packet> (1),
+////							   2,
+////							   op,
+////							   PHY_III_24_00_MBPS,
+////							   false);
+//
+////	CapabilityInfo info;
+////	info.CoordCapabi = true;
+////	info.SecCapabi = false;
+////	info.TrafficSup = false;
+////	info.batteryInfo = 0x02;
+////	info.powerSource = true;
+////	_test.GetLifiMacRx()->Associate(CHANNEL1, EXTENDED, 0x01,
+////									Mac64Address ("00:00:00:00:00:00:00:01"), info);
+//
+////	TxOption op;
+////	op.ackTx = true;
+////	op.indirectTx = false;
+////	op.gtsTx = false;
+////	_test.GetLifiMacTx()->Send(EXTENDED, EXTENDED, 0x01,
+////							   Mac64Address ("00:00:00:00:00:00:00:02"), 10, Create<Packet> (10),
+////							   45, op, PHY_III_24_00_MBPS, false);
+//
+////	_test.GetLifiMacRx()->Disassociate(EXTENDED, 0x01,
+////									   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+//
+////	_test.GetLifiMacTx()->Disassociate(EXTENDED, 0x01,
+////									   Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
+//
+////	GTSCharacteristics character;
+////	character.gtsLength = 3;
+////	_test.GetLifiMacRx()->GtsRequest(character, Mac64Address ("00:00:00:00:00:00:00:01"));
+//
+////	GTSCharacteristics character;
+////	character.gtsLength = 3;
+////	_test.GetLifiMacTx()->GtsRequest(character, Mac16Address ("55:55"));
+//
+////	_test.GetLifiMacRx()->ScanChannel(ACTIVE_SCAN, 10);
+//	Simulator::Schedule(Seconds(0.2), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo);
+//	Simulator::Schedule(Seconds(0.3), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo1);
+//	Simulator::Schedule(Seconds(0.4), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo2);
+//	Simulator::Schedule(Seconds(0.5), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo3);
+//	Simulator::Schedule(Seconds(0.6), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
+////	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
+//	Simulator::Schedule(Seconds(0.8), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("12:34"));
+////		Simulator::Schedule(Seconds(2.6), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev(), EXTENDED, 0x01,
+////												   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+//
+////	Simulator::Schedule(Seconds(2.7), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), SHORT, 0x01,
+////													   Mac16Address ("12:34"), COORD, false);
+//	Simulator::Schedule(Seconds(7.0), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
+//														Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
 	_test.GetLifiNodeCoord()->Start(0x01, CHANNEL2, 0, 8, 8, true);
 	CapabilityInfo info;
 	info.CoordCapabi = true;
@@ -573,6 +707,20 @@ int main(){
 	dataInfo3.rate = PHY_III_24_00_MBPS;
 	dataInfo3.burstMode = false;
 
+	SendDataInfo dataInfo4;
+	dataInfo4.srcAddrMode = SHORT;
+	dataInfo4.dstAddrMode = EXTENDED;
+	dataInfo4.dstVPANId = 0x01;
+	dataInfo4.dstAddr = Mac64Address ("00:00:00:00:00:00:00:01");
+	dataInfo4.msduLength = 11;
+	dataInfo4.msdu = Create<Packet> (11);
+	dataInfo4.msduHandle = 47;
+	dataInfo4.txOption.ackTx = true;
+	dataInfo4.txOption.indirectTx = false;
+	dataInfo4.txOption.gtsTx = true;
+	dataInfo4.rate = PHY_III_24_00_MBPS;
+	dataInfo4.burstMode = false;
+
 	GTSCharacteristics character;
 	character.gtsLength = 3;
 
@@ -580,73 +728,40 @@ int main(){
 	character1.gtsLength = 3;
 	character1.charType = DEALLOCATION;
 
-//	_test.GetLifiNodeCoord().Start(0x01, CHANNEL1, 0, 8, 8, true);
-
-//	_test.GetLifiMacTx()->StartVPAN(0x01, CHANNEL1, 0, 8, 8, true);
-//	_test.GetLifiMacRx()->Reset();
-//	TxOption op;
-//	op.ackTx = false;
-//	op.indirectTx = false;
-//	op.gtsTx = false;
-//
-//	_test.GetLifiMacRx()->Send(LifiMac::GetTypeId(),
-//							   LifiMac::GetTypeId(),
-//							   0x01,
-//							   Address(Mac16Address("ff:ff")),
-//							   1,
-//							   Create<Packet> (1),
-//							   2,
-//							   op,
-//							   PHY_III_24_00_MBPS,
-//							   false);
-
-//	CapabilityInfo info;
-//	info.CoordCapabi = true;
-//	info.SecCapabi = false;
-//	info.TrafficSup = false;
-//	info.batteryInfo = 0x02;
-//	info.powerSource = true;
-//	_test.GetLifiMacRx()->Associate(CHANNEL1, EXTENDED, 0x01,
-//									Mac64Address ("00:00:00:00:00:00:00:01"), info);
-
-//	TxOption op;
-//	op.ackTx = true;
-//	op.indirectTx = false;
-//	op.gtsTx = false;
-//	_test.GetLifiMacTx()->Send(EXTENDED, EXTENDED, 0x01,
-//							   Mac64Address ("00:00:00:00:00:00:00:02"), 10, Create<Packet> (10),
-//							   45, op, PHY_III_24_00_MBPS, false);
-
-//	_test.GetLifiMacRx()->Disassociate(EXTENDED, 0x01,
-//									   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
-
-//	_test.GetLifiMacTx()->Disassociate(EXTENDED, 0x01,
-//									   Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
-
-//	GTSCharacteristics character;
-//	character.gtsLength = 3;
-//	_test.GetLifiMacRx()->GtsRequest(character, Mac64Address ("00:00:00:00:00:00:00:01"));
-
-//	GTSCharacteristics character;
-//	character.gtsLength = 3;
-//	_test.GetLifiMacTx()->GtsRequest(character, Mac16Address ("55:55"));
-
-//	_test.GetLifiMacRx()->ScanChannel(ACTIVE_SCAN, 10);
-	Simulator::Schedule(Seconds(0.2), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo);
-	Simulator::Schedule(Seconds(0.3), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo1);
-	Simulator::Schedule(Seconds(0.4), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo2);
-	Simulator::Schedule(Seconds(0.5), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo3);
-	Simulator::Schedule(Seconds(0.6), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
-//	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
-	Simulator::Schedule(Seconds(0.8), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("12:34"));
-//		Simulator::Schedule(Seconds(2.6), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev(), EXTENDED, 0x01,
-//												   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+	Simulator::Schedule(Seconds(0.3), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo);
+	Simulator::Schedule(Seconds(0.4), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo1);
+	Simulator::Schedule(Seconds(0.5), &LifiNodeDev::SendData, _test.GetLifiNodeDev(), dataInfo2);
+	Simulator::Schedule(Seconds(0.6), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo3);
+	Simulator::Schedule(Seconds(1.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
+//	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
+//	Simulator::Schedule(Seconds(0.8), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("12:34"));
+	Simulator::Schedule(Seconds(6.6), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev(), EXTENDED, 0x01,
+												   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
 
 //	Simulator::Schedule(Seconds(2.7), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), SHORT, 0x01,
 //													   Mac16Address ("12:34"), COORD, false);
-	Simulator::Schedule(Seconds(7.0), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
-														Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
-	Simulator::Stop(Seconds(8));
+//	Simulator::Schedule(Seconds(7.0), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
+//														Mac64Address ("00:00:00:00:00:00:00:02"), COORD, true);
+
+
+	Simulator::Schedule(Seconds(0.2), &LifiNodeDev::StartAssoc, _test.GetLifiNodeDev1(), CHANNEL2, EXTENDED, 0x01,
+			                                                      Mac64Address ("00:00:00:00:00:00:00:01"), info);
+	Simulator::Schedule(Seconds(1.75), &LifiNodeDev::SendData, _test.GetLifiNodeDev1(), dataInfo);
+	Simulator::Schedule(Seconds(1.85), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo1);
+	Simulator::Schedule(Seconds(1.95), &LifiNodeDev::SendData, _test.GetLifiNodeDev1(), dataInfo4);
+	Simulator::Schedule(Seconds(2.05), &LifiNodeCoord::SendData, _test.GetLifiNodeCoord(), dataInfo3);
+	Simulator::Schedule(Seconds(2.15), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
+//	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
+//	Simulator::Schedule(Seconds(2.2), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("56:78"));
+	Simulator::Schedule(Seconds(6.7), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev1(), EXTENDED, 0x01,
+											   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+
+//	Simulator::Schedule(Seconds(2.7), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), SHORT, 0x01,
+//													   Mac16Address ("12:34"), COORD, false);
+	Simulator::Schedule(Seconds(7.5), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
+														Mac64Address ("00:00:00:00:00:00:00:03"), COORD, true);
+
+	Simulator::Stop(Seconds(10));
 	Simulator::Run ();
 
 	Simulator::Destroy();

@@ -38,6 +38,7 @@ public:
 	void ReceiveData (uint32_t timestamp, Ptr<Packet> p);
 	void SetGtsTransmitArgument(uint16_t shortAddr, bool transmitState);
 	void SetTrxHandler (Ptr<LifiTrxHandler> trxHandler);
+	void SetGTSCount();
 
 protected:
 	void onReceiveData (uint32_t timestamp, Ptr<Packet> p);

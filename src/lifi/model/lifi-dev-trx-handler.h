@@ -25,6 +25,7 @@ public:
 	virtual void SetGtsDuration(uint8_t startSlot, uint8_t gtsLength, uint8_t gtsCount);
 	virtual void DeleteGtsDuration();
 	virtual void SetGtsTrxState(GTSDirection direction);
+	virtual bool DoTransmitData();
 protected:
 	void BuildSuperframeStruct (Ptr<Packet> beacon);
 	virtual void GtsTransmitStart();
@@ -32,8 +33,6 @@ protected:
 	virtual void ContentionFreePeriodStart();
 	virtual void ContentionFreePeriodEnd ();
 
-	bool m_gtsIsCapEnd;
-	bool m_gtsIsCfpEnd;
 };
 
 } /* namespace ns3 */

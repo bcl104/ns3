@@ -42,7 +42,7 @@ class TimerImpl;
  * management policies. These policies are specified at construction time
  * and cannot be changed after.
  */
-class Timer
+class Timer : public SimpleRefCount<Timer>
 {
 public:
   /**

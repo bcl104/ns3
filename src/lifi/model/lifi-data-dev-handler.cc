@@ -81,6 +81,7 @@ void LifiDataDevHandler::SendToGtsTransaction(){
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_DATA);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+	std::cout << srcAddress << std::endl;
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_dataDesc.DstAddr);
 	header.SetDstVPANId(m_attributes->macVPANId);
@@ -128,6 +129,7 @@ void LifiDataDevHandler::onAllocNotification (Ptr<DataService> service){
 	header.SetAckRequest(false);
 	header.SetFrameType(LIFI_ACK);
 	header.SetSrcAddress(m_impl->GetLifiMac()->GetDevice()->GetAddress());
+	std::cout << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	header.SetDstAddress(m_receiveCoordAddr);
 	header.SetFramePending(false);
 	header.SetDstVPANId(m_attributes->macVPANId);

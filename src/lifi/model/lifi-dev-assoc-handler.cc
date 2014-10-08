@@ -75,6 +75,7 @@ void LifiDevAssocHandler::SendAssocRequest() {
 	LifiMacHeader header;
 	header.SetFrameType(LIFI_COMMAND);
 	Address srcAddress = m_impl->GetLifiMac()->GetDevice()->GetAddress();
+	std::cout << srcAddress << std::endl;
 	header.SetSrcAddress(srcAddress);
 	header.SetDstAddress(m_coordAddr);
 	header.SetDstVPANId(m_VPANId);
@@ -135,6 +136,7 @@ void LifiDevAssocHandler::onTxResultNotification1(MacOpStatus status,
 			int64_t op = m_impl->GetLifiMac()->GetOpticalPeriod()->GetNanoSeconds();
 			uint32_t resWaitTime = m_attributes->macResponseWaitTime * LifiMac::aBaseSlotDuration * LifiMac::aNumSuperframeSlots;
 			m_timer.Schedule(NanoSeconds(op * resWaitTime));
+			std::cout << NanoSeconds(op * resWaitTime) << std::endl;
 		}
 	}else
 	{

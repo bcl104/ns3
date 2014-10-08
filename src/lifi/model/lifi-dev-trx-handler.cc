@@ -185,12 +185,88 @@ void LifiDevTrxHandler::ContentionFreePeriodEnd()
 			m_impl->CloseGtsDataReceive();
 		}
 	}
+	std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	m_curTransmission.Reset();
 	m_curTranceiverTask.Clear();
 	if (m_superframeStruct.m_inactivePortion)
 	{
 		InactionPortionStart ();
 	}
+}
+
+bool LifiDevTrxHandler::DoTransmitData() {
+	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds() << m_curTransmission.m_info.m_listener);
+
+	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
+	NS_ASSERT (m_curTransmission.IsAvailable());
+
+	/*
+	 * If check whether there is enough time before the end of CAP.
+	 * */
+	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
+	double dataRateKbps = LifiPhy::GetRate(mcsid);
+//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+//	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
+	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
+								->GetSize()*8)/(dataRateKbps*1000)*1e9);
+	Time ackWaitTime;
+	if (m_curTransmission.m_info.m_option.ackTx)
+		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
+				*m_impl->m_opticalPeriod->GetNanoSeconds());
+	else
+		ackWaitTime = NanoSeconds(0);
+
+	bool enough = false;
+
+	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
+		enough = true;
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
+	{
+		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
+	{
+		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
+		std::cout << m_superframeStruct.m_cfpEnd.GetDelayLeft() << std::endl;
+		std::cout << m_superframeStruct.m_gtsEndDev.GetDelayLeft() << std::endl;
+		if(m_gtsIsCfpEnd){
+			enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+		}else{
+			enough = (m_superframeStruct.m_gtsEndDev.GetDelayLeft() > (txDuration+ackWaitTime));
+		}
+
+	}else
+	{
+		NS_FATAL_ERROR("Error transmit timing.");
+	}
+
+	if (!enough)
+	{
+		if ((!m_curTransmission.m_info.m_option.gtsTx)
+		&& (!m_curTransmission.m_info.m_force))
+		{
+			m_suspendedTransmission = m_curTransmission;
+		}
+		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
+		m_curTransmission.Reset();
+		return false;
+	}
+
+//	std::cout << Simulator::Now() << std::endl;
+//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+	m_pdProvider->DataRequest(m_curTransmission.m_info.m_packet->GetSize(),
+							  m_curTransmission.m_info.m_packet,
+							  m_curTransmission.m_info.m_band);
+	// Enable the external trigger to onTxConfirm.
+	DisableAllTrigger();
+	EnableTrigger(LifiTrxHandler::ReceivePacket);
+
+	EnableTrigger(LifiTrxHandler::TxConfirm);
+	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+
+	return true;
 }
 
 } /* namespace ns3 */

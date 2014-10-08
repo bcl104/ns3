@@ -80,6 +80,8 @@ public:
 
 	const Time* GetOpticalPeriod () const;
 
+	void PermitReceivePacket();
+
 	LogicChannelId GetChannelId();
 	void Reset();
 
@@ -151,12 +153,11 @@ protected:
 	// Method for GTS transmission.
 	void StartGtsTransmit (PacketInfo& task);
 
-
 	virtual void AcknowledgmentTimeout ();
 	virtual bool RetransmitData ();
 
 	virtual void EndTransmission (MacOpStatus status, Ptr<Packet> ack);
-	bool DoTransmitData();
+	virtual bool DoTransmitData();
 
 	// Method for superframe structure.
 	virtual void SuperframeStart ();
@@ -223,6 +224,8 @@ protected:
 	TrxTasks m_tranceiverTasks;
 	DataBuffer m_raTasks;
 	uint8_t capEndSlot;
+	bool m_gtsIsCapEnd;
+	bool m_gtsIsCfpEnd;
 
 	TranceiverTask m_curTranceiverTask;
 	Ptr<LifiGtsHandler> m_gtsHandler;

@@ -128,7 +128,7 @@ void LifiGtsDevHandler::onReceiveBeacon(uint32_t timestamp, Ptr<Packet> p){
 	tempPacket->RemoveHeader(header);
 	NS_ASSERT (header.GetFrameType() == LIFI_BEACON);
 	LifiMacBeacon beacon = LifiMacBeacon::Construct(tempPacket);
-
+	std::cout << "my extendedAddress:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	if (beacon.AssignedGtsExist(m_attributes->macShortAddress))
 	{
 		GtsDescriptor tempDes;
@@ -191,6 +191,7 @@ void LifiGtsDevHandler::onAllocNotification1 (Ptr<DataService> service){
 	NS_ASSERT (service != 0);
 	m_dataService = service;
 	std::cout << m_gtsTransactions.size() << std::endl;
+	std::cout << "my addr:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	DisableTrigger(LifiGtsDevHandler::AllocNotification);
 	GtsTransactions::iterator gts_beg = m_gtsTransactions.lower_bound(m_attributes->macShortAddress);
 	GtsTransactions::iterator gts_end = m_gtsTransactions.upper_bound(m_attributes->macShortAddress);

@@ -55,12 +55,18 @@ void LifiTrxHandler::TxConfirm(PhyOpStatus status) {
 
 void LifiTrxHandler::ReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 {
-	if (CheckTrigger(LifiTrxHandler::ReceivePacket))
-	{
-		onReceivePacket(timestamp, p);
-	}else
-	{
-		NS_LOG_WARN ("Ignore LifiTrxHandler::ReceivePacket.");
+	LifiMacHeader header;
+	p->PeekHeader(header);
+	std::cout << "its type:"<<  header.GetFrameType() << std::endl;
+	std::cout <<"its dstAddr:" << header.GetDstAddress() << std::endl;
+	std::cout <<"its srcAddr:" << header.GetSrcAddress() << std::endl;
+	std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
+	if(m_attributes->macReceivePacketPermit){
+		if (CheckTrigger(LifiTrxHandler::ReceivePacket)){
+			onReceivePacket(timestamp, p);
+		}else{
+			NS_LOG_WARN ("Ignore LifiTrxHandler::ReceivePacket.");
+		}
 	}
 }
 
@@ -88,6 +94,7 @@ bool LifiTrxHandler::Transmit(PacketInfo& info)
 //	NS_ASSERT (phyStatus == ns3::IDLE);
 //	NS_ASSERT (m_superframeStruct.m_state == SuperframeStrcut::CAP);
 	if(phyStatus == TX_ON){
+		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 		m_curTransmission.Reset();
 		m_curTransmission.m_info = info;
 		std::cout << info.m_msduSize << std::endl;
@@ -166,6 +173,7 @@ void LifiTrxHandler::Fetch()
 		case SuperframeStrcut::CAP:
 			if (m_raTasks.empty()) return;
 //			std::cout << m_raTasks.size() << std::endl;
+			std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 			m_curTransmission.Reset();
 			m_curTransmission.m_info = m_raTasks.front();
 			StartRandomAccess(m_curTransmission.m_info);
@@ -242,6 +250,10 @@ const Time* LifiTrxHandler::GetOpticalPeriod() const
 	return m_opticalPeriod;
 }
 
+void LifiTrxHandler::PermitReceivePacket(){
+	m_attributes->macReceivePacketPermit = true;
+}
+
 LogicChannelId LifiTrxHandler::GetChannelId(){
 	return GetPlmeSapProvider()->PlmeGetRequset<LogicChannelId>(PHY_CURRENT_CHANNEL);
 }
@@ -288,6 +300,7 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 	LifiMacHeader header;
 	p->PeekHeader(header);
 	std::cout << m_attributes->macVPANId << std::endl;
+	std::cout << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 	if((m_attributes->macVPANId == 0xffff)
 	 ||((m_attributes->macVPANId != 0xffff)&&(m_attributes->macVPANId == header.GetDstVPANId()))){
 		if (header.GetFrameType() == LIFI_BEACON)
@@ -295,60 +308,81 @@ void LifiTrxHandler::onReceivePacket(uint32_t timestamp, Ptr<Packet> p)
 			NS_LOG_INFO(this << " receive beacon frame.");
 	//		BuildSuperframeStruct(p);
 			Broadcast(TrxHandlerListener::ReceiveBeacon, timestamp, p);
-		}else if (header.GetFrameType() == LIFI_DATA)
-		{
-			NS_LOG_INFO(this << " receive data frame.");
-			Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
-		}else if (header.GetFrameType() == LIFI_ACK)
-		{
-			NS_LOG_INFO(this << " receive ack frame.");
-			onReceiveAck(timestamp, p);
-		}else if (header.GetFrameType() == LIFI_COMMAND)
-		{
-			NS_LOG_INFO(this << " receive command frame.");
-			LifiMacHeader temp;
-			p->RemoveHeader(temp);
-			CommId commId = (CommId)0;
-			p->CopyData((uint8_t*)(&commId), 1);
-			p->AddHeader(temp);
-			switch (commId)
-			{
-			case ASSOC_REQUEST:
-				Broadcast(TrxHandlerListener::ReceiveAssocRequest, timestamp, p);
-				break;
-			case ASSOC_RESPONSE:
-				Broadcast(TrxHandlerListener::ReceiveAssocResponse, timestamp, p);
-				break;
-			case DISASSOC_NOTIFICATION:
-				Broadcast(TrxHandlerListener::ReceiveDisassocNotification, timestamp, p);
-				break;
-			case DATA_REQUEST:
-				Broadcast(TrxHandlerListener::ReceiveDataRequest, timestamp, p);
-				break;
-			case BEACON_REQUEST:
-				Broadcast(TrxHandlerListener::ReceiveBeaconRequest, timestamp, p);
-				break;
-			case GTS_REQUEST:
-				Broadcast(TrxHandlerListener::ReceiveGtsRequest, timestamp, p);
-				break;
-			case GTS_RESPONSE:
-				Broadcast(TrxHandlerListener::ReceiveGtsResponse, timestamp, p);
-				break;
-			case INFORMANTION_ELEMENT:
-				NS_FATAL_ERROR("INFORMANTION_ELEMENT not realized.");
-				break;
-			default:
-				NS_FATAL_ERROR("Command frame type error: Unsupported type.");
-				break;
+		}else{
+
+			uint8_t* tempP = (uint8_t*)(&m_attributes->macShortAddress);
+			uint16_t tempAddr = *tempP;
+			std::cout << tempAddr << std::endl;
+			tempP ++;
+			std::cout << (uint32_t)*tempP << std::endl;
+			tempAddr = (tempAddr<<8)|(*tempP);
+			Mac16Address tempAddr1;
+			tempAddr1.CopyFrom((uint8_t*)(&(tempAddr)));
+
+			std::cout << m_attributes->macShortAddress << std::endl;
+			std::cout << tempAddr << std::endl;
+			std::cout << tempAddr1 << std::endl;
+			std::cout << header.GetDstAddress() << std::endl;
+
+			if(((header.GetDstAddressMode() == EXTENDED) && (header.GetDstAddress() == m_impl->GetLifiMac()->GetDevice()->GetAddress()))
+			  || ((header.GetDstAddressMode() == SHORT) && (header.GetDstAddress() == Address(tempAddr1)))){
+				if (header.GetFrameType() == LIFI_DATA)
+				{
+					NS_LOG_INFO(this << " receive data frame.");
+					Broadcast(TrxHandlerListener::ReceiveData, timestamp, p);
+				}else if (header.GetFrameType() == LIFI_ACK)
+				{
+					NS_LOG_INFO(this << " receive ack frame.");
+					onReceiveAck(timestamp, p);
+				}else if (header.GetFrameType() == LIFI_COMMAND)
+				{
+					NS_LOG_INFO(this << " receive command frame.");
+					LifiMacHeader temp;
+					p->RemoveHeader(temp);
+					CommId commId = (CommId)0;
+					p->CopyData((uint8_t*)(&commId), 1);
+					p->AddHeader(temp);
+					switch (commId)
+					{
+					case ASSOC_REQUEST:
+						Broadcast(TrxHandlerListener::ReceiveAssocRequest, timestamp, p);
+						break;
+					case ASSOC_RESPONSE:
+						Broadcast(TrxHandlerListener::ReceiveAssocResponse, timestamp, p);
+						break;
+					case DISASSOC_NOTIFICATION:
+						Broadcast(TrxHandlerListener::ReceiveDisassocNotification, timestamp, p);
+						break;
+					case DATA_REQUEST:
+						Broadcast(TrxHandlerListener::ReceiveDataRequest, timestamp, p);
+						break;
+					case BEACON_REQUEST:
+						Broadcast(TrxHandlerListener::ReceiveBeaconRequest, timestamp, p);
+						break;
+					case GTS_REQUEST:
+						Broadcast(TrxHandlerListener::ReceiveGtsRequest, timestamp, p);
+						break;
+					case GTS_RESPONSE:
+						Broadcast(TrxHandlerListener::ReceiveGtsResponse, timestamp, p);
+						break;
+					case INFORMANTION_ELEMENT:
+						NS_FATAL_ERROR("INFORMANTION_ELEMENT not realized.");
+						break;
+					default:
+						NS_FATAL_ERROR("Command frame type error: Unsupported type.");
+						break;
+					}
+				}else{
+					NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
+				}
+			}else{
+				NS_LOG_ERROR("Not my device Packet!");
 			}
-		}else
-		{
-			NS_FATAL_ERROR("Frame type error: receive frame with reserved type.");
 		}
 	}else{
-		std::cout << header.GetDstVPANId() << std::endl;
-		NS_LOG_ERROR("Not the packet of this VPAN !");
-	}
+			std::cout << header.GetDstVPANId() << std::endl;
+			NS_LOG_ERROR("Not the packet of this VPAN !");
+		}
 }
 
 void LifiTrxHandler::Backoff()
@@ -415,6 +449,7 @@ void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 {
 	NS_LOG_FUNCTION (this << status << ack << m_curTransmission.m_info.m_listener);
 //	m_curTransmission.m_info.m_listener->TxResultNotification(status, ack);
+
 	Simulator::ScheduleNow(&TrxHandlerListener::TxResultNotification,
 							m_curTransmission.m_info.m_listener,
 							status, m_curTransmission.m_info, ack);
@@ -425,6 +460,7 @@ void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 		m_opStatus = IDLE;
 		m_taskType = TASK_IDLE;
 		m_curTransmission.Reset();
+		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 		if (m_superframeStruct.m_synchronized)
 			Simulator::ScheduleNow (&LifiTrxHandler::Fetch, this);
 	}
@@ -433,71 +469,77 @@ void LifiTrxHandler::EndTransmission(MacOpStatus status, Ptr<Packet> ack)
 }
 
 bool LifiTrxHandler::DoTransmitData() {
-	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds() << m_curTransmission.m_info.m_listener);
-
-	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
-	NS_ASSERT (m_curTransmission.IsAvailable());
-
-	/*
-	 * If check whether there is enough time before the end of CAP.
-	 * */
-	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
-	double dataRateKbps = LifiPhy::GetRate(mcsid);
-//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
-//	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
-	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
-								->GetSize()*8)/(dataRateKbps*1000)*1e9);
-	Time ackWaitTime;
-	if (m_curTransmission.m_info.m_option.ackTx)
-		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
-				*m_impl->m_opticalPeriod->GetNanoSeconds());
-	else
-		ackWaitTime = NanoSeconds(0);
-
-	bool enough = false;
-
-	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
-	{
-		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
-		enough = true;
-	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
-	{
-		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
-		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
-	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
-	{
-		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
-		std::cout << m_superframeStruct.m_cfpEnd.GetDelayLeft() << std::endl;
-//		enough = (m_superframeStruct.m_gtsEnd.GetDelayLeft() > (txDuration+ackWaitTime));
-		enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
-	}else
-	{
-		NS_FATAL_ERROR("Error transmit timing.");
-	}
-
-	if (!enough)
-	{
-		if ((!m_curTransmission.m_info.m_option.gtsTx)
-		&& (!m_curTransmission.m_info.m_force))
-		{
-			m_suspendedTransmission = m_curTransmission;
-		}
-		m_curTransmission.Reset();
-		return false;
-	}
-
-//	std::cout << Simulator::Now() << std::endl;
-//	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
-	m_pdProvider->DataRequest(m_curTransmission.m_info.m_packet->GetSize(),
-							  m_curTransmission.m_info.m_packet,
-							  m_curTransmission.m_info.m_band);
-	// Enable the external trigger to onTxConfirm.
-	DisableAllTrigger();
-	EnableTrigger(LifiTrxHandler::ReceivePacket);
-
-	EnableTrigger(LifiTrxHandler::TxConfirm);
-	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
-
+//	NS_LOG_FUNCTION (this << m_impl->m_opticalPeriod->GetNanoSeconds() << m_curTransmission.m_info.m_listener);
+//
+//	m_plmeProvider->PlmeSetTRXStateRequest(TX_ON);
+//	NS_ASSERT (m_curTransmission.IsAvailable());
+//
+//	/*
+//	 * If check whether there is enough time before the end of CAP.
+//	 * */
+//	uint8_t mcsid = m_plmeProvider->PlmeGetRequset<uint8_t>(PHY_MCSID);
+//	double dataRateKbps = LifiPhy::GetRate(mcsid);
+////	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+////	std::cout << m_impl->m_opticalPeriod->GetNanoSeconds() << std::endl;
+//	Time txDuration = NanoSeconds(((double) m_curTransmission.m_info.m_packet
+//								->GetSize()*8)/(dataRateKbps*1000)*1e9);
+//	Time ackWaitTime;
+//	if (m_curTransmission.m_info.m_option.ackTx)
+//		ackWaitTime = NanoSeconds(m_attributes->macAckWaitDuration
+//				*m_impl->m_opticalPeriod->GetNanoSeconds());
+//	else
+//		ackWaitTime = NanoSeconds(0);
+//
+//	bool enough = false;
+//
+//	if (m_superframeStruct.m_state == SuperframeStrcut::BEACON)
+//	{
+//		NS_ASSERT (m_curTransmission.m_info.m_handle == 1);
+//		enough = true;
+//	}else if (m_superframeStruct.m_state == SuperframeStrcut::CAP)
+//	{
+//		NS_ASSERT (!m_curTransmission.m_info.m_option.gtsTx);
+//		enough = (m_superframeStruct.m_capEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+//	}else if (m_superframeStruct.m_state == SuperframeStrcut::CFP)
+//	{
+//		NS_ASSERT (m_curTransmission.m_info.m_option.gtsTx);
+//		std::cout << m_superframeStruct.m_cfpEnd.GetDelayLeft() << std::endl;
+//		std::cout << m_superframeStruct.m_gtsEndDev.GetDelayLeft() << std::endl;
+//		if(m_gtsIsCfpEnd){
+//			enough = (m_superframeStruct.m_cfpEnd.GetDelayLeft() > (txDuration+ackWaitTime));
+//		}else{
+//			enough = (m_superframeStruct.m_gtsEndDev.GetDelayLeft() > (txDuration+ackWaitTime));
+//		}
+//
+//	}else
+//	{
+//		NS_FATAL_ERROR("Error transmit timing.");
+//	}
+//
+//	if (!enough)
+//	{
+//		if ((!m_curTransmission.m_info.m_option.gtsTx)
+//		&& (!m_curTransmission.m_info.m_force))
+//		{
+//			m_suspendedTransmission = m_curTransmission;
+//		}
+//		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
+//		m_curTransmission.Reset();
+//		return false;
+//	}
+//
+////	std::cout << Simulator::Now() << std::endl;
+////	std::cout << m_curTransmission.m_info.m_packet->GetSize() << std::endl;
+//	m_pdProvider->DataRequest(m_curTransmission.m_info.m_packet->GetSize(),
+//							  m_curTransmission.m_info.m_packet,
+//							  m_curTransmission.m_info.m_band);
+//	// Enable the external trigger to onTxConfirm.
+//	DisableAllTrigger();
+//	EnableTrigger(LifiTrxHandler::ReceivePacket);
+//
+//	EnableTrigger(LifiTrxHandler::TxConfirm);
+//	m_plmeProvider->PlmeSetTRXStateRequest(RX_ON);
+//
 	return true;
 }
 void LifiTrxHandler::onTxConfirm(PhyOpStatus status)
@@ -525,6 +567,8 @@ void LifiTrxHandler::onReceiveAck(uint32_t timestamp, Ptr<Packet> ack)
 	NS_LOG_FUNCTION (this << timestamp << ack);
 	LifiMacHeader header;
 	ack->PeekHeader(header);
+	std::cout << header.GetSequenceNumber() << std::endl;
+	std::cout << m_curTransmission.m_sequenceNum << std::endl;
 	NS_ASSERT (header.GetSequenceNumber() == m_curTransmission.m_sequenceNum);
 	// Report the acknowledgment to the upper handler.
 	EndTransmission(MAC_SUCCESS, ack);
@@ -679,6 +723,7 @@ void LifiTrxHandler::ContentionAccessPeriodEnd()
 		m_curTransmission.m_backoff.m_backoffTimer.Suspend();
 		m_suspendedTransmission = m_curTransmission;
 //		}
+		std::cout << "my address:" << m_impl->GetLifiMac()->GetDevice()->GetAddress() << std::endl;
 		m_curTransmission.Reset();
 	}
 	if (m_superframeStruct.m_contentionFreePeriod)

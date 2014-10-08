@@ -81,6 +81,8 @@ TypeId LifiMacDevImpl::GetTypeId() {
 void LifiMacDevImpl::Associate(LogicChannelId channel, AddrMode coordAddrMode,
 							   uint16_t coordVPANId, Mac64Address coordAddr, CapabilityInfo info) {
 	NS_LOG_FUNCTION (this << (uint32_t)channel << coordAddrMode << coordVPANId << coordAddr);
+	m_trxHandler->PermitReceivePacket();
+////"m_trxHandler->PermitReceivePacket()" is not required when it invoked ChannelScanHandler before!
 	VPANDescriptor vpanDesr;
 	vpanDesr.coordAddr = coordAddr;
 	vpanDesr.coordAddrMode = coordAddrMode;
@@ -134,6 +136,7 @@ void LifiMacDevImpl::RxEnable(bool deferPermit, uint32_t rxOnTime,
 
 void LifiMacDevImpl::Scan(ScanType scanType, uint32_t scanDuration) {
 	NS_LOG_FUNCTION (this);
+	m_trxHandler->PermitReceivePacket();
 	m_channelScanHandler->StartChannelScan(scanType, scanDuration);
 }
 

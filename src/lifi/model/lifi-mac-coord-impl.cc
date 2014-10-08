@@ -28,6 +28,7 @@ LifiMacCoordImpl::LifiMacCoordImpl()
 {
 	m_trxHandler->SetLifiMacImpl(this);
 	m_trxHandler->SetMacPibAttributes(&m_attributes);
+	m_trxHandler->PermitReceivePacket();
 
 	m_channelScanHandler->SetLifiMacImpl(this);
 	m_channelScanHandler->SetMacPibAttributes(&m_attributes);
@@ -136,6 +137,8 @@ void LifiMacCoordImpl::StartVPAN(uint16_t vpanId, LogicChannelId channel,
 		bool vpanCoord) {
 	NS_LOG_FUNCTION (this);
 	NS_ASSERT (vpanCoord);
+	m_trxHandler->PermitReceivePacket();
+	m_trxHandler->GetPlmeSapProvider()->PlmeSetRequest(PHY_CURRENT_CHANNEL, channel);
 	m_attributes.macVPANId = vpanId;
 	m_attributes.macBeaconOrder = beaconOrder;
 	m_attributes.macSuperframeOrder = supframeOrder;
@@ -197,6 +200,10 @@ Ptr<Packet> LifiMacCoordImpl::ConstructBeacon() const
 
 void LifiMacCoordImpl::SetCFPLenth(uint32_t gtsLenth){
 	m_gtsSlotCount = gtsLenth;
+}
+
+void LifiMacCoordImpl::SetGTSCount(){
+	m_gtsCoordHandler->SetGTSCount();
 }
 
 void LifiMacCoordImpl::SetLifiMac(Ptr<LifiMac> mac)

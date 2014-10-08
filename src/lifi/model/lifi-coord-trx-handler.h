@@ -29,6 +29,7 @@ protected:
 	virtual void TxResultNotification (MacOpStatus status, PacketInfo info, Ptr<Packet> ack);
 	virtual void ContentionFreePeriodEnd();
 	virtual void ContentionFreePeriodStart();
+	virtual bool DoTransmitData();
 //	virtual void GtsTransmitStart();
 //	virtual void GtsTransmitEnd();
 	void StartOneGts(uint16_t shortAddr, GTSDirection gtsDirec);
@@ -39,7 +40,6 @@ private:
 	uint8_t m_gtsCount;
 	uint8_t m_curGtsCount;
 	GtsList m_superframGtsList;
-	GtsStructure m_curGtsTimer;
 	GtsTimer m_gtsTimerList;
 	Ptr<LifiGtsCoordHandler> m_gtsCoordHandler;
 

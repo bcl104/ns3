@@ -256,6 +256,12 @@ private:
 	 */
 	uint16_t macVPANId;
 
+	/**
+	 *Indication of whether the MAC sublayer can receive the incoming and outgoing data frames. When
+	 *the device initialized by the way of invoking its function, it can receive the packet.
+	 */
+	bool macReceivePacketPermit;
+
 };
 
 } /* namespace ns3 */

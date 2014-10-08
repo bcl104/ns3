@@ -51,16 +51,23 @@ void LifiGtsCoordHandler::StartGtsDealloc(GTSCharacteristics gtsCharacter, Addre
 	if(it != m_gtsDesInfo.end()){
 		it = m_gtsDesInfo.erase(it);
 		m_curStartSlot = 15;
+		std::cout << m_gtsDesInfo.size() << std::endl;
 		for(GtsDesInfos::iterator iter = m_gtsDesInfo.begin(); iter != m_gtsDesInfo.end(); iter ++){
-			(*iter).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
-			m_curStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
+			if((*iter).gtsDescriptor.gtsStartSlot != 0){
+				(*iter).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
+				m_curStartSlot = m_curStartSlot - (*iter).gtsDescriptor.gtsLength;
+			}
 		}
 		m_gtsDesInfo.push_back(tempGtsDesInfo);
 //		Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
 //		coordImpl->SetCFPLenth(15 - m_curStartSlot);
 	}
-//		must <= MAX_GTS_DESCRIPTOR
-//		m_user->MlmeGtsConfirm(gtsCharacter, MAC_SUCCESS);
+	std::cout << m_gtsDesInfo.size() << std::endl;
+	for(GtsDesInfos::iterator iter = m_gtsDesInfo.begin(); iter != m_gtsDesInfo.end(); iter ++){
+		std::cout << (*iter).gtsDescriptor.deviceShortAddr << std::endl;
+		std::cout << (*iter).gtsDescriptor.gtsLength << std::endl;
+		std::cout << (*iter).gtsDescriptor.gtsStartSlot << std::endl;
+	}
 
 }
 
@@ -95,11 +102,13 @@ void LifiGtsCoordHandler::onReceiveGtsRequest(uint32_t timestamp, Ptr<Packet> p)
 		if(m_gtsDeviceCharacter.gtsLength <= m_curStartSlot - LifiMac::aMinCapLength){
 			if(m_gtsDesInfo.size() <= MAX_GTS_DESCRIPTOR){
 				GTSDesInfo tempGtsDesInfo;
+				std::cout << m_gtsDesInfo.size() << std::endl;
 				tempGtsDesInfo.gtsDescriptor.gtsStartSlot = m_curStartSlot - m_gtsDeviceCharacter.gtsLength;
 				m_curStartSlot = m_curStartSlot - m_gtsDeviceCharacter.gtsLength;
 				m_allocGtsDevAddr.CopyTo((uint8_t*)(&tempGtsDesInfo.gtsDescriptor.deviceShortAddr));
 				tempGtsDesInfo.gtsDescriptor.gtsLength = m_gtsDeviceCharacter.gtsLength;
 				m_gtsDesInfo.push_back(tempGtsDesInfo);
+				std::cout << m_gtsDesInfo.size() << std::endl;
 //				Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
 //				coordImpl->SetCFPLenth(15 - m_curStartSlot);
 
@@ -136,6 +145,7 @@ void LifiGtsCoordHandler::onReceiveGtsRequest(uint32_t timestamp, Ptr<Packet> p)
 			if(it != m_gtsDesInfo.end()){
 				m_gtsDesInfo.erase(it);
 				m_curStartSlot = 15;
+				std::cout << m_gtsDesInfo.size() << std::endl;
 				for(GtsDesInfos::iterator it = m_gtsDesInfo.begin(); it != m_gtsDesInfo.end(); it ++){
 					(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
 					m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
@@ -418,10 +428,12 @@ GtsList LifiGtsCoordHandler::GetGtsDescList(){
 
 			std::cout << m_gtsDesInfo.size() << std::endl;
 			m_curStartSlot = 15;
+			std::cout << m_gtsDesInfo.size() << std::endl;
 			for(GtsDesInfos::iterator it = m_gtsDesInfo.begin(); it != m_gtsDesInfo.end(); it ++){
-				(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
-				m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
-
+				if((*it).gtsDescriptor.gtsStartSlot != 0){
+					(*it).gtsDescriptor.gtsStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
+					m_curStartSlot = m_curStartSlot - (*it).gtsDescriptor.gtsLength;
+				}
 //				we do not need those codes for this beacon.
 			}
 		}else {
@@ -430,8 +442,6 @@ GtsList LifiGtsCoordHandler::GetGtsDescList(){
 //		if ((it = m_gtsDesInfo.erase(it)) != m_gtsDesInfo.end())
 //			it++;
 	}
-	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
-	coordImpl->SetCFPLenth(15 - m_curStartSlot);
 	return m_gtsList;
 }
 
@@ -442,6 +452,7 @@ GtsList LifiGtsCoordHandler::GetBeaconGtsDescList(){
 
 uint8_t LifiGtsCoordHandler::GetGtsDesCount(){
 	NS_LOG_FUNCTION(this);
+	std::cout << m_gtsDesInfo.size() << std::endl;
 	return m_gtsDesInfo.size();
 }
 
@@ -470,6 +481,11 @@ void LifiGtsCoordHandler::SetGtsTransmitArgument(uint16_t shortAddr, bool transm
 void LifiGtsCoordHandler::SetTrxHandler(Ptr<LifiTrxHandler> trxHandler) {
 	NS_LOG_FUNCTION(this);
 	m_trxHandler = trxHandler;
+}
+
+void LifiGtsCoordHandler::SetGTSCount(){
+	Ptr<LifiMacCoordImpl> coordImpl = DynamicCast<LifiMacCoordImpl> (m_impl);
+	coordImpl->SetCFPLenth(15 - m_curStartSlot);
 }
 
 }

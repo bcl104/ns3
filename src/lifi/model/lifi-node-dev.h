@@ -50,7 +50,6 @@ public:
 	virtual void GtsRequest(GTSCharacteristics characteristics, Address dstAddr);
 	virtual void DisassocRequst(AddrMode devAddrMode, uint16_t devVPANId,
 								Address devAddr, DisassocReason reason, bool txIndirect);
-
 };
 
 }

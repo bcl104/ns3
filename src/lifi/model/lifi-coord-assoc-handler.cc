@@ -260,6 +260,7 @@ void LifiCoordAssocHandler::onAllocNotification(Ptr<DataService> service) {
 		sendAck2();
 		m_impl->PetchTransactionPacket(m_curDeviceAddress);
 	}
+	EnableTrigger(LifiCoordAssocHandler::ReceiveAssocRequest);
 }
 
 void LifiCoordAssocHandler::TxResultNotification(MacOpStatus status, PacketInfo info, Ptr<Packet> ack)
