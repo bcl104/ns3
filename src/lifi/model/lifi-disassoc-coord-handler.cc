@@ -116,11 +116,11 @@ void LifiDisassocCoordHandler::SendToIndirectTransaction(){
 	TransactionInfo transInfo;
 	transInfo.m_extendDevAddress = Mac64Address::ConvertFrom(m_disassocDes.DeviceAddr);
 	transInfo.m_packetInfo.m_band = m_trxHandler->GetChannelId();
+	transInfo.m_packetInfo.m_handle = 0x76;
 	transInfo.m_packetInfo.m_packet = p;
 	transInfo.m_packetInfo.m_listener = this;
 	transInfo.m_packetInfo.m_bust = false;
 	transInfo.m_packetInfo.m_force = true;
-	transInfo.m_packetInfo.m_handle = 0x55;
 	transInfo.m_packetInfo.m_msduSize = p->GetSize();
 
 	transInfo.m_packetInfo.m_option.ackTx = true;

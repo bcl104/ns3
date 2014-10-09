@@ -67,7 +67,6 @@ private:
 	TransactionInfo m_curTransactionInfo;
 	TransactionInfo m_curTranmitTransactionInfo;
 	Transactions::iterator m_curTransactionIterator;
-	std::pair<Mac64Address, TransactionInfo> m_curTransactionPair;
 	Ptr<LifiTrxHandler> m_trxHandler;
 };
 

@@ -484,12 +484,16 @@ struct AssocDevAddress{
 
 struct TransactionInfo
 {
+	TransactionInfo(){
+		m_timer = Create<Timer> (Timer::CANCEL_ON_DESTROY);
+	}
 	uint16_t m_handle;
 	Mac64Address m_extendDevAddress;
-//	Timer m_timer;
+	Ptr<Timer> m_timer;
 	PacketInfo m_packetInfo;
 	TrxHandlerListener* m_listener;
-	EventId m_eventId;
+	void Reset ();
+//	EventId m_eventId;
 };
 
 typedef std::deque< std::pair<Mac64Address, TransactionInfo> > Transactions;

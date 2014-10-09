@@ -498,6 +498,8 @@ int main(){
 	LogComponentEnable("LifiGtsHandler", LOG_PREFIX_TIME);
 	LogComponentEnable("LifiChannelScanHandler", LOG_LEVEL_FUNCTION);
 	LogComponentEnable("LifiChannelScanHandler", LOG_PREFIX_TIME);
+	LogComponentEnable("LifiNodeDev", LOG_LEVEL_FUNCTION);
+	LogComponentEnable("LifiNodeDev", LOG_PREFIX_TIME);
 //	LogComponentEnable("Timer", LOG_LEVEL_FUNCTION);
 //	LogComponentEnable ("LifiPhy", LOG_LEVEL_ALL);
 //	LogComponentEnable ("LifiSpectrumPhy", LOG_LEVEL_ALL);
@@ -735,8 +737,8 @@ int main(){
 	Simulator::Schedule(Seconds(1.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
 //	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
 //	Simulator::Schedule(Seconds(0.8), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("12:34"));
-	Simulator::Schedule(Seconds(6.6), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev(), EXTENDED, 0x01,
-												   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+//	Simulator::Schedule(Seconds(6.6), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev(), EXTENDED, 0x01,
+//												   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
 
 //	Simulator::Schedule(Seconds(2.7), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), SHORT, 0x01,
 //													   Mac16Address ("12:34"), COORD, false);
@@ -753,15 +755,15 @@ int main(){
 	Simulator::Schedule(Seconds(2.15), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character, Mac64Address ("00:00:00:00:00:00:00:01"));
 //	Simulator::Schedule(Seconds(0.7), &LifiNodeDev::GtsRequest, _test.GetLifiNodeDev1(), character1, Mac64Address ("00:00:00:00:00:00:00:01"));
 //	Simulator::Schedule(Seconds(2.2), &LifiNodeCoord::GtsRequest, _test.GetLifiNodeCoord(), character1, Mac16Address("56:78"));
-	Simulator::Schedule(Seconds(6.7), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev1(), EXTENDED, 0x01,
-											   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
+//	Simulator::Schedule(Seconds(6.7), &LifiNodeDev::DisassocRequst, _test.GetLifiNodeDev1(), EXTENDED, 0x01,
+//											   Mac64Address ("00:00:00:00:00:00:00:01"), DEVICE, false);
 
 //	Simulator::Schedule(Seconds(2.7), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), SHORT, 0x01,
 //													   Mac16Address ("12:34"), COORD, false);
-	Simulator::Schedule(Seconds(7.5), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
-														Mac64Address ("00:00:00:00:00:00:00:03"), COORD, true);
+//	Simulator::Schedule(Seconds(7.5), &LifiNodeCoord::DisassocRequst, _test.GetLifiNodeCoord(), EXTENDED, 0x01,
+//														Mac64Address ("00:00:00:00:00:00:00:03"), COORD, true);
 
-	Simulator::Stop(Seconds(10));
+//	Simulator::Stop(Seconds(100));
 	Simulator::Run ();
 
 	Simulator::Destroy();

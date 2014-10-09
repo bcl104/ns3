@@ -82,6 +82,16 @@ bool PacketInfo::Available()
 	return (this->m_band !=0) && (this->m_handle != 0) &&
 		   (this->m_msduSize != 0) && (this->m_packet != 0);
 }
+
+void TransactionInfo::Reset()
+{
+	this->m_listener = 0;
+	this->m_extendDevAddress = Mac64Address("ff:ff:ff:ff:ff:ff:ff:ff");
+	this->m_handle = 0;
+	(*this->m_timer).Cancel();
+	this->m_packetInfo.Reset();
+}
+
 } /* namespace ns3 */
 
 

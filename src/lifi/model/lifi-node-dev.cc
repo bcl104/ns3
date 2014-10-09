@@ -7,7 +7,11 @@
 #include "lifi-node-dev.h"
 #include "ns3/log.h"
 
+NS_LOG_COMPONENT_DEFINE ("LifiNodeDev");
+
 namespace ns3{
+
+NS_OBJECT_ENSURE_REGISTERED (LifiNodeDev);
 
 LifiNodeDev::LifiNodeDev() {
 }
@@ -33,6 +37,25 @@ void LifiNodeDev::StartAssoc(LogicChannelId channel, AddrMode coordAddrMode,
 
 void LifiNodeDev::DataConfirm(uint8_t msduHandle, MacOpStatus status,
 		uint32_t timestamp) {
+	NS_LOG_FUNCTION(this);
+	SendDataInfo dataInfo;
+	dataInfo.srcAddrMode = SHORT;
+	dataInfo.dstAddrMode = EXTENDED;
+	dataInfo.dstVPANId = 0x01;
+	dataInfo.dstAddr = Mac64Address ("00:00:00:00:00:00:00:01");
+	dataInfo.msduLength = 10;
+	dataInfo.msdu = Create<Packet> (10);
+	dataInfo.msduHandle = 45;
+	dataInfo.txOption.ackTx = true;
+	dataInfo.txOption.indirectTx = false;
+	dataInfo.txOption.gtsTx = false;
+	dataInfo.rate = PHY_III_24_00_MBPS;
+	dataInfo.burstMode = false;
+
+	UniformVariable m_random;
+
+	Simulator::Schedule(Seconds(m_random.GetValue()), &LifiNodeDev::SendData, this, dataInfo);
+
 }
 
 void LifiNodeDev::DataIndication(DataIndicaDescriptor dataDesc){

@@ -181,6 +181,7 @@ void LifiCoordAssocHandler::MlmeAssocResponse(Mac64Address devAddress,
 	TransactionInfo transInfo;
 	transInfo.m_extendDevAddress = m_curDeviceAddress;
 	transInfo.m_packetInfo.m_band = m_curChannel;
+	transInfo.m_packetInfo.m_handle = 0x76;
 	transInfo.m_packetInfo.m_packet = p;
 	transInfo.m_packetInfo.m_listener = this;
 	transInfo.m_packetInfo.m_bust = false;
